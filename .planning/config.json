@@ -1,0 +1,10 @@
+{
+  "executor_model": "sonnet",
+  "verifier_model": "sonnet",
+  "commit_docs": true,
+  "parallelization": true,
+  "branching_strategy": "none",
+  "workflow": {
+    "auto_advance": false
+  }
+}
