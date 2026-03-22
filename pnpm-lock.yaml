@@ -18,6 +18,32 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  infra:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  lambdas/eval:
+    dependencies:
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/core:
+    dependencies:
+      zod:
+        specifier: 4.3.6
+        version: 4.3.6
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
 packages:
 
   '@esbuild/aix-ppc64@0.25.12':
@@ -220,6 +246,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
 snapshots:
 
   '@esbuild/aix-ppc64@0.25.12':
@@ -357,3 +386,5 @@ snapshots:
       '@turbo/windows-arm64': 2.8.20
 
   typescript@5.9.3: {}
+
+  zod@4.3.6: {}
