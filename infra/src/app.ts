@@ -4,7 +4,12 @@ import { MeridianStack } from './stacks/meridian-stack.js';
 
 const app = new cdk.App();
 
-const appEnv = (process.env['APP_ENV'] as 'dev' | 'staging' | 'prod') ?? 'dev';
+// Resolve environment: CDK context (`--context env=dev`) takes precedence,
+// then APP_ENV env var, then default to 'dev'.
+const appEnv =
+  (app.node.tryGetContext('env') as 'dev' | 'staging' | 'prod') ??
+  (process.env['APP_ENV'] as 'dev' | 'staging' | 'prod') ??
+  'dev';
 
 const env: cdk.Environment = {
   account: process.env['CDK_DEFAULT_ACCOUNT'],
