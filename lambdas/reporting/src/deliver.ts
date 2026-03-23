@@ -1,6 +1,7 @@
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { IncomingWebhook } from '@slack/webhook';
 import type { ReportData } from './weekly.js';
+import type { MonthlyReportData } from './monthly.js';
 
 // ---------------------------------------------------------------------------
 // HTML email builder
@@ -132,6 +133,61 @@ export async function sendViaSes(
             Charset: 'UTF-8',
           },
         },
+      },
+    },
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Monthly executive summary SES v2 delivery (with PDF attachment)
+// ---------------------------------------------------------------------------
+
+export async function sendMonthlyViaSes(
+  report: MonthlyReportData,
+  pdfBuffer: Buffer,
+  prevMonth: string,
+  toAddresses: string[],
+  fromAddress: string,
+): Promise<void> {
+  const ses = new SESv2Client({});
+  const subject = `Meridian Executive Summary — ${prevMonth}`;
+  const bodyText = [
+    `Meridian Executive Summary — ${prevMonth}`,
+    '',
+    `Cost savings: $${report.costSavings.totalSavings.toFixed(2)} USD (${report.costSavings.ticketsAutomated} tickets automated)`,
+    `Headcount efficiency: ${report.headcountEfficiency.label}`,
+    `Compliance incidents: ${report.complianceIncidents.count}`,
+    `Agent NPS: ${report.npsAggregate.responseCount > 0 ? report.npsAggregate.meanScore.toFixed(2) + '/10 (' + report.npsAggregate.responseCount + ' responses)' : 'No responses'}`,
+    '',
+    'Please see the attached PDF for the full executive summary.',
+    '',
+    `Generated at ${report.generatedAt} by Meridian ReportingLambda`,
+  ].join('\n');
+
+  await ses.send(new SendEmailCommand({
+    FromEmailAddress: fromAddress,
+    Destination: {
+      ToAddresses: toAddresses,
+    },
+    Content: {
+      Simple: {
+        Subject: {
+          Data: subject,
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Text: {
+            Data: bodyText,
+            Charset: 'UTF-8',
+          },
+        },
+        Attachments: [
+          {
+            FileName: `executive-summary-${prevMonth}.pdf`,
+            ContentType: 'application/pdf',
+            RawContent: pdfBuffer,
+          },
+        ],
       },
     },
   }));
