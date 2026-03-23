@@ -493,7 +493,7 @@ export class MeridianStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       environment: {
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
-        AUDIT_LOG_TABLE_NAME: this.auditTable.tableName,
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
         CIRCUIT_BREAKER_TABLE_NAME: this.auditTable.tableName,
       },
     });
@@ -512,7 +512,7 @@ export class MeridianStack extends cdk.Stack {
       memorySize: 256,
       role: this.lambdaExecutionRole,
       environment: {
-        AUDIT_LOG_TABLE_NAME: this.auditTable.tableName,  // For invoke() audit logging
+        AUDIT_TABLE_NAME: this.auditTable.tableName,  // For invoke() audit logging
         DB_CLUSTER_ARN: this.dbCluster.clusterArn,
         DB_SECRET_ARN: dbSecret.secretArn,
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
