@@ -2,6 +2,11 @@ import { classify, type ClassifyInput } from './classify.js';
 import { writeShadowNote } from './shadow.js';
 import type { Classification } from '@meridian/core';
 
+// Re-export classify function and types for workspace consumers
+// (e.g. @meridian/lambda-batch-classifier) so they can import via
+// '@meridian/lambda-classifier' without reaching into internal source paths.
+export { classify, type ClassifyInput, type ClassifyOutput } from './classify.js';
+
 // Handler for the "Classify Ticket" Step Functions task
 export async function classifyHandler(event: ClassifyInput) {
   const result = await classify(event);
