@@ -5,6 +5,8 @@ import { contextRouter } from './routes/context.js';
 import { feedbackRouter } from './routes/feedback.js';
 import { telemetryRouter } from './routes/telemetry.js';
 import { runbooksRouter } from './routes/runbooks.js';
+import { sendRouter } from './routes/send.js';
+import { modeRouter } from './routes/mode.js';
 
 const app = new Hono();
 
@@ -19,6 +21,8 @@ app.route('/context', contextRouter);
 app.route('/feedback', feedbackRouter);
 app.route('/telemetry', telemetryRouter);
 app.route('/runbooks', runbooksRouter);
+app.route('/send', sendRouter);
+app.route('/mode', modeRouter);
 
 app.get('/health', (c) => c.json({ status: 'ok' }));
 

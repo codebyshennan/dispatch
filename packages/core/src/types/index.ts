@@ -100,3 +100,23 @@ export interface SidebarPayload {
   similarTickets?: SimilarTicket[];
   processedAt?: string;
 }
+
+/** Current routing mode for the system. */
+export type RoutingMode = 'shadow' | 'agent_assisted';
+
+/** Routing mode status returned by GET /mode. */
+export interface ModeStatus {
+  mode: RoutingMode;
+  /** Whether the system is eligible for shadow → agent_assisted transition */
+  transitionReady: boolean;
+  /** Current classification accuracy (0-1). Null if insufficient data. */
+  classificationAccuracy: number | null;
+  /** Current draft acceptance rate (0-1). Null if insufficient data. */
+  draftAcceptanceRate: number | null;
+  /** Thresholds required for transition */
+  thresholds: {
+    classificationAccuracy: number;  // 0.92
+    draftAcceptanceRate: number;     // 0.70
+  };
+  evaluatedAt: string;
+}

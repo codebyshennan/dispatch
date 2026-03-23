@@ -117,3 +117,20 @@ export function makeLLMResponseSchema<T>(dataSchema: z.ZodType<T>) {
     provider: z.enum(['anthropic', 'openai']),
   });
 }
+
+/**
+ * Zod schema for the routing mode status returned by GET /mode.
+ * Describes whether the system is in shadow or agent_assisted mode
+ * and whether the transition thresholds have been met.
+ */
+export const ModeStatusSchema = z.object({
+  mode: z.enum(['shadow', 'agent_assisted']),
+  transitionReady: z.boolean(),
+  classificationAccuracy: z.number().nullable(),
+  draftAcceptanceRate: z.number().nullable(),
+  thresholds: z.object({
+    classificationAccuracy: z.number(),
+    draftAcceptanceRate: z.number(),
+  }),
+  evaluatedAt: z.string(),
+});
