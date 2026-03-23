@@ -4,7 +4,6 @@
     "lib": ["ES2022"],
     "outDir": "dist",
     "rootDir": "src",
-    "moduleResolution": "node16",
     "paths": {
       "@beacon/core": ["../../packages/core/src/index.ts"]
     }
