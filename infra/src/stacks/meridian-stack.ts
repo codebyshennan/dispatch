@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as events from 'aws-cdk-lib/aws-events';
@@ -186,7 +187,31 @@ export class MeridianStack extends cdk.Stack {
       storageEncrypted: true,
       deletionProtection: isProd,
       removalPolicy: isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      enableDataApi: true,
     });
+
+    // ---------------------------------------------------------------
+    // pgvector extension init (INFRA-01)
+    // Runs CREATE EXTENSION IF NOT EXISTS vector; via the RDS Data API
+    // on every CDK deploy (idempotent). Requires enableDataApi: true above.
+    // ---------------------------------------------------------------
+    const pgvectorInit = new cr.AwsCustomResource(this, 'PgvectorInit', {
+      onUpdate: {
+        service: 'RDSDataService',
+        action: 'executeStatement',
+        parameters: {
+          resourceArn: this.dbCluster.clusterArn,
+          secretArn: dbSecret.secretArn,
+          database: 'meridian',
+          sql: 'CREATE EXTENSION IF NOT EXISTS vector;',
+        },
+        physicalResourceId: cr.PhysicalResourceId.of('pgvector-init'),
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: [this.dbCluster.clusterArn, dbSecret.secretArn],
+      }),
+    });
+    pgvectorInit.node.addDependency(this.dbCluster);
 
     // ---------------------------------------------------------------
     // IAM execution role for Lambda functions
