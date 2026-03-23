@@ -123,6 +123,44 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  lambdas/kb-maintenance:
+    dependencies:
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: '*'
+        version: 3.1014.0
+      '@aws-sdk/client-rds-data':
+        specifier: '*'
+        version: 3.1014.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: '*'
+        version: 3.1014.0(@aws-sdk/client-dynamodb@3.1014.0)
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  lambdas/kb-retrieval:
+    dependencies:
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@aws-sdk/client-rds-data':
+        specifier: '*'
+        version: 3.1014.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   lambdas/voc-ingestion:
     dependencies:
       '@aws-sdk/client-s3':

@@ -49,6 +49,20 @@ export const ClassificationSchema = z.object({
 export type Classification = z.infer<typeof ClassificationSchema>;
 
 /**
+ * Zod schema for a KB article result returned by the KB retrieval Lambda.
+ * Used by downstream response generator to produce grounded draft replies.
+ */
+export const KBResultSchema = z.object({
+  article_id: z.number(),
+  title:      z.string(),
+  html_url:   z.string(),
+  updated_at: z.string(),
+  text:       z.string(),
+  similarity: z.number(), // 0-1 cosine similarity (1 - cosine distance)
+});
+export type KBResult = z.infer<typeof KBResultSchema>;
+
+/**
  * Factory function that wraps any caller-provided schema in the LLMResponse envelope.
  * Usage: const schema = makeLLMResponseSchema(MyOutputSchema);
  */
