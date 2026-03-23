@@ -71,3 +71,32 @@ export interface CircuitBreakerState {
   openUntil?: string;
 }
 
+/**
+ * Similar ticket reference returned by the context route for the ZAF sidebar.
+ * Written by the classifier Lambda under SIMILAR# DynamoDB keys.
+ */
+export interface SimilarTicket {
+  ticketId: string;
+  category: string;
+  subject?: string;
+  resolvedAt?: string;
+}
+
+/**
+ * Sidebar payload returned by GET /context/:ticketId.
+ * Assembled from CLASSIFICATION#, RESPONSE#, and SIMILAR# DynamoDB records.
+ * Uses unknown for pipeline types to avoid circular imports between types and schemas.
+ */
+export interface SidebarPayload {
+  ticketId: string;
+  status: 'pending' | 'processing' | 'ready' | 'error';
+  /** Structured classification output from the classifier Lambda */
+  classification?: unknown;
+  /** Response draft produced by the response generator Lambda */
+  responseDraft?: unknown;
+  /** KB article results used to ground the response draft */
+  kbArticles?: unknown[];
+  /** Similar resolved tickets for context */
+  similarTickets?: SimilarTicket[];
+  processedAt?: string;
+}

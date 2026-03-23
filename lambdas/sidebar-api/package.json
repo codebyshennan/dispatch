@@ -1,0 +1,22 @@
+{
+  "name": "@meridian/lambda-sidebar-api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --external:@aws-sdk/*",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@meridian/core": "workspace:*",
+    "hono": "4.12.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "5.8.3"
+  }
+}
