@@ -1,4 +1,4 @@
-import { DynamoDBClient, QueryCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand, PutItemCommand, ScanCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 
 const dynamo = new DynamoDBClient({});
 
@@ -227,6 +227,119 @@ async function runRunbookUsageMetrics(tableName: string): Promise<Record<string,
 }
 
 // ---------------------------------------------------------------------------
+// Job 5 — Prompt performance by category (EVAL-07)
+// Queries CLASSIFICATION# and METRICS#acceptance records from last 7 days.
+// Groups by category, computes accuracy (confidence>0.70), mean edit distance,
+// and compliance flag rate. Writes one MONITOR#prompt#${category}#${weekOf}
+// record per category for use by the ReportingLambda weekly CX report.
+// ---------------------------------------------------------------------------
+
+async function promptPerformanceJob(
+  dynamo: DynamoDBClient,
+  tableName: string,
+  weekOf: string,
+): Promise<void> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  // --- Classification accuracy by category ---
+  const classResult = await dynamo.send(new ScanCommand({
+    TableName: tableName,
+    FilterExpression: 'begins_with(pk, :prefix) AND createdAt > :since',
+    ExpressionAttributeValues: {
+      ':prefix': { S: 'CLASSIFICATION#' },
+      ':since': { S: sevenDaysAgo },
+    },
+    Limit: 5000,
+  }));
+
+  const classItems = classResult.Items ?? [];
+
+  // Group classification records by category, track total + correct (confidence > 0.70)
+  const classByCategory: Record<string, { total: number; correct: number }> = {};
+  for (const item of classItems) {
+    let category = 'unknown';
+    let confidence = 0;
+    const classJson = item['classification']?.S;
+    if (classJson) {
+      try {
+        const cls = JSON.parse(classJson) as { category?: string; confidence?: number };
+        category = cls.category ?? 'unknown';
+        confidence = cls.confidence ?? 0;
+      } catch { /* skip */ }
+    }
+    classByCategory[category] = classByCategory[category] ?? { total: 0, correct: 0 };
+    classByCategory[category].total++;
+    if (confidence > 0.70) {
+      classByCategory[category].correct++;
+    }
+  }
+
+  // --- METRICS#acceptance: edit distance + compliance flag by category ---
+  const acceptanceResult = await dynamo.send(new QueryCommand({
+    TableName: tableName,
+    KeyConditionExpression: 'pk = :pk AND sk > :since',
+    ExpressionAttributeValues: {
+      ':pk': { S: 'METRICS#acceptance' },
+      ':since': { S: `ACCEPTANCE#${sevenDaysAgo}` },
+    },
+  }));
+
+  const acceptanceItems = acceptanceResult.Items ?? [];
+  const acceptanceByCategory: Record<string, { editRatios: number[]; complianceFlags: number }> = {};
+
+  for (const item of acceptanceItems) {
+    // Use urgency as category proxy (per Phase 05 decision in STATE.md)
+    const category = item['urgency']?.S ?? 'unknown';
+    const editRatio = parseFloat(item['editRatio']?.N ?? '0');
+    const hasComplianceFlag = item['complianceFlag']?.BOOL === true ? 1 : 0;
+    acceptanceByCategory[category] = acceptanceByCategory[category] ?? { editRatios: [], complianceFlags: 0 };
+    acceptanceByCategory[category].editRatios.push(editRatio);
+    acceptanceByCategory[category].complianceFlags += hasComplianceFlag;
+  }
+
+  // Merge categories from both sources
+  const allCategories = new Set([
+    ...Object.keys(classByCategory),
+    ...Object.keys(acceptanceByCategory),
+  ]);
+
+  const now = new Date().toISOString();
+
+  for (const category of allCategories) {
+    const classStats = classByCategory[category] ?? { total: 0, correct: 0 };
+    const accStats = acceptanceByCategory[category] ?? { editRatios: [], complianceFlags: 0 };
+
+    const accuracy = classStats.total > 0
+      ? (classStats.correct / classStats.total) * 100
+      : 0;
+
+    const meanEditDistance = accStats.editRatios.length > 0
+      ? accStats.editRatios.reduce((a, b) => a + b, 0) / accStats.editRatios.length
+      : 0;
+
+    const complianceFlagRate = accStats.editRatios.length > 0
+      ? accStats.complianceFlags / accStats.editRatios.length
+      : 0;
+
+    const sampleSize = Math.max(classStats.total, accStats.editRatios.length);
+
+    const record: Record<string, AttributeValue> = {
+      pk: { S: 'MONITOR#prompt' },
+      sk: { S: `PROMPT#${category}#${weekOf}` },
+      category: { S: category },
+      accuracy: { N: String(accuracy.toFixed(4)) },
+      meanEditDistance: { N: String(meanEditDistance.toFixed(4)) },
+      complianceFlagRate: { N: String(complianceFlagRate.toFixed(4)) },
+      sampleSize: { N: String(sampleSize) },
+      weekOf: { S: weekOf },
+      createdAt: { S: now },
+    };
+
+    await dynamo.send(new PutItemCommand({ TableName: tableName, Item: record }));
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Lambda handler — weekly monitoring entry point
 // Runs all 4 monitoring jobs in parallel and returns a MonitoringOutput.
 // ---------------------------------------------------------------------------
@@ -234,12 +347,22 @@ async function runRunbookUsageMetrics(tableName: string): Promise<Record<string,
 export async function handler(): Promise<MonitoringOutput> {
   const tableName = process.env.AUDIT_TABLE_NAME!;
 
+  // Compute weekOf — ISO date of most recent Monday
+  const now = new Date();
+  const day = now.getUTCDay();
+  const daysToMonday = day === 0 ? 6 : day - 1;
+  const monday = new Date(now.getTime() - daysToMonday * 24 * 60 * 60 * 1000);
+  const weekOf = monday.toISOString().split('T')[0]!;
+
   const [spotCheckCount, editDistanceAlerts, reContactAlerts, runbookUsage] = await Promise.all([
     runSpotCheckSampling(tableName),
     runEditDistanceTracking(tableName),
     runReContactTracking(tableName),
     runRunbookUsageMetrics(tableName),
   ]);
+
+  // Job 5 — prompt performance (EVAL-07) — run after other jobs (sequential, writes per-category)
+  await promptPerformanceJob(dynamo, tableName, weekOf);
 
   const result: MonitoringOutput = {
     spotCheckCount,

@@ -956,5 +956,59 @@ export class MeridianStack extends cdk.Stack {
     });
 
     void vocProcessorFn;
+
+    // ---------------------------------------------------------------
+    // Reporting Lambda (RPT-01, EVAL-07)
+    // Weekly CX report: ticket volume, automation rate, re-contact trend,
+    // KB gaps, VoC summary, prompt performance — delivered via SES + Slack.
+    // Monday 02:00 UTC schedule (after monitoring at 01:00 UTC).
+    // No VPC attachment — Zendesk + SES + Slack are external HTTPS endpoints.
+    // ---------------------------------------------------------------
+    const reportingFn = new NodejsFunction(this, 'ReportingLambda', {
+      functionName: `${prefix}-reporting`,
+      entry: path.join(__dirname, '../../../lambdas/reporting/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 512,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+        S3_ASSETS_BUCKET: this.assetsBucket.bucketName,
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+        SES_FROM_ADDRESS: process.env.SES_FROM_ADDRESS ?? '',
+        SES_TO_ADDRESSES: process.env.SES_TO_ADDRESSES ?? '',
+        SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL ?? '',
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    // DynamoDB read/write for REPORT# cache + reading monitoring/metrics records
+    this.auditTable.grantReadWriteData(reportingFn);
+
+    // S3 read for VoC review files under reviews/
+    this.assetsBucket.grantRead(reportingFn);
+
+    // SES send permission (SES V2 does not have a specific resource ARN pattern — use *)
+    reportingFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ses:SendEmail', 'sesv2:SendEmail'],
+      resources: ['*'],
+    }));
+
+    // Weekly EventBridge schedule — Monday 02:00 UTC (after monitoring at 01:00 UTC)
+    new events.Rule(this, 'ReportingSchedule', {
+      ruleName: `${prefix}-reporting-schedule`,
+      schedule: events.Schedule.cron({ minute: '0', hour: '2', weekDay: 'MON' }),
+      targets: [
+        new targets.LambdaFunction(reportingFn, {
+          event: events.RuleTargetInput.fromObject({ type: 'weekly_cx_report' }),
+        }),
+      ],
+    });
+
+    void reportingFn;
   }
 }
