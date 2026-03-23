@@ -16,7 +16,12 @@ const results = new Map<string, SidebarPayload>();
 
 // POST /analyze — submit a ticket, run pipeline, return ticketId
 app.post('/analyze', async (c) => {
-  const { subject, body } = await c.req.json<{ subject: string; body: string }>();
+  let subject: string, body: string;
+  try {
+    ({ subject, body } = await c.req.json<{ subject: string; body: string }>());
+  } catch {
+    return c.json({ error: 'invalid JSON body' }, 400);
+  }
   if (!subject && !body) return c.json({ error: 'subject or body required' }, 400);
   const { ticketId, payload } = await analyze({ subject: subject ?? '', body: body ?? '' });
   results.set(ticketId, payload);
