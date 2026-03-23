@@ -1,0 +1,29 @@
+{
+  "name": "Meridian Copilot",
+  "author": {
+    "name": "Reap",
+    "email": "tech@reap.global",
+    "url": "https://reap.global"
+  },
+  "defaultLocale": "en",
+  "version": "1.0.0",
+  "frameworkVersion": "2.0",
+  "location": {
+    "support": {
+      "ticket_sidebar": {
+        "url": "assets/iframe.html",
+        "flexible": true
+      }
+    }
+  },
+  "parameters": [
+    {
+      "name": "api_base_url",
+      "type": "text",
+      "required": true,
+      "secure": false,
+      "description": "Base URL of the Meridian sidebar-api Lambda (API Gateway endpoint)"
+    }
+  ],
+  "domainWhitelist": ["*.execute-api.us-east-1.amazonaws.com"]
+}
