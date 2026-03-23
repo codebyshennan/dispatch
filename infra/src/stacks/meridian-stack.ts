@@ -4,6 +4,7 @@ import * as cr from 'aws-cdk-lib/custom-resources';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -313,6 +314,68 @@ export class MeridianStack extends cdk.Stack {
       value: this.lambdaExecutionRole.roleArn,
       exportName: `${prefix}-lambda-execution-role-arn`,
       description: 'ARN of the IAM role assumed by Meridian Lambda functions',
+    });
+
+    // ---------------------------------------------------------------
+    // VoC Ingestion Lambda (INGEST-05, INGEST-06)
+    // ---------------------------------------------------------------
+    const vocFn = new NodejsFunction(this, 'VocIngestionLambda', {
+      functionName: `${prefix}-voc-ingestion`,
+      entry: path.join(__dirname, '../../../lambdas/voc-ingestion/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.minutes(5),
+      environment: {
+        ASSETS_BUCKET_NAME: this.assetsBucket.bucketName,
+        GOOGLE_PLAY_APP_ID: process.env.GOOGLE_PLAY_APP_ID ?? '',
+        APP_STORE_APP_ID: process.env.APP_STORE_APP_ID ?? '',
+        TRUSTPILOT_API_KEY: process.env.TRUSTPILOT_API_KEY ?? '',
+        TRUSTPILOT_BUSINESS_UNIT_ID: process.env.TRUSTPILOT_BUSINESS_UNIT_ID ?? '',
+      },
+    });
+
+    // Google Play + App Store: 6-hour cadence ({ source: 'all' } triggers both branches in index.ts)
+    new events.Rule(this, 'ReviewsSchedule6h', {
+      ruleName: `${prefix}-reviews-6h`,
+      schedule: events.Schedule.rate(cdk.Duration.hours(6)),
+      targets: [new targets.LambdaFunction(vocFn, {
+        event: events.RuleTargetInput.fromObject({ source: 'all' }),
+      })],
+    });
+
+    // Trustpilot: 12-hour cadence
+    new events.Rule(this, 'TrustpilotSchedule12h', {
+      ruleName: `${prefix}-trustpilot-12h`,
+      schedule: events.Schedule.rate(cdk.Duration.hours(12)),
+      targets: [new targets.LambdaFunction(vocFn, {
+        event: events.RuleTargetInput.fromObject({ source: 'trustpilot' }),
+      })],
+    });
+
+    // ---------------------------------------------------------------
+    // Help Center Ingestion Lambda (INGEST-04)
+    // ---------------------------------------------------------------
+    const helpCenterFn = new NodejsFunction(this, 'HelpCenterIngestionLambda', {
+      functionName: `${prefix}-help-center-ingestion`,
+      entry: path.join(__dirname, '../../../lambdas/help-center-ingestion/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.minutes(15),
+      environment: {
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+        ASSETS_BUCKET_NAME: this.assetsBucket.bucketName,
+        VOYAGE_API_KEY: process.env.VOYAGE_API_KEY ?? '',
+      },
+    });
+
+    // Daily cadence for Help Center refresh
+    new events.Rule(this, 'HelpCenterSchedule', {
+      ruleName: `${prefix}-help-center-daily`,
+      schedule: events.Schedule.rate(cdk.Duration.hours(24)),
+      targets: [new targets.LambdaFunction(helpCenterFn)],
     });
   }
 }

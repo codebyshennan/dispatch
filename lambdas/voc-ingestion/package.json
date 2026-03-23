@@ -1,0 +1,17 @@
+{
+  "name": "@meridian/lambda-voc-ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "google-play-scraper": "latest"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}
