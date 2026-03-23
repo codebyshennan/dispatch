@@ -517,5 +517,24 @@ export class MeridianStack extends cdk.Stack {
       batchSize: 1,
       reportBatchItemFailures: true,
     }));
+
+    // Batch Classifier Lambda (INGEST-07) — manually invoked, not on schedule
+    const batchClassifierFn = new NodejsFunction(this, 'BatchClassifierLambda', {
+      functionName: `${prefix}-batch-classifier`,
+      entry: path.join(__dirname, '../../../lambdas/batch-classifier/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.minutes(15), // Long-running batch — max Lambda timeout
+      environment: {
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+        AUDIT_LOG_TABLE_NAME: this.auditTable.tableName,
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+      },
+    });
+
+    // Suppress unused variable warning — Lambda is registered in CDK construct tree
+    void batchClassifierFn;
   }
 }
