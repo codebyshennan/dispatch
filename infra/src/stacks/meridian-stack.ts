@@ -1025,5 +1025,88 @@ export class MeridianStack extends cdk.Stack {
     });
 
     void reportingFn;
+
+    // ---------------------------------------------------------------
+    // CloudWatch Ops Dashboard (RPT-03)
+    // 4 widgets: SQS queue depth, Lambda error rates, LLM API latency, active escalations.
+    // CX ops team can view live operational metrics in the Meridian-Ops CloudWatch dashboard.
+    // Custom metrics (LLMAPILatency, ActiveEscalations) are published by Lambdas at runtime;
+    // the CDK dashboard widget references them — PutMetricData calls are a separate concern.
+    // ---------------------------------------------------------------
+    const opsDashboard = new cloudwatch.Dashboard(this, 'MeridianOpsDashboard', {
+      dashboardName: 'Meridian-Ops',
+    });
+
+    // Widget 1 — SQS Queue Depth (proxy for ticket backlog)
+    const queueDepthWidget = new cloudwatch.GraphWidget({
+      title: 'SQS Queue Depth',
+      width: 12,
+      height: 6,
+      left: [
+        this.ticketsQueue.metricApproximateNumberOfMessagesVisible({
+          label: 'Queue Depth (total)',
+          color: cloudwatch.Color.BLUE,
+        }),
+        this.ticketsDlq.metricApproximateNumberOfMessagesVisible({
+          label: 'DLQ Depth',
+          color: cloudwatch.Color.RED,
+        }),
+      ],
+    });
+
+    // Widget 2 — Lambda Error Rate across all core Lambdas
+    const errorRateWidget = new cloudwatch.GraphWidget({
+      title: 'Lambda Error Rate',
+      width: 12,
+      height: 6,
+      left: [
+        classifyFn.metricErrors({ label: 'Classifier Errors', color: cloudwatch.Color.RED }),
+        responseGenFn.metricErrors({ label: 'ResponseGenerator Errors', color: cloudwatch.Color.ORANGE }),
+        autoSenderFn.metricErrors({ label: 'AutoSender Errors', color: cloudwatch.Color.PURPLE }),
+        vocProcessorFn.metricErrors({ label: 'VocProcessor Errors', color: cloudwatch.Color.GREEN }),
+        reportingFn.metricErrors({ label: 'Reporting Errors', color: cloudwatch.Color.BROWN }),
+      ],
+    });
+
+    // Widget 3 — LLM API p95 Latency (custom metric published by Lambdas at runtime)
+    const llmLatencyWidget = new cloudwatch.GraphWidget({
+      title: 'LLM API p95 Latency',
+      width: 12,
+      height: 6,
+      left: [
+        new cloudwatch.Metric({
+          namespace: 'Meridian',
+          metricName: 'LLMAPILatency',
+          statistic: 'p95',
+          period: cdk.Duration.minutes(5),
+          label: 'LLM p95 Latency (ms)',
+          color: cloudwatch.Color.BLUE,
+        }),
+      ],
+    });
+
+    // Widget 4 — Active Escalations (custom metric published by RunbookExecutorLambda)
+    const escalationsWidget = new cloudwatch.SingleValueWidget({
+      title: 'Active Escalations',
+      width: 12,
+      height: 6,
+      metrics: [
+        new cloudwatch.Metric({
+          namespace: 'Meridian',
+          metricName: 'ActiveEscalations',
+          statistic: 'Sum',
+          period: cdk.Duration.minutes(5),
+          label: 'Active Escalations',
+          color: cloudwatch.Color.RED,
+        }),
+      ],
+    });
+
+    opsDashboard.addWidgets(
+      queueDepthWidget,
+      errorRateWidget,
+      llmLatencyWidget,
+      escalationsWidget,
+    );
   }
 }
