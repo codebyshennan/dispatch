@@ -3,3 +3,4 @@ packages:
   - 'lambdas/*'
   - 'infra'
   - 'apps/*'
+  - 'scripts'
