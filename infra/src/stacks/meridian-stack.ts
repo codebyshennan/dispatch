@@ -729,6 +729,37 @@ export class MeridianStack extends cdk.Stack {
     runbookExecutorFn.grantInvoke(this.lambdaExecutionRole);
 
     // ---------------------------------------------------------------
+    // Monitoring Lambda (EVAL-03, EVAL-04, EVAL-05, CHG-05)
+    // Weekly: spot-check sampling, edit distance alerts, re-contact tracking, runbook usage.
+    // No VPC attachment — DynamoDB access only, no Aurora needed.
+    // ---------------------------------------------------------------
+    const monitoringFn = new NodejsFunction(this, 'MonitoringLambda', {
+      functionName: `${prefix}-monitoring`,
+      entry: path.join(__dirname, '../../../lambdas/monitoring/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+        NODE_ENV: appEnv,
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    // Weekly EventBridge schedule — every Monday at 01:00 UTC (after KB maintenance at 00:00)
+    new events.Rule(this, 'MonitoringSchedule', {
+      ruleName: `${prefix}-monitoring-schedule`,
+      schedule: events.Schedule.cron({ minute: '0', hour: '1', weekDay: 'MON' }),
+      targets: [new targets.LambdaFunction(monitoringFn)],
+    });
+
+    void monitoringFn;
+
+    // ---------------------------------------------------------------
     // Sidebar API Lambda + API Gateway HTTP API (ZAF-02, CHG-02)
     // ---------------------------------------------------------------
     const sidebarApiLambda = new NodejsFunction(this, 'SidebarApiLambda', {
