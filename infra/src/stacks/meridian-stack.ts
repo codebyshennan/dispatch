@@ -493,6 +493,27 @@ export class MeridianStack extends cdk.Stack {
     });
 
     // ---------------------------------------------------------------
+    // Response Generator Lambda — GenerateResponse Step Functions task target
+    // No VPC attachment: uses Anthropic API (HTTPS), no Aurora access needed.
+    // 60s timeout: LLM call (claude-opus-4-5) can take 20-30s.
+    // ---------------------------------------------------------------
+    const responseGenFn = new NodejsFunction(this, 'ResponseGeneratorLambda', {
+      functionName: `${prefix}-response-generator`,
+      entry: path.join(__dirname, '../../../lambdas/response-generator/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(60),  // LLM call can take 20-30s
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_LOG_TABLE_NAME: this.auditTable.tableName,  // For invoke() audit logging
+        DB_CLUSTER_ARN: this.dbCluster.clusterArn,
+        DB_SECRET_ARN: dbSecret.secretArn,
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+      },
+    });
+
+    // ---------------------------------------------------------------
     // Shadow Lambda — shadowHandler Step Functions task target
     // ---------------------------------------------------------------
     const shadowFn = new NodejsFunction(this, 'ShadowLambda', {
@@ -538,12 +559,20 @@ export class MeridianStack extends cdk.Stack {
       taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(10)),
     });
 
+    const responseGenStep = new tasks.LambdaInvoke(this, 'GenerateResponse', {
+      lambdaFunction: responseGenFn,
+      resultPath: '$.responseResult',
+      retryOnServiceExceptions: true,
+      taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(60)),
+    });
+
     const processingWorkflow = new sfn.StateMachine(this, 'TicketProcessingWorkflow', {
       stateMachineName: `${prefix}-ticket-processing`,
       stateMachineType: sfn.StateMachineType.EXPRESS,
       definitionBody: sfn.DefinitionBody.fromChainable(
         classifyStep
           .next(kbRetrievalStep)
+          .next(responseGenStep)
           .next(shadowStep)
       ),
       timeout: cdk.Duration.minutes(5),
