@@ -68,6 +68,9 @@ export class MeridianStack extends cdk.Stack {
   /** IAM role assumed by Meridian Lambda functions */
   public readonly lambdaExecutionRole: iam.Role;
 
+  /** Runbook Executor Lambda — dispatches sidebar action requests to runbook implementations */
+  public readonly runbookExecutorLambda: lambda.IFunction;
+
   constructor(scope: Construct, id: string, props: MeridianStackProps = {}) {
     super(scope, id, props);
 
@@ -692,6 +695,40 @@ export class MeridianStack extends cdk.Stack {
     });
 
     // ---------------------------------------------------------------
+    // Runbook Executor Lambda (RUN-01..08)
+    // Dispatches sidebar action requests to Reap API runbooks.
+    // Circuit-breaker state shared via audit-log table (CB# key prefix).
+    // No VPC attachment — Reap API is external HTTPS; no Aurora access needed.
+    // ---------------------------------------------------------------
+    const runbookExecutorFn = new NodejsFunction(this, 'RunbookExecutorLambda', {
+      functionName: `${prefix}-runbook-executor`,
+      entry: path.join(__dirname, '../../../lambdas/runbook-executor/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(15), // 5s per runbook + overhead
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+        NODE_ENV: appEnv,
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    this.runbookExecutorLambda = runbookExecutorFn;
+
+    new cdk.CfnOutput(this, 'RunbookExecutorFunctionName', {
+      value: runbookExecutorFn.functionName,
+      exportName: `${prefix}-runbook-executor-fn`,
+      description: 'Runbook executor Lambda function name — invoked by sidebar-api',
+    });
+
+    // Grant sidebar-api Lambda invoke permission on runbook-executor
+    runbookExecutorFn.grantInvoke(this.lambdaExecutionRole);
+
+    // ---------------------------------------------------------------
     // Sidebar API Lambda + API Gateway HTTP API (ZAF-02, CHG-02)
     // ---------------------------------------------------------------
     const sidebarApiLambda = new NodejsFunction(this, 'SidebarApiLambda', {
@@ -705,6 +742,10 @@ export class MeridianStack extends cdk.Stack {
       environment: {
         AUDIT_TABLE_NAME: this.auditTable.tableName,
         NODE_ENV: appEnv,
+        // Added by Plan 02 — consolidates all sidebar-api env vars to avoid Wave 2 file conflicts
+        RUNBOOK_EXECUTOR_FUNCTION_NAME: runbookExecutorFn.functionName,
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
       },
       bundling: {
         externalModules: ['@aws-sdk/*'],
