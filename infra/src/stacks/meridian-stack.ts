@@ -7,10 +7,14 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as eventsources from 'aws-cdk-lib/aws-lambda-event-sources';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -377,5 +381,141 @@ export class MeridianStack extends cdk.Stack {
       schedule: events.Schedule.rate(cdk.Duration.hours(24)),
       targets: [new targets.LambdaFunction(helpCenterFn)],
     });
+
+    // ---------------------------------------------------------------
+    // Webhook Lambda + Function URL (INGEST-01)
+    // No API Gateway — Lambda function URLs forward raw body intact for HMAC
+    // ---------------------------------------------------------------
+    const webhookFn = new NodejsFunction(this, 'WebhookLambda', {
+      functionName: `${prefix}-webhook`,
+      entry: path.join(__dirname, '../../../lambdas/webhook/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.seconds(10),
+      environment: {
+        WEBHOOK_SIGNING_SECRET: process.env.WEBHOOK_SIGNING_SECRET ?? '',
+        EVENT_BUS_NAME: this.eventBus.eventBusName,
+        IDEMPOTENCY_TABLE_NAME: this.idempotencyTable.tableName,
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+      },
+    });
+
+    // Function URL (no auth — Zendesk webhooks call this directly; HMAC provides auth)
+    const webhookUrl = webhookFn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      cors: {
+        allowedOrigins: ['https://*.zendesk.com'],
+        allowedMethods: [lambda.HttpMethod.POST],
+      },
+    });
+    new cdk.CfnOutput(this, 'WebhookFunctionUrl', {
+      value: webhookUrl.url,
+      description: 'Webhook endpoint URL — configure in Zendesk Admin',
+    });
+
+    // ---------------------------------------------------------------
+    // Classifier Lambda — classifyHandler Step Functions task target
+    // ---------------------------------------------------------------
+    const classifyFn = new NodejsFunction(this, 'ClassifierLambda', {
+      functionName: `${prefix}-classifier`,
+      entry: path.join(__dirname, '../../../lambdas/classifier/src/index.ts'),
+      handler: 'classifyHandler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+        AUDIT_LOG_TABLE_NAME: this.auditTable.tableName,
+        CIRCUIT_BREAKER_TABLE_NAME: this.auditTable.tableName,
+      },
+    });
+
+    // ---------------------------------------------------------------
+    // Shadow Lambda — shadowHandler Step Functions task target
+    // ---------------------------------------------------------------
+    const shadowFn = new NodejsFunction(this, 'ShadowLambda', {
+      functionName: `${prefix}-shadow`,
+      entry: path.join(__dirname, '../../../lambdas/classifier/src/index.ts'),
+      handler: 'shadowHandler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.seconds(10),
+      environment: {
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+      },
+    });
+
+    // ---------------------------------------------------------------
+    // Step Functions Express Workflow (INGEST-03)
+    // ClassifyTicket → WriteShadowNote; CloudWatch logging at ERROR level
+    // ---------------------------------------------------------------
+    const workflowLogs = new logs.LogGroup(this, 'WorkflowLogs', {
+      logGroupName: `/meridian/${appEnv}/ticket-processing`,
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const classifyStep = new tasks.LambdaInvoke(this, 'ClassifyTicket', {
+      lambdaFunction: classifyFn,
+      resultPath: '$.classificationResult',
+      retryOnServiceExceptions: true,
+      taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(30)),
+    });
+
+    const shadowStep = new tasks.LambdaInvoke(this, 'WriteShadowNote', {
+      lambdaFunction: shadowFn,
+      resultPath: '$.shadowResult',
+      taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(10)),
+    });
+
+    const processingWorkflow = new sfn.StateMachine(this, 'TicketProcessingWorkflow', {
+      stateMachineName: `${prefix}-ticket-processing`,
+      stateMachineType: sfn.StateMachineType.EXPRESS,
+      definitionBody: sfn.DefinitionBody.fromChainable(classifyStep.next(shadowStep)),
+      timeout: cdk.Duration.minutes(5),
+      logs: {
+        destination: workflowLogs,
+        level: sfn.LogLevel.ERROR,
+        includeExecutionData: true,
+      },
+    });
+    processingWorkflow.grantStartExecution(this.lambdaExecutionRole);
+
+    // ---------------------------------------------------------------
+    // EventBridge Rule → SQS (INGEST-02)
+    // Routes ticket.created and ticket.updated to existing ticketsQueue
+    // ---------------------------------------------------------------
+    const ticketRule = new events.Rule(this, 'TicketEventsRule', {
+      eventBus: this.eventBus,
+      ruleName: `${prefix}-ticket-events`,
+      eventPattern: {
+        detailType: ['ticket.created', 'ticket.updated'],
+      },
+    });
+    ticketRule.addTarget(new targets.SqsQueue(this.ticketsQueue));
+
+    // ---------------------------------------------------------------
+    // Pipeline Lambda — SQS event source → starts Step Functions execution
+    // Thin orchestrator: receives SQS messages and calls sfn.StartExecution
+    // ---------------------------------------------------------------
+    const pipelineFn = new NodejsFunction(this, 'PipelineLambda', {
+      functionName: `${prefix}-pipeline`,
+      entry: path.join(__dirname, '../../../lambdas/webhook/src/pipeline.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.seconds(15),
+      environment: {
+        STATE_MACHINE_ARN: processingWorkflow.stateMachineArn,
+      },
+    });
+
+    pipelineFn.addEventSource(new eventsources.SqsEventSource(this.ticketsQueue, {
+      batchSize: 1,
+      reportBatchItemFailures: true,
+    }));
   }
 }
