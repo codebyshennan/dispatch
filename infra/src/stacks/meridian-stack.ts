@@ -14,6 +14,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
@@ -903,5 +904,57 @@ export class MeridianStack extends cdk.Stack {
       exportName: `${prefix}-db-secret-arn`,
       description: 'Aurora DB credentials secret ARN',
     });
+
+    // ---------------------------------------------------------------
+    // VoC Processor Lambda (VOC-01, VOC-02, VOC-03, VOC-04)
+    // S3-triggered: processes 1-star reviews → Zendesk tickets + reply drafts
+    // Monthly EventBridge schedule: cross-correlation analysis (VOC-04)
+    // No VPC attachment — Zendesk API is external HTTPS; DynamoDB via AWS SDK endpoint.
+    // ---------------------------------------------------------------
+    const vocProcessorFn = new NodejsFunction(this, 'VocProcessorLambda', {
+      functionName: `${prefix}-voc-processor`,
+      entry: path.join(__dirname, '../../../lambdas/voc-processor/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(60),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+        S3_ASSETS_BUCKET: this.assetsBucket.bucketName,
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    this.auditTable.grantReadWriteData(vocProcessorFn);
+    this.assetsBucket.grantRead(vocProcessorFn);
+
+    // S3 event notification — trigger VocProcessorLambda on any object created under reviews/
+    this.assetsBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(vocProcessorFn),
+      { prefix: 'reviews/' },
+    );
+
+    // Monthly cross-correlation (VOC-04) — first day of each month at 04:00 UTC
+    new events.Rule(this, 'VocMonthlyCorrelationSchedule', {
+      ruleName: `${prefix}-voc-monthly-correlation`,
+      schedule: events.Schedule.cron({ minute: '0', hour: '4', day: '1' }),
+      targets: [
+        new targets.LambdaFunction(vocProcessorFn, {
+          event: events.RuleTargetInput.fromObject({
+            type: 'monthly-correlation',
+            source: 'eventbridge',
+          }),
+        }),
+      ],
+    });
+
+    void vocProcessorFn;
   }
 }

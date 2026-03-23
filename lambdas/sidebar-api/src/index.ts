@@ -7,6 +7,7 @@ import { telemetryRouter } from './routes/telemetry.js';
 import { runbooksRouter } from './routes/runbooks.js';
 import { sendRouter } from './routes/send.js';
 import { modeRouter } from './routes/mode.js';
+import { vocRouter } from './routes/voc.js';
 
 const app = new Hono();
 
@@ -23,6 +24,7 @@ app.route('/telemetry', telemetryRouter);
 app.route('/runbooks', runbooksRouter);
 app.route('/send', sendRouter);
 app.route('/mode', modeRouter);
+app.route('/voc', vocRouter);
 
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
