@@ -1,0 +1,21 @@
+{
+  "name": "@meridian/lambda-reporting",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-sesv2": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@meridian/core": "workspace:*",
+    "@slack/webhook": "^7.x"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
