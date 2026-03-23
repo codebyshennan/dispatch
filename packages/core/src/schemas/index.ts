@@ -63,6 +63,20 @@ export const KBResultSchema = z.object({
 export type KBResult = z.infer<typeof KBResultSchema>;
 
 /**
+ * Zod schema for the structured response draft produced by the response generator Lambda.
+ * Includes KB-grounded draft, citations, routing decision, and jurisdiction footer.
+ */
+export const ResponseDraftSchema = z.object({
+  draft:                  z.string(),
+  citations:              z.array(z.string()),  // KB article html_url references
+  requires_review:        z.boolean(),
+  requires_review_reason: z.string().optional(),
+  routing:                z.enum(['auto_send', 'agent_assisted', 'escalate']),
+  jurisdiction_footer:    z.string().optional(),
+});
+export type ResponseDraft = z.infer<typeof ResponseDraftSchema>;
+
+/**
  * Factory function that wraps any caller-provided schema in the LLMResponse envelope.
  * Usage: const schema = makeLLMResponseSchema(MyOutputSchema);
  */
