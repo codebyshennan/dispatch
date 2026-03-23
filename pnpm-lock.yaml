@@ -18,6 +18,61 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  apps/demo:
+    dependencies:
+      '@beacon/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@zendeskgarden/react-buttons':
+        specifier: ~9.15.0
+        version: 9.15.0(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-forms':
+        specifier: ~9.15.0
+        version: 9.15.0(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-loaders':
+        specifier: ~9.15.0
+        version: 9.15.0(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-modals':
+        specifier: ~9.15.0
+        version: 9.15.0(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-notifications':
+        specifier: ~9.15.0
+        version: 9.15.0(@types/react@18.3.28)(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-tags':
+        specifier: ~9.15.0
+        version: 9.15.0(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-theming':
+        specifier: ~9.15.0
+        version: 9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@zendeskgarden/react-typography':
+        specifier: ~9.15.0
+        version: 9.15.0(@zendeskgarden/react-theming@9.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styled-components@6.3.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      fast-levenshtein:
+        specifier: ^3.0.0
+        version: 3.0.0
+      react:
+        specifier: ^18.3.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.0
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.0
+        version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.28)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.0
+        version: 4.7.0(vite@5.4.21(@types/node@25.5.0))
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.0
+        version: 5.4.21(@types/node@25.5.0)
+
   apps/demo-server:
     dependencies:
       '@anthropic-ai/sdk':
