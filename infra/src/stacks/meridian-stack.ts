@@ -535,6 +535,34 @@ export class MeridianStack extends cdk.Stack {
     });
 
     // ---------------------------------------------------------------
+    // Auto Sender Lambda (ROUTE-03)
+    // Checks SYSTEM#config ROUTING_MODE at runtime before posting public Zendesk reply.
+    // Only sends publicly when both system mode and responseDraft.routing === 'auto_send'.
+    // Writes AUTOSEND# DynamoDB audit record on every decision for full auditability.
+    // No VPC attachment — Zendesk API is external HTTPS, no Aurora access needed.
+    // Declared before Step Functions workflow so autoSenderStep can reference it.
+    // ---------------------------------------------------------------
+    const autoSenderFn = new NodejsFunction(this, 'AutoSenderLambda', {
+      functionName: `${prefix}-auto-sender`,
+      entry: path.join(__dirname, '../../../lambdas/auto-sender/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+        ZENDESK_SUBDOMAIN: process.env.ZENDESK_SUBDOMAIN ?? '',
+        ZENDESK_API_TOKEN: process.env.ZENDESK_API_TOKEN ?? '',
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    this.auditTable.grantReadWriteData(autoSenderFn);
+
+    // ---------------------------------------------------------------
     // Step Functions Express Workflow (INGEST-03)
     // ClassifyTicket → WriteShadowNote; CloudWatch logging at ERROR level
     // ---------------------------------------------------------------
@@ -571,6 +599,29 @@ export class MeridianStack extends cdk.Stack {
       taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(60)),
     });
 
+    // ---------------------------------------------------------------
+    // Auto-send routing choice (ROUTE-03)
+    // Inserted after responseGenStep. Routes auto_send tickets to AutoSenderLambda;
+    // all other routing values (agent_assisted, escalate) fall through to shadowStep.
+    // The AutoSenderLambda performs a second mode check at runtime — this Choice state
+    // only routes the Step Functions path, not the final send decision.
+    // ---------------------------------------------------------------
+    const autoSenderStep = new tasks.LambdaInvoke(this, 'AutoSendResponse', {
+      lambdaFunction: autoSenderFn,
+      resultPath: '$.autoSendResult',
+      taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(30)),
+    });
+
+    const routingChoice = new sfn.Choice(this, 'RoutingChoice')
+      .when(
+        sfn.Condition.stringEquals(
+          '$.responseResult.Payload.responseDraft.routing',
+          'auto_send',
+        ),
+        autoSenderStep,
+      )
+      .otherwise(shadowStep);
+
     const processingWorkflow = new sfn.StateMachine(this, 'TicketProcessingWorkflow', {
       stateMachineName: `${prefix}-ticket-processing`,
       stateMachineType: sfn.StateMachineType.EXPRESS,
@@ -578,7 +629,7 @@ export class MeridianStack extends cdk.Stack {
         classifyStep
           .next(kbRetrievalStep)
           .next(responseGenStep)
-          .next(shadowStep)
+          .next(routingChoice)
       ),
       timeout: cdk.Duration.minutes(5),
       logs: {
@@ -693,6 +744,40 @@ export class MeridianStack extends cdk.Stack {
       schedule: events.Schedule.cron({ minute: '0', hour: '0', weekDay: 'MON' }),
       targets: [new targets.LambdaFunction(kbMaintenanceFn)],
     });
+
+    // ---------------------------------------------------------------
+    // Proactive Notification Lambda (ROUTE-05)
+    // 4-hour EventBridge schedule for delayed payment transaction outreach.
+    // Mode gate: only active when SYSTEM#config ROUTING_MODE === 'auto_send'.
+    // Stub implementation: Reap Pay API polling deferred pending internal API access.
+    // See lambdas/proactive-notification/src/index.ts for full implementation notes.
+    // ---------------------------------------------------------------
+    const proactiveNotificationFn = new NodejsFunction(this, 'ProactiveNotificationLambda', {
+      functionName: `${prefix}-proactive-notification`,
+      entry: path.join(__dirname, '../../../lambdas/proactive-notification/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    this.auditTable.grantReadWriteData(proactiveNotificationFn);
+
+    // Every 4 hours — cron(minute hour day-of-month month day-of-week year)
+    new events.Rule(this, 'ProactiveNotificationSchedule', {
+      ruleName: `${prefix}-proactive-notification-4h`,
+      schedule: events.Schedule.cron({ minute: '0', hour: '*/4' }),
+      targets: [new targets.LambdaFunction(proactiveNotificationFn)],
+    });
+
+    void proactiveNotificationFn;
 
     // ---------------------------------------------------------------
     // Runbook Executor Lambda (RUN-01..08)

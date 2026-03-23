@@ -263,6 +263,22 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  lambdas/proactive-notification:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.0.0
+        version: 3.1014.0
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   lambdas/response-generator:
     dependencies:
       '@aws-sdk/client-dynamodb':
