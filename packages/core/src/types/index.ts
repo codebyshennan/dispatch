@@ -102,7 +102,7 @@ export interface SidebarPayload {
 }
 
 /** Current routing mode for the system. */
-export type RoutingMode = 'shadow' | 'agent_assisted';
+export type RoutingMode = 'shadow' | 'agent_assisted' | 'auto_send';
 
 /** Routing mode status returned by GET /mode. */
 export interface ModeStatus {

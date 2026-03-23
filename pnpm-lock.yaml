@@ -98,6 +98,25 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  lambdas/auto-sender:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.0.0
+        version: 3.1014.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: ^3.0.0
+        version: 3.1014.0(@aws-sdk/client-dynamodb@3.1014.0)
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   lambdas/batch-classifier:
     dependencies:
       '@aws-sdk/client-dynamodb':
@@ -221,6 +240,22 @@ importers:
       '@aws-sdk/client-rds-data':
         specifier: '*'
         version: 3.1014.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  lambdas/monitoring:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.0.0
+        version: 3.1014.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: ^3.0.0
+        version: 3.1014.0(@aws-sdk/client-dynamodb@3.1014.0)
+    devDependencies:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37

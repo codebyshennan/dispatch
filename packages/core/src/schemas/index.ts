@@ -124,7 +124,7 @@ export function makeLLMResponseSchema<T>(dataSchema: z.ZodType<T>) {
  * and whether the transition thresholds have been met.
  */
 export const ModeStatusSchema = z.object({
-  mode: z.enum(['shadow', 'agent_assisted']),
+  mode: z.enum(['shadow', 'agent_assisted', 'auto_send']),
   transitionReady: z.boolean(),
   classificationAccuracy: z.number().nullable(),
   draftAcceptanceRate: z.number().nullable(),
