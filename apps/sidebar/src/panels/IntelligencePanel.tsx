@@ -9,7 +9,7 @@ import { Field, Label, Textarea } from '@zendeskgarden/react-forms';
 import { useMeridianData } from '../hooks/useMeridianData';
 import { useClient } from '../contexts/ClientProvider';
 import levenshtein from 'fast-levenshtein';
-import type { Classification, ResponseDraft, KBResult, SimilarTicket } from '@meridian/core';
+import type { Classification, ResponseDraft, KBResult, SimilarTicket, ModeStatus } from '@meridian/core';
 
 // Urgency badge color mapping
 const URGENCY_COLOR: Record<string, string> = {
@@ -31,6 +31,9 @@ export function IntelligencePanel() {
   const [originalDraft, setOriginalDraft] = useState<string>('');
   const [feedbackModal, setFeedbackModal] = useState<'up' | 'down' | null>(null);
   const [feedbackNote, setFeedbackNote] = useState('');
+  const [routingMode, setRoutingMode] = useState<ModeStatus | null>(null);
+  const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
+  const [sendNotification, setSendNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Sync draft textarea when data arrives
   React.useEffect(() => {
@@ -63,6 +66,20 @@ export function IntelligencePanel() {
     client.on('ticket.submit.done', handler);
   }, [client, originalDraft, data?.ticketId]);
 
+  // Fetch routing mode on mount and when ticketId changes
+  React.useEffect(() => {
+    if (!data?.ticketId) return;
+    client.request({
+      url: '{{setting.api_base_url}}/mode',
+      type: 'GET',
+    }).then((res: unknown) => {
+      setRoutingMode(res as ModeStatus);
+    }).catch(() => {
+      // Graceful degradation: if mode fetch fails, remain in shadow mode
+      setRoutingMode(null);
+    });
+  }, [client, data?.ticketId]);
+
   if (loading) return <Skeleton width="100%" height="300px" />;
 
   if (!data || data.status === 'pending') {
@@ -81,6 +98,11 @@ export function IntelligencePanel() {
   const responseDraft = data.responseDraft as ResponseDraft | undefined;
   const kbArticles = data.kbArticles as KBResult[] | undefined;
   const similarTickets = data.similarTickets as SimilarTicket[] | undefined;
+
+  const isAgentAssisted = routingMode?.mode === 'agent_assisted';
+  const isEligibleForSend = isAgentAssisted && (
+    classification?.urgency === 'P3' || classification?.urgency === 'P4'
+  );
 
   const handleInsertDraft = async () => {
     if (!draft) return;
@@ -104,8 +126,38 @@ export function IntelligencePanel() {
     setFeedbackNote('');
   };
 
+  const handleSendConfirm = () => {
+    setSendConfirmOpen(false);
+    client.request({
+      url: '{{setting.api_base_url}}/send',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        ticketId: data.ticketId,
+        draftText: draft,
+        originalDraft: responseDraft?.draft ?? draft,
+        urgency: classification?.urgency,
+      }),
+    }).then(() => {
+      setSendNotification({ type: 'success', message: 'Response sent to customer.' });
+      setTimeout(() => setSendNotification(null), 5000);
+    }).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setSendNotification({ type: 'error', message: `Send failed: ${message}` });
+      setTimeout(() => setSendNotification(null), 8000);
+    });
+  };
+
   return (
     <div style={{ padding: '8px 0' }}>
+      {/* Send result notification */}
+      {sendNotification && (
+        <Notification type={sendNotification.type} style={{ marginBottom: '8px' }}>
+          <Title>{sendNotification.type === 'success' ? 'Success' : 'Error'}</Title>
+          {sendNotification.message}
+        </Notification>
+      )}
+
       {/* Classification card */}
       {classification && (
         <div style={{ marginBottom: '12px' }}>
@@ -132,6 +184,18 @@ export function IntelligencePanel() {
       {/* Draft response */}
       {responseDraft && (
         <div style={{ marginBottom: '12px' }}>
+          {/* Routing mode badge */}
+          <div style={{ marginBottom: '6px' }}>
+            {isAgentAssisted ? (
+              <Tag style={{ background: '#1f73b7', color: 'white', fontSize: '11px' }}>
+                <span>Agent-assisted</span>
+              </Tag>
+            ) : (
+              <Tag style={{ background: '#68737d', color: 'white', fontSize: '11px' }}>
+                <span>Shadow mode</span>
+              </Tag>
+            )}
+          </div>
           <Field>
             <Label>Draft Response</Label>
             <Textarea
@@ -145,6 +209,17 @@ export function IntelligencePanel() {
             <Button size="small" isPrimary onClick={handleInsertDraft}>
               Insert Draft
             </Button>
+            {isEligibleForSend && (
+              <Button
+                size="small"
+                isPrimary
+                onClick={() => setSendConfirmOpen(true)}
+                data-testid="send-response-btn"
+                style={{ background: '#2f3941', borderColor: '#2f3941' }}
+              >
+                Send Response
+              </Button>
+            )}
             <IconButton
               aria-label="Thumbs up"
               size="small"
@@ -198,6 +273,30 @@ export function IntelligencePanel() {
             ))}
           </ul>
         </div>
+      )}
+
+      {/* Send confirmation modal */}
+      {sendConfirmOpen && (
+        <Modal onClose={() => setSendConfirmOpen(false)}>
+          <Header>Send Response to Customer</Header>
+          <ModalBody>
+            <Paragraph>
+              Send this response directly to the customer? This cannot be undone.
+            </Paragraph>
+          </ModalBody>
+          <ModalFooter>
+            <Button size="small" onClick={() => setSendConfirmOpen(false)}>Cancel</Button>
+            <Button
+              size="small"
+              isPrimary
+              onClick={handleSendConfirm}
+              style={{ marginLeft: '8px' }}
+            >
+              Send
+            </Button>
+          </ModalFooter>
+          <Close aria-label="Close modal" />
+        </Modal>
       )}
 
       {/* Feedback modal */}
