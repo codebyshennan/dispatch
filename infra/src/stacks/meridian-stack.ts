@@ -603,6 +603,34 @@ export class MeridianStack extends cdk.Stack {
     void kbIndexerFn;
 
     // ---------------------------------------------------------------
+    // KB Maintenance Lambda (KB-02, KB-03, KB-04)
+    // Weekly gap analysis (ticket categories with zero KB hits) and
+    // stale article detection (articles not re-indexed in 90+ days).
+    // No VPC attachment: uses RDS Data API (HTTPS) for Aurora access.
+    // ---------------------------------------------------------------
+    const kbMaintenanceFn = new NodejsFunction(this, 'KbMaintenanceLambda', {
+      functionName: `${prefix}-kb-maintenance`,
+      entry: path.join(__dirname, '../../../lambdas/kb-maintenance/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_LOG_TABLE_NAME: this.auditTable.tableName,
+        DB_CLUSTER_ARN: this.dbCluster.clusterArn,
+        DB_SECRET_ARN: dbSecret.secretArn,
+      },
+    });
+
+    // Weekly EventBridge schedule — every Monday at 00:00 UTC
+    new events.Rule(this, 'KbMaintenanceSchedule', {
+      ruleName: `${prefix}-kb-maintenance-schedule`,
+      schedule: events.Schedule.cron({ minute: '0', hour: '0', weekDay: 'MON' }),
+      targets: [new targets.LambdaFunction(kbMaintenanceFn)],
+    });
+
+    // ---------------------------------------------------------------
     // DB ARN outputs — used by KB indexer Lambda and future phases
     // ---------------------------------------------------------------
     new cdk.CfnOutput(this, 'DbClusterArn', {
