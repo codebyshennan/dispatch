@@ -1,0 +1,20 @@
+{
+  "name": "@meridian/lambda-webhook",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@aws-sdk/client-eventbridge": "^3.0.0",
+    "@aws-sdk/client-sfn": "^3.0.0",
+    "hono": "4.12.8"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}
