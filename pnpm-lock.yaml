@@ -72,6 +72,19 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  lambdas/help-center-ingestion:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.0.0
+        version: 3.1014.0
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
   lambdas/voc-ingestion:
     dependencies:
       '@aws-sdk/client-s3':

@@ -1,0 +1,17 @@
+{
+  "name": "@meridian/lambda-help-center-ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@meridian/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}
