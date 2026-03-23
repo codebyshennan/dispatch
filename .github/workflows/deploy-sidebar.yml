@@ -1,0 +1,47 @@
+name: Deploy Sidebar to Zendesk
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/sidebar/**'
+      - 'packages/core/**'
+      - '.github/workflows/deploy-sidebar.yml'
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  deploy:
+    name: Build and Deploy Sidebar
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build sidebar
+        run: pnpm --filter @meridian/sidebar build
+
+      - name: Deploy to Zendesk via ZCLI
+        # Requires ZENDESK_SUBDOMAIN, ZENDESK_EMAIL, ZENDESK_API_TOKEN secrets
+        # in GitHub repo settings. ZENDESK_APP_ID must match zcli.apps.config.json.
+        # Run `zcli apps:create` once to get the app_id, then update zcli.apps.config.json.
+        run: npx @zendesk/zcli apps:update apps/sidebar/dist
+        env:
+          ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
+          ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}
+          ZENDESK_API_TOKEN: ${{ secrets.ZENDESK_API_TOKEN }}
