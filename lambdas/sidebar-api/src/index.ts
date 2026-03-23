@@ -4,6 +4,7 @@ import { handle } from 'hono/aws-lambda';
 import { contextRouter } from './routes/context.js';
 import { feedbackRouter } from './routes/feedback.js';
 import { telemetryRouter } from './routes/telemetry.js';
+import { runbooksRouter } from './routes/runbooks.js';
 
 const app = new Hono();
 
@@ -17,6 +18,7 @@ app.use('*', cors({
 app.route('/context', contextRouter);
 app.route('/feedback', feedbackRouter);
 app.route('/telemetry', telemetryRouter);
+app.route('/runbooks', runbooksRouter);
 
 app.get('/health', (c) => c.json({ status: 'ok' }));
 

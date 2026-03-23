@@ -268,6 +268,9 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: ^3.0.0
         version: 3.1014.0
+      '@aws-sdk/client-lambda':
+        specifier: ^3.0.0
+        version: 3.1014.0
       '@meridian/core':
         specifier: workspace:*
         version: link:../../packages/core
