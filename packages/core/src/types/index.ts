@@ -104,6 +104,17 @@ export interface SidebarPayload {
 /** Current routing mode for the system. */
 export type RoutingMode = 'shadow' | 'agent_assisted' | 'auto_send';
 
+/**
+ * A/B prompt variant configuration stored in DynamoDB under SYSTEM#prompt_variant.
+ * When enabled, 20% of tickets (determined by ticketId hash) receive the variant prompt.
+ */
+export interface PromptVariantConfig {
+  enabled: boolean;
+  variantId: string;      // e.g. 'v2-shorter-tone'
+  startedAt: string;      // ISO timestamp
+  splitPercent: number;   // 20
+}
+
 /** Routing mode status returned by GET /mode. */
 export interface ModeStatus {
   mode: RoutingMode;

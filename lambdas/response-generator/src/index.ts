@@ -25,7 +25,8 @@ const dynamoClient = new DynamoDBClient({});
  *
  * Extracts classification and KB articles from Step Functions Payload wrappers,
  * calls generateResponse(), and returns the full state enriched with responseDraft.
- * Also writes a RESPONSE# DynamoDB record so sidebar-api can read pre-computed results.
+ * Also writes a RESPONSE# DynamoDB record (with variantId) so sidebar-api can read
+ * pre-computed results and send.ts can propagate variantId to METRICS#acceptance.
  */
 export async function handler(
   event: ResponseGenInput,
@@ -34,7 +35,7 @@ export async function handler(
   const classification = event.classificationResult.Payload;
   const kbArticles = event.kbResult.Payload.kbArticles;
 
-  const responseDraft = await generateResponse({
+  const { responseDraft, variantId } = await generateResponse({
     ticketId: event.ticketId,
     subject: event.subject,
     body: event.body,
@@ -48,7 +49,9 @@ export async function handler(
   if (auditTable) {
     const now = new Date().toISOString();
 
-    // Write RESPONSE# record so sidebar-api can read pre-computed response draft by ticket ID
+    // Write RESPONSE# record so sidebar-api can read pre-computed response draft by ticket ID.
+    // variantId is stored here so send.ts can include it in METRICS#acceptance writes
+    // for MonitoringLambda A/B comparison (EVAL-06).
     try {
       await dynamoClient.send(new PutItemCommand({
         TableName: auditTable,
@@ -59,6 +62,7 @@ export async function handler(
           type: { S: 'ticket_response' },
           responseDraft: { S: JSON.stringify(responseDraft) },
           kbArticles: { S: JSON.stringify(kbArticles ?? []) },
+          variantId: { S: variantId },
           processedAt: { S: now },
           createdAt: { S: now },
         },

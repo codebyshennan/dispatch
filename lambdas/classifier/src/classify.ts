@@ -1,5 +1,6 @@
-import { invoke, ClassificationSchema, type Classification } from '@meridian/core';
-import * as fs from 'fs';
+import { invoke, ClassificationSchema, type Classification, type PromptVariantConfig } from '@meridian/core';
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { readFileSync } from 'fs';
 import * as path from 'path';
 
 // Deterministic compliance keywords (CLASS-04)
@@ -15,13 +16,72 @@ function enforceComplianceFlags(ticketBody: string, llmFlags: string[]): string[
   return [...new Set([...llmFlags, ...detected])];
 }
 
+/**
+ * Deterministic 80/20 A/B variant-aware prompt loader (EVAL-06).
+ *
+ * 1. Reads SYSTEM#prompt_variant from DynamoDB to check if a variant is active.
+ * 2. Uses ticketId hash (not Math.random!) for deterministic variant assignment.
+ * 3. Falls back to control prompt on ENOENT — zero CLASSIFICATION# step failures.
+ *
+ * CRITICAL: Never use Math.random() — different assignments across retries.
+ */
+async function loadPromptWithVariant(
+  basePath: string,
+  tableName: string,
+  ticketId: string,
+  dynamo: DynamoDBClient,
+): Promise<{ promptContent: string; variantId: string }> {
+  // 1. Read variant config from DynamoDB
+  const result = await dynamo.send(new GetItemCommand({
+    TableName: tableName,
+    Key: { pk: { S: 'SYSTEM#prompt_variant' }, sk: { S: 'ACTIVE' } },
+  })).catch(() => null);
+
+  const item = result?.Item;
+  const variantConfig: PromptVariantConfig | null = item?.enabled?.BOOL
+    ? {
+        enabled: true,
+        variantId: item.variantId.S!,
+        startedAt: item.startedAt.S!,
+        splitPercent: Number(item.splitPercent?.N ?? 20),
+      }
+    : null;
+
+  // 2. Deterministic 80/20 assignment via ticket ID hash
+  function hashCode(s: string): number {
+    return Array.from(s).reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 0);
+  }
+  const isVariantB = variantConfig?.enabled === true &&
+    Math.abs(hashCode(ticketId)) % 5 === 0;
+
+  const variantId = isVariantB ? variantConfig!.variantId : 'control';
+
+  // 3. Build file path — variant file expected alongside control:
+  //    e.g. classification/v1-variant-v2-shorter-tone.md
+  const promptPath = isVariantB
+    ? basePath.replace(/\.md$/, `-variant-${variantConfig!.variantId}.md`)
+    : basePath;
+
+  // 4. Read file with ENOENT fallback (prevents CLASSIFICATION# step failures)
+  let promptContent: string;
+  try {
+    promptContent = readFileSync(promptPath, 'utf-8');
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT' && isVariantB) {
+      console.warn(`[VariantPrompt] Variant file not found: ${promptPath}. Falling back to control.`);
+      promptContent = readFileSync(basePath, 'utf-8');
+      return { promptContent, variantId: 'control' };
+    }
+    throw e;
+  }
+
+  return { promptContent, variantId };
+}
+
 function readPromptFile(relativePath: string): string {
   // prompts/ is at the workspace root, two levels above lambdas/classifier/
   const promptPath = path.resolve(__dirname, '../../../prompts', relativePath);
-  if (!fs.existsSync(promptPath)) {
-    throw new Error(`Prompt not found: ${promptPath}`);
-  }
-  const raw = fs.readFileSync(promptPath, 'utf-8');
+  const raw = readFileSync(promptPath, 'utf-8');
   // Strip YAML frontmatter (--- ... ---)
   return raw.replace(/^---[\s\S]*?---\n/, '').trim();
 }
@@ -37,13 +97,32 @@ export interface ClassifyInput {
 export interface ClassifyOutput {
   ticketId: string;
   classification: Classification;
+  variantId: string;
 }
 
 export async function classify(input: ClassifyInput): Promise<ClassifyOutput> {
-  const systemPrompt = readPromptFile('system/classification.md');
-  const classificationPrompt = readPromptFile('classification/v1.md');
+  const tableName = process.env.AUDIT_LOG_TABLE_NAME ?? '';
+  const dynamo = new DynamoDBClient({});
 
-  const userMessage = `${classificationPrompt}\n\nTicket ID: ${input.ticketId}\nSubject: ${input.subject}\n\n${input.body}`;
+  const systemPrompt = readPromptFile('system/classification.md');
+
+  // Build full absolute path for the classification prompt
+  const classificationPromptBasePath = path.resolve(
+    __dirname,
+    '../../../prompts/classification/v1.md',
+  );
+
+  const { promptContent: classificationPrompt, variantId } = await loadPromptWithVariant(
+    classificationPromptBasePath,
+    tableName,
+    input.ticketId,
+    dynamo,
+  );
+
+  // Strip frontmatter from variant-loaded prompt
+  const cleanedPrompt = classificationPrompt.replace(/^---[\s\S]*?---\n/, '').trim();
+
+  const userMessage = `${cleanedPrompt}\n\nTicket ID: ${input.ticketId}\nSubject: ${input.subject}\n\n${input.body}`;
 
   const response = await invoke<Classification>(userMessage, {
     provider: 'anthropic',
@@ -63,5 +142,6 @@ export async function classify(input: ClassifyInput): Promise<ClassifyOutput> {
       ...response.data,
       compliance_flags: enrichedFlags,
     },
+    variantId,
   };
 }

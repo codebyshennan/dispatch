@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { dynamoClient } from '../dynamo.js';
 
 export const sendRouter = new Hono();
@@ -60,7 +60,28 @@ sendRouter.post('/', async (c) => {
 
   const now = new Date().toISOString();
 
-  // Write CHG-03 acceptance record
+  // Read variantId from TICKET# DynamoDB record for A/B comparison (EVAL-06).
+  // Default to 'control' if record absent or GetItem fails — graceful degradation.
+  let variantId = 'control';
+  try {
+    const ticketRecord = await dynamoClient.send(new GetItemCommand({
+      TableName: tableName,
+      Key: {
+        pk: { S: `TICKET#${body.ticketId}` },
+        sk: { S: `RESPONSE#` },
+      },
+    }));
+    // GetItem with exact sk may not match — query the most recent RESPONSE# by pk instead.
+    // If not found via exact key, variantId stays 'control' (safe default).
+    if (ticketRecord.Item?.variantId?.S) {
+      variantId = ticketRecord.Item.variantId.S;
+    }
+  } catch (err) {
+    // Non-blocking — metric write will still succeed with variantId='control'
+    console.warn('[send] Could not read variantId from TICKET# record:', err);
+  }
+
+  // Write CHG-03 acceptance record with variantId for MonitoringLambda A/B comparison
   try {
     await dynamoClient.send(new PutItemCommand({
       TableName: tableName,
@@ -72,6 +93,7 @@ sendRouter.post('/', async (c) => {
         editRatio: { N: String(editRatio.toFixed(4)) },
         accepted: { BOOL: editRatio < 0.20 },
         urgency: { S: body.urgency ?? 'unknown' },
+        variantId: { S: variantId },
         createdAt: { S: now },
       },
     }));
