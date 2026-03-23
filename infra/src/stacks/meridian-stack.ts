@@ -982,6 +982,9 @@ export class MeridianStack extends cdk.Stack {
         SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL ?? '',
       },
       bundling: {
+        // pdfkit uses dynamic requires internally — must be included in Lambda bundle
+        // not tree-shaken. Add to nodeModules to ensure it is bundled properly.
+        nodeModules: ['pdfkit'],
         externalModules: ['@aws-sdk/*'],
       },
     });
@@ -1005,6 +1008,18 @@ export class MeridianStack extends cdk.Stack {
       targets: [
         new targets.LambdaFunction(reportingFn, {
           event: events.RuleTargetInput.fromObject({ type: 'weekly_cx_report' }),
+        }),
+      ],
+    });
+
+    // Monthly EventBridge schedule — first day of month at 03:00 UTC (RPT-02)
+    // Payload triggers monthly_executive_summary path: builds PDF + sends via SES v2 attachment
+    new events.Rule(this, 'MonthlyReportingSchedule', {
+      ruleName: `${prefix}-monthly-reporting-schedule`,
+      schedule: events.Schedule.cron({ minute: '0', hour: '3', day: '1', month: '*' }),
+      targets: [
+        new targets.LambdaFunction(reportingFn, {
+          event: events.RuleTargetInput.fromObject({ type: 'monthly_executive_summary' }),
         }),
       ],
     });
