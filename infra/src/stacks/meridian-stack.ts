@@ -457,6 +457,25 @@ export class MeridianStack extends cdk.Stack {
     });
 
     // ---------------------------------------------------------------
+    // KB Retrieval Lambda (KB-01) — embeds ticket query and searches pgvector
+    // No VPC attachment: uses RDS Data API (HTTPS endpoint, no VPC required).
+    // ---------------------------------------------------------------
+    const kbRetrievalFn = new NodejsFunction(this, 'KbRetrievalLambda', {
+      functionName: `${prefix}-kb-retrieval`,
+      entry: path.join(__dirname, '../../../lambdas/kb-retrieval/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(15),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        DB_CLUSTER_ARN: this.dbCluster.clusterArn,
+        DB_SECRET_ARN: dbSecret.secretArn,
+        VOYAGE_API_KEY: process.env.VOYAGE_API_KEY ?? '',
+      },
+    });
+
+    // ---------------------------------------------------------------
     // Classifier Lambda — classifyHandler Step Functions task target
     // ---------------------------------------------------------------
     const classifyFn = new NodejsFunction(this, 'ClassifierLambda', {
@@ -506,6 +525,13 @@ export class MeridianStack extends cdk.Stack {
       taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(30)),
     });
 
+    const kbRetrievalStep = new tasks.LambdaInvoke(this, 'KBRetrieval', {
+      lambdaFunction: kbRetrievalFn,
+      resultPath: '$.kbResult',
+      retryOnServiceExceptions: true,
+      taskTimeout: sfn.Timeout.duration(cdk.Duration.seconds(15)),
+    });
+
     const shadowStep = new tasks.LambdaInvoke(this, 'WriteShadowNote', {
       lambdaFunction: shadowFn,
       resultPath: '$.shadowResult',
@@ -515,7 +541,11 @@ export class MeridianStack extends cdk.Stack {
     const processingWorkflow = new sfn.StateMachine(this, 'TicketProcessingWorkflow', {
       stateMachineName: `${prefix}-ticket-processing`,
       stateMachineType: sfn.StateMachineType.EXPRESS,
-      definitionBody: sfn.DefinitionBody.fromChainable(classifyStep.next(shadowStep)),
+      definitionBody: sfn.DefinitionBody.fromChainable(
+        classifyStep
+          .next(kbRetrievalStep)
+          .next(shadowStep)
+      ),
       timeout: cdk.Duration.minutes(5),
       logs: {
         destination: workflowLogs,
