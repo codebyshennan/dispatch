@@ -86,7 +86,7 @@ export const SimilarTicketSchema = z.object({
   subject: z.string().optional(),
   resolvedAt: z.string().optional(),
 });
-export type SimilarTicket = z.infer<typeof SimilarTicketSchema>;
+// Note: SimilarTicket interface is defined in types/index.ts to avoid name collision on barrel re-export
 
 /**
  * Zod schema for the combined sidebar payload read by GET /context/:ticketId.
@@ -101,7 +101,7 @@ export const SidebarPayloadSchema = z.object({
   similarTickets: z.array(SimilarTicketSchema).optional(),
   processedAt: z.string().optional(),
 });
-export type SidebarPayload = z.infer<typeof SidebarPayloadSchema>;
+// Note: SidebarPayload interface is defined in types/index.ts to avoid name collision on barrel re-export
 
 /**
  * Factory function that wraps any caller-provided schema in the LLMResponse envelope.
