@@ -219,6 +219,47 @@ export class MeridianStack extends cdk.Stack {
     pgvectorInit.node.addDependency(this.dbCluster);
 
     // ---------------------------------------------------------------
+    // KB articles table + HNSW index init (KB-01)
+    // Creates kb_articles table with vector(512) column and cosine HNSW index.
+    // Runs on every CDK deploy (idempotent via IF NOT EXISTS).
+    // Depends on pgvectorInit so the vector extension is guaranteed present first.
+    // ---------------------------------------------------------------
+    const kbTableInit = new cr.AwsCustomResource(this, 'KbTableInit', {
+      onUpdate: {
+        service: 'RDSDataService',
+        action: 'executeStatement',
+        parameters: {
+          resourceArn: this.dbCluster.clusterArn,
+          secretArn: dbSecret.secretArn,
+          database: 'meridian',
+          sql: `
+            CREATE TABLE IF NOT EXISTS kb_articles (
+              id          BIGSERIAL PRIMARY KEY,
+              article_id  BIGINT NOT NULL,
+              title       TEXT NOT NULL,
+              html_url    TEXT NOT NULL,
+              updated_at  TIMESTAMPTZ NOT NULL,
+              section_id  BIGINT,
+              chunk_index INTEGER NOT NULL,
+              text        TEXT NOT NULL,
+              embedding   vector(512) NOT NULL,
+              indexed_at  TIMESTAMPTZ DEFAULT NOW(),
+              UNIQUE (article_id, chunk_index)
+            );
+            CREATE INDEX IF NOT EXISTS kb_articles_embedding_hnsw
+              ON kb_articles USING hnsw (embedding vector_cosine_ops)
+              WITH (m = 16, ef_construction = 64);
+          `,
+        },
+        physicalResourceId: cr.PhysicalResourceId.of('kb-table-init'),
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+    kbTableInit.node.addDependency(pgvectorInit);
+
+    // ---------------------------------------------------------------
     // IAM execution role for Lambda functions
     // ---------------------------------------------------------------
     this.lambdaExecutionRole = new iam.Role(this, 'LambdaExecutionRole', {
@@ -536,5 +577,44 @@ export class MeridianStack extends cdk.Stack {
 
     // Suppress unused variable warning — Lambda is registered in CDK construct tree
     void batchClassifierFn;
+
+    // ---------------------------------------------------------------
+    // KB Indexer Lambda (KB-04) — manually invoked to bulk-load S3 chunks into pgvector
+    // No VPC attachment: dev uses PRIVATE_ISOLATED subnets with no NAT;
+    // all Aurora access goes through RDS Data API (HTTPS endpoint, no VPC required).
+    // ---------------------------------------------------------------
+    const kbIndexerFn = new NodejsFunction(this, 'KbIndexerLambda', {
+      functionName: `${prefix}-kb-indexer`,
+      entry: path.join(__dirname, '../../../lambdas/kb-indexer/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      role: this.lambdaExecutionRole,
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        ASSETS_BUCKET_NAME: this.assetsBucket.bucketName,
+        DB_CLUSTER_ARN: this.dbCluster.clusterArn,
+        DB_SECRET_ARN: dbSecret.secretArn,
+        VOYAGE_API_KEY: process.env.VOYAGE_API_KEY ?? '',
+      },
+    });
+
+    // Suppress unused variable warning — Lambda is registered in CDK construct tree
+    void kbIndexerFn;
+
+    // ---------------------------------------------------------------
+    // DB ARN outputs — used by KB indexer Lambda and future phases
+    // ---------------------------------------------------------------
+    new cdk.CfnOutput(this, 'DbClusterArn', {
+      value: this.dbCluster.clusterArn,
+      exportName: `${prefix}-db-cluster-arn`,
+      description: 'Aurora Serverless v2 cluster ARN for RDS Data API calls',
+    });
+
+    new cdk.CfnOutput(this, 'DbSecretArn', {
+      value: dbSecret.secretArn,
+      exportName: `${prefix}-db-secret-arn`,
+      description: 'Aurora DB credentials secret ARN',
+    });
   }
 }
