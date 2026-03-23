@@ -1,4 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
+import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
+import * as apigatewayv2integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -687,6 +689,47 @@ export class MeridianStack extends cdk.Stack {
       ruleName: `${prefix}-kb-maintenance-schedule`,
       schedule: events.Schedule.cron({ minute: '0', hour: '0', weekDay: 'MON' }),
       targets: [new targets.LambdaFunction(kbMaintenanceFn)],
+    });
+
+    // ---------------------------------------------------------------
+    // Sidebar API Lambda + API Gateway HTTP API (ZAF-02, CHG-02)
+    // ---------------------------------------------------------------
+    const sidebarApiLambda = new NodejsFunction(this, 'SidebarApiLambda', {
+      functionName: `${prefix}-sidebar-api`,
+      entry: path.join(__dirname, '../../../lambdas/sidebar-api/src/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      role: this.lambdaExecutionRole,
+      environment: {
+        AUDIT_TABLE_NAME: this.auditTable.tableName,
+        NODE_ENV: appEnv,
+      },
+      bundling: {
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
+
+    // API Gateway HTTP API — provides HTTPS endpoint for the sidebar to call
+    const httpApi = new apigatewayv2.HttpApi(this, 'SidebarHttpApi', {
+      apiName: `${prefix}-sidebar-api`,
+      corsPreflight: {
+        allowOrigins: ['https://*.zendesk.com', 'https://*.zdassets.com'],
+        allowMethods: [apigatewayv2.CorsHttpMethod.GET, apigatewayv2.CorsHttpMethod.POST, apigatewayv2.CorsHttpMethod.OPTIONS],
+        allowHeaders: ['Content-Type', 'Authorization'],
+      },
+    });
+
+    httpApi.addRoutes({
+      path: '/{proxy+}',
+      methods: [apigatewayv2.HttpMethod.ANY],
+      integration: new apigatewayv2integrations.HttpLambdaIntegration('SidebarLambdaIntegration', sidebarApiLambda),
+    });
+
+    new cdk.CfnOutput(this, 'SidebarApiUrl', {
+      value: httpApi.apiEndpoint,
+      exportName: `${prefix}-sidebar-api-url`,
     });
 
     // ---------------------------------------------------------------
