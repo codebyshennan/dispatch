@@ -2,9 +2,17 @@ name: Prompt Regression Eval
 
 on:
   pull_request:
+    # Triggers on:
+    # - Any prompt file change (classification or response generation prompts)
+    # - Golden dataset changes (200+ labeled tickets)
+    # - Response generator Lambda changes (prompt loading + compliance gate)
+    # - Eval runner changes (runner.ts, schema, CLI)
+    # EVAL-02: classification accuracy must stay above threshold on every prompt change
     paths:
       - 'prompts/**'
       - 'datasets/golden/**'
+      - 'lambdas/response-generator/**'
+      - 'lambdas/eval/**'
 
 jobs:
   eval:
