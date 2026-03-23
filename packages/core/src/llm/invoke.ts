@@ -20,6 +20,8 @@ export interface LLMResult<T> {
 
 /**
  * Structured error thrown by invoke() after retries are exhausted.
+ * The `auditEntry` field carries a complete AuditLogEntry for the failed call;
+ * callers that catch this error can persist it to DynamoDB for a full audit trail.
  */
 export class MeridianLLMError extends Error {
   readonly code: string;
@@ -27,6 +29,7 @@ export class MeridianLLMError extends Error {
   readonly model: string;
   readonly promptHash: string;
   readonly originalError: unknown;
+  readonly auditEntry: AuditLogEntry;
 
   constructor(opts: {
     code: string;
@@ -34,6 +37,7 @@ export class MeridianLLMError extends Error {
     model: string;
     promptHash: string;
     originalError: unknown;
+    auditEntry: AuditLogEntry;
   }) {
     const message =
       opts.originalError instanceof Error
@@ -46,6 +50,7 @@ export class MeridianLLMError extends Error {
     this.model = opts.model;
     this.promptHash = opts.promptHash;
     this.originalError = opts.originalError;
+    this.auditEntry = opts.auditEntry;
   }
 }
 
@@ -233,5 +238,6 @@ export async function invoke<T>(
     model: options.model,
     promptHash,
     originalError: lastError,
+    auditEntry: _failureAuditEntry,
   });
 }
