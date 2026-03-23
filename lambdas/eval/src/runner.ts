@@ -48,7 +48,7 @@ interface EvalSummary {
   accuracy: string;
 }
 
-interface EvalOutput {
+export interface EvalOutput {
   summary: EvalSummary;
   results: TicketResult[];
 }
@@ -144,7 +144,7 @@ export async function runEval(opts: {
   promptName: string;
   datasetName: string;
   threshold: number;
-}): Promise<void> {
+}): Promise<EvalOutput> {
   const { promptName, datasetName, threshold } = opts;
 
   // 1. Load prompt text
@@ -166,7 +166,6 @@ export async function runEval(opts: {
   let totalCount = 0;
   let passCount = 0;
   const results: TicketResult[] = [];
-  const failDetails: string[] = [];
 
   for await (const record of readDatasetLines(datasetPath)) {
     totalCount++;
@@ -207,13 +206,6 @@ export async function runEval(opts: {
         ],
       };
 
-      if (!passed) {
-        const detail =
-          `[FAIL] ${record.id}: ` +
-          `expected_category=${record.expected_category} actual=${classification.category} ` +
-          `expected_urgency=${record.expected_urgency} actual=${classification.urgency}`;
-        failDetails.push(detail);
-      }
     } catch (err) {
       // Graceful degradation (INFRA-09): LLM call failure counts as a failed ticket
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -228,8 +220,6 @@ export async function runEval(opts: {
         actual_tags: [],
         error: errorMsg,
       };
-      const detail = `[FAIL] ${record.id}: LLM error — ${errorMsg}`;
-      failDetails.push(detail);
     }
 
     results.push(ticketResult);
@@ -251,22 +241,8 @@ export async function runEval(opts: {
     results,
   };
 
-  // 6. Print JSON summary to stdout
-  process.stdout.write(JSON.stringify(output, null, 2) + '\n');
-
-  // 7. Print fail details to stderr
-  if (failDetails.length > 0) {
-    process.stderr.write('\n--- FAILED TICKETS ---\n');
-    for (const detail of failDetails) {
-      process.stderr.write(detail + '\n');
-    }
-  }
-
-  // 8. Exit code based on threshold
-  if (accuracyRaw < threshold) {
-    process.exit(1);
-  }
-  process.exit(0);
+  // 6. Return output (callers handle printing and exit code)
+  return output;
 }
 
 // ---------------------------------------------------------------------------
@@ -289,11 +265,38 @@ program
     }
 
     try {
-      await runEval({
+      const output = await runEval({
         promptName: options.prompt,
         datasetName: options.dataset,
         threshold,
       });
+
+      // Print JSON summary to stdout
+      process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+
+      // Print fail details to stderr
+      const failDetails = output.results
+        .filter((r) => !r.passed)
+        .map(
+          (r) =>
+            `[FAIL] ${r.id}: ` +
+            `expected_category=${r.expected_category} actual=${r.actual_category} ` +
+            `expected_urgency=${r.expected_urgency} actual=${r.actual_urgency}`,
+        );
+
+      if (failDetails.length > 0) {
+        process.stderr.write('\n--- FAILED TICKETS ---\n');
+        for (const detail of failDetails) {
+          process.stderr.write(detail + '\n');
+        }
+      }
+
+      // Exit code based on threshold
+      const accuracyRaw = parseFloat(output.summary.accuracy);
+      if (accuracyRaw < threshold) {
+        process.exit(1);
+      }
+      process.exit(0);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       process.stderr.write(`Fatal error: ${msg}\n`);
