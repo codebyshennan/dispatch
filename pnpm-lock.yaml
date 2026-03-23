@@ -349,6 +349,31 @@ importers:
         specifier: 5.8.3
         version: 5.8.3
 
+  lambdas/voc-processor:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.0.0
+        version: 3.1014.0
+      '@aws-sdk/client-s3':
+        specifier: ^3.0.0
+        version: 3.1014.0
+      '@meridian/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.6
+    devDependencies:
+      '@types/aws-lambda':
+        specifier: ^8.10.0
+        version: 8.10.161
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   lambdas/webhook:
     dependencies:
       '@aws-sdk/client-dynamodb':
@@ -1491,6 +1516,9 @@ packages:
     resolution: {integrity: sha512-voicVULvUV5yaGXo0Iue13BcHGYW3u0VgqSbfQwBaHbpj1zLjYV4KIe+7fYIo6DO8FVUJzxFps3ODCQG/Wy2Qw==}
     cpu: [arm64]
     os: [win32]
+
+  '@types/aws-lambda@8.10.161':
+    resolution: {integrity: sha512-rUYdp+MQwSFocxIOcSsYSF3YYYC/uUpMbCY/mbO21vGqfrEYvNSoPyKYDj6RhXXpPfS0KstW9RwG3qXh9sL7FQ==}
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -3841,6 +3869,8 @@ snapshots:
 
   '@turbo/windows-arm64@2.8.20':
     optional: true
+
+  '@types/aws-lambda@8.10.161': {}
 
   '@types/babel__core@7.20.5':
     dependencies:
