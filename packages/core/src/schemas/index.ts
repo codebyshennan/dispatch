@@ -32,6 +32,23 @@ export const AuditLogEntrySchema = z.object({
 });
 
 /**
+ * Zod schema for the structured classification output produced by the classifier Lambda.
+ * This is the canonical definition — shared by @meridian/lambda-eval and @meridian/lambda-classifier.
+ */
+export const ClassificationSchema = z.object({
+  category: z.string(),
+  sub_category: z.string(),
+  urgency: z.enum(['P1', 'P2', 'P3', 'P4']),
+  sentiment: z.number().min(-1).max(1),
+  language: z.string(),
+  confidence: z.number().min(0).max(1),
+  compliance_flags: z.array(z.string()),
+  crypto_specific_tags: z.array(z.string()),
+});
+
+export type Classification = z.infer<typeof ClassificationSchema>;
+
+/**
  * Factory function that wraps any caller-provided schema in the LLMResponse envelope.
  * Usage: const schema = makeLLMResponseSchema(MyOutputSchema);
  */

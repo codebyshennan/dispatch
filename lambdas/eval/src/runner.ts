@@ -2,8 +2,7 @@ import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import { z } from 'zod';
-import { invoke } from '@meridian/core';
+import { invoke, ClassificationSchema } from '@meridian/core';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,21 +51,6 @@ export interface EvalOutput {
   summary: EvalSummary;
   results: TicketResult[];
 }
-
-// ---------------------------------------------------------------------------
-// Zod schema for LLM classification response
-// ---------------------------------------------------------------------------
-
-const ClassificationSchema = z.object({
-  category: z.string(),
-  sub_category: z.string(),
-  urgency: z.enum(['P1', 'P2', 'P3', 'P4']),
-  sentiment: z.number(),
-  language: z.string(),
-  confidence: z.number(),
-  compliance_flags: z.array(z.string()),
-  crypto_specific_tags: z.array(z.string()),
-});
 
 // ---------------------------------------------------------------------------
 // Helpers
