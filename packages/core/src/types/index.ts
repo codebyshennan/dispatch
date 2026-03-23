@@ -70,3 +70,4 @@ export interface CircuitBreakerState {
   lastFailureAt?: string;
   openUntil?: string;
 }
+

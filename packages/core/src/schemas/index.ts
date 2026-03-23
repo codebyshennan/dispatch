@@ -77,6 +77,33 @@ export const ResponseDraftSchema = z.object({
 export type ResponseDraft = z.infer<typeof ResponseDraftSchema>;
 
 /**
+ * Zod schema for a resolved ticket reference used in similar-ticket lookup.
+ * Written by the classifier Lambda under SIMILAR# DynamoDB keys.
+ */
+export const SimilarTicketSchema = z.object({
+  ticketId: z.string(),
+  category: z.string(),
+  subject: z.string().optional(),
+  resolvedAt: z.string().optional(),
+});
+export type SimilarTicket = z.infer<typeof SimilarTicketSchema>;
+
+/**
+ * Zod schema for the combined sidebar payload read by GET /context/:ticketId.
+ * Assembled from CLASSIFICATION#, RESPONSE#, and SIMILAR# DynamoDB records.
+ */
+export const SidebarPayloadSchema = z.object({
+  ticketId: z.string(),
+  status: z.enum(['pending', 'processing', 'ready', 'error']),
+  classification: ClassificationSchema.optional(),
+  responseDraft: ResponseDraftSchema.optional(),
+  kbArticles: z.array(KBResultSchema).optional(),
+  similarTickets: z.array(SimilarTicketSchema).optional(),
+  processedAt: z.string().optional(),
+});
+export type SidebarPayload = z.infer<typeof SidebarPayloadSchema>;
+
+/**
  * Factory function that wraps any caller-provided schema in the LLMResponse envelope.
  * Usage: const schema = makeLLMResponseSchema(MyOutputSchema);
  */
