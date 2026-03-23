@@ -34,7 +34,7 @@ export function App() {
         </TabList>
         <TabPanel item="context"><ContextPanel /></TabPanel>
         <TabPanel item="intelligence"><IntelligencePanel /></TabPanel>
-        <TabPanel item="actions"><ActionsPanel /></TabPanel>
+        <TabPanel item="actions"><ActionsPanel ticketId={ticketId} /></TabPanel>
       </Tabs>
     </div>
   );
