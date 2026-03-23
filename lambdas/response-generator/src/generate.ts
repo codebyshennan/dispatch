@@ -1,4 +1,4 @@
-import { invoke, ResponseDraftSchema, type ResponseDraft, type Classification, type KBResult, type PromptVariantConfig } from '@meridian/core';
+import { invoke, ResponseDraftSchema, type ResponseDraft, type Classification, type KBResult, type PromptVariantConfig } from '@beacon/core';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
@@ -230,10 +230,10 @@ export async function generateResponse(input: GenerateInput): Promise<GenerateOu
     kbContext,
   ].join('\n');
 
-  // CRITICAL: model 'claude-opus-4-5' per INFRA-04 model tiering — complex drafting requires Opus tier
+  // CRITICAL: model 'anthropic/claude-opus-4-5' per INFRA-04 model tiering — complex drafting requires Opus tier
   const response = await invoke<ResponseDraft>(userMessage, {
-    provider: 'anthropic',
-    model: 'claude-opus-4-5',
+    provider: 'openrouter',
+    model: 'anthropic/claude-opus-4-5',
     system: systemPrompt,
     schema: ResponseDraftSchema,
     maxTokens: 1024,

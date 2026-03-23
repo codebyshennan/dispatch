@@ -1,4 +1,4 @@
-import { invoke, ClassificationSchema, type Classification, type PromptVariantConfig } from '@meridian/core';
+import { invoke, ClassificationSchema, type Classification, type PromptVariantConfig } from '@beacon/core';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { readFileSync } from 'fs';
 import * as path from 'path';
@@ -125,8 +125,8 @@ export async function classify(input: ClassifyInput): Promise<ClassifyOutput> {
   const userMessage = `${cleanedPrompt}\n\nTicket ID: ${input.ticketId}\nSubject: ${input.subject}\n\n${input.body}`;
 
   const response = await invoke<Classification>(userMessage, {
-    provider: 'anthropic',
-    model: 'claude-3-5-haiku-20241022', // routine classification — haiku tier
+    provider: 'openrouter',
+    model: 'anthropic/claude-3-5-haiku', // routine classification — haiku tier
     system: systemPrompt,
     schema: ClassificationSchema,
     maxTokens: 512,

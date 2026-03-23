@@ -120,6 +120,37 @@ async function callOpenAI<T>(
   };
 }
 
+async function callOpenRouter<T>(
+  userContent: string,
+  options: LLMOptions<T>,
+): Promise<{ rawText: string; inputTokens: number; outputTokens: number }> {
+  const client = new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY,
+  });
+  const response = await client.chat.completions.create({
+    model: options.model,
+    messages: [
+      ...(options.system ? [{ role: 'system' as const, content: options.system }] : []),
+      { role: 'user' as const, content: userContent },
+    ],
+    max_tokens: options.maxTokens ?? 1024,
+    ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
+  });
+
+  const content = response.choices[0]?.message?.content;
+  if (typeof content !== 'string') {
+    throw new Error('OpenRouter response contained no content');
+  }
+
+  const usage = response.usage;
+  return {
+    rawText: content,
+    inputTokens: usage?.prompt_tokens ?? 0,
+    outputTokens: usage?.completion_tokens ?? 0,
+  };
+}
+
 function estimateCost(
   provider: LLMProvider,
   inputTokens: number,
@@ -171,7 +202,9 @@ export async function invoke<T>(
       const { rawText, inputTokens, outputTokens } =
         options.provider === 'anthropic'
           ? await callAnthropic(userContent, options)
-          : await callOpenAI(userContent, options);
+          : options.provider === 'openrouter'
+            ? await callOpenRouter(userContent, options)
+            : await callOpenAI(userContent, options);
 
       const latencyMs = Date.now() - startMs;
       const estimatedCostUsd = estimateCost(options.provider, inputTokens, outputTokens);

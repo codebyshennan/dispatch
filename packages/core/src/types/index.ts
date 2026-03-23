@@ -17,7 +17,7 @@ export interface Ticket {
 /**
  * Supported LLM providers.
  */
-export type LLMProvider = 'anthropic' | 'openai';
+export type LLMProvider = 'anthropic' | 'openai' | 'openrouter';
 
 /**
  * Wrapper around every LLM response, capturing cost and observability data.

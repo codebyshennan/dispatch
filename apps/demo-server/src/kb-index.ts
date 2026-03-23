@@ -1,5 +1,5 @@
 import { LocalIndex } from 'vectra';
-import { OpenAI } from 'openai';
+import { CohereClient } from 'cohere-ai';
 import { createReadStream } from 'node:fs';
 import * as readline from 'node:readline';
 import * as path from 'node:path';
@@ -7,10 +7,10 @@ import type { KBResult } from '@beacon/core';
 
 const INDEX_DIR = path.resolve(process.cwd(), '.beacon-demo-index');
 const DATASET_PATH = path.resolve(process.cwd(), 'datasets/reap-help-center.jsonl');
-const EMBED_MODEL = 'text-embedding-3-small';
+const EMBED_MODEL = 'embed-english-v3.0';
 
 let index: LocalIndex | null = null;
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 interface Article {
   id: string;
@@ -37,12 +37,17 @@ async function readArticles(): Promise<Article[]> {
   return articles;
 }
 
-async function embed(text: string): Promise<number[]> {
-  const res = await openai.embeddings.create({
+async function embed(text: string, inputType: 'search_document' | 'search_query'): Promise<number[]> {
+  const res = await cohere.embed({
+    texts: [text.slice(0, 4096)], // Cohere v3 limit
     model: EMBED_MODEL,
-    input: text.slice(0, 8000), // stay within token limit
+    inputType,
   });
-  return res.data[0].embedding;
+  const embedding = Array.isArray(res.embeddings) ? res.embeddings : res.embeddings.float;
+  if (!Array.isArray(embedding) || !Array.isArray(embedding[0])) {
+    throw new Error('Cohere embed returned unexpected shape');
+  }
+  return embedding[0] as number[];
 }
 
 export async function buildKBIndex(): Promise<void> {
@@ -56,7 +61,7 @@ export async function buildKBIndex(): Promise<void> {
   for (let i = 0; i < articles.length; i++) {
     const article = articles[i];
     const text = `${article.title}\n\n${article.body}`;
-    const vector = await embed(text);
+    const vector = await embed(text, 'search_document');
     await idx.insertItem({
       vector,
       metadata: {
@@ -64,7 +69,6 @@ export async function buildKBIndex(): Promise<void> {
         title: article.title,
         html_url: article.url,
         updated_at: article.updated_at,
-        // Store first 500 chars as excerpt for KB card rendering
         text: article.body.slice(0, 500),
       },
     });
@@ -87,7 +91,7 @@ export async function loadOrBuildKBIndex(): Promise<void> {
 
 export async function searchKB(query: string, topK = 5): Promise<KBResult[]> {
   if (!index) throw new Error('KB index not loaded — call loadOrBuildKBIndex() first');
-  const queryVector = await embed(query);
+  const queryVector = await embed(query, 'search_query');
   const results = await index.queryItems(queryVector, topK);
   return results.map(r => ({
     article_id: r.item.metadata.article_id as number,
