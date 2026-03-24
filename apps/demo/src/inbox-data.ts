@@ -1,5 +1,17 @@
-// Re-export existing types so consumers don't need to import from InputPanel
-export type { QueryEntry, QueryEntryAnalysis } from './InputPanel';
+export interface QueryEntryAnalysis {
+  category: string;
+  urgency: 'P1' | 'P2' | 'P3' | 'P4';
+  sentiment: number;
+  routing: 'auto_send' | 'agent_assisted' | 'escalate';
+}
+
+export interface QueryEntry {
+  ticketId: string;
+  subject: string;
+  body: string;
+  submittedAt: string;
+  analysis?: QueryEntryAnalysis;
+}
 
 // ── InboxTicket ───────────────────────────────────────────────────────────────
 export interface InboxTicket {
