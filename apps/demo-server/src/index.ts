@@ -43,7 +43,15 @@ app.post('/analyze', async (c) => {
   if (routing === 'auto_send' || routing === 'agent_assisted' || routing === 'escalate') {
     sessionStore.recordAnalysis(routing);
   }
-  return c.json({ ticketId });
+  return c.json({
+    ticketId,
+    classification: {
+      category: payload.classification.category,
+      urgency:  payload.classification.urgency,
+      sentiment: payload.classification.sentiment,
+      routing: (payload.responseDraft as { routing?: string })?.routing ?? 'agent_assisted',
+    },
+  });
 });
 
 // GET /context/:ticketId — polled by useBeaconData
