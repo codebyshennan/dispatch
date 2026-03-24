@@ -5,14 +5,6 @@ export interface QueryEntryAnalysis {
   routing: 'auto_send' | 'agent_assisted' | 'escalate';
 }
 
-export interface QueryEntry {
-  ticketId: string;
-  subject: string;
-  body: string;
-  submittedAt: string;
-  analysis?: QueryEntryAnalysis;
-}
-
 // ── InboxTicket ───────────────────────────────────────────────────────────────
 export interface InboxTicket {
   ticketId: string;
