@@ -21,12 +21,7 @@ export interface InboxTicket {
   from: string;
   submittedAt: string;
   status: 'processing' | 'triaged' | 'sent' | 'escalated';
-  analysis?: {
-    category: string;
-    urgency: 'P1' | 'P2' | 'P3' | 'P4';
-    sentiment: number;
-    routing: 'auto_send' | 'agent_assisted' | 'escalate';
-  };
+  analysis?: QueryEntryAnalysis;
 }
 
 // ── Sim pool entry (ticketId and submittedAt generated at tick time) ──────────

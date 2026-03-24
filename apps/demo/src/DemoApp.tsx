@@ -195,7 +195,10 @@ export function DemoApp() {
   }, []);
 
   // ── Seed on mount ────────────────────────────────────────────────────────────
+  const seededRef = useRef(false);
   useEffect(() => {
+    if (seededRef.current) return;
+    seededRef.current = true;
     SEED_TICKETS.forEach(t => analyzeTicket(t));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
