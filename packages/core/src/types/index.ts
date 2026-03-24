@@ -98,6 +98,8 @@ export interface SidebarPayload {
   kbArticles?: unknown[];
   /** Similar resolved tickets for context */
   similarTickets?: SimilarTicket[];
+  /** Deterministic QA score computed after response generation */
+  qaScore?: unknown;
   processedAt?: string;
 }
 

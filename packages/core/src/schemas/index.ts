@@ -33,7 +33,7 @@ export const AuditLogEntrySchema = z.object({
 
 /**
  * Zod schema for the structured classification output produced by the classifier Lambda.
- * This is the canonical definition — shared by @meridian/lambda-eval and @meridian/lambda-classifier.
+ * This is the canonical definition — shared by @beacon/lambda-eval and @beacon/lambda-classifier.
  */
 export const ClassificationSchema = z.object({
   category: z.string(),
@@ -70,11 +70,26 @@ export const ResponseDraftSchema = z.object({
   draft:                  z.string(),
   citations:              z.array(z.string()),  // KB article html_url references
   requires_review:        z.boolean(),
-  requires_review_reason: z.string().optional(),
+  requires_review_reason: z.string().nullish(),
   routing:                z.enum(['auto_send', 'agent_assisted', 'escalate']),
-  jurisdiction_footer:    z.string().optional(),
+  jurisdiction_footer:    z.string().nullish(),
 });
 export type ResponseDraft = z.infer<typeof ResponseDraftSchema>;
+
+/**
+ * Zod schema for a deterministic QA score computed after response generation.
+ */
+export const QAScoreSchema = z.object({
+  score: z.number().min(0).max(100),
+  grade: z.enum(['high', 'medium', 'low']),
+  signals: z.object({
+    kbCoverage: z.number(),
+    confidence: z.number(),
+    complianceClean: z.number(),
+    draftLength: z.number(),
+  }),
+});
+export type QAScore = z.infer<typeof QAScoreSchema>;
 
 /**
  * Zod schema for a resolved ticket reference used in similar-ticket lookup.
@@ -99,6 +114,7 @@ export const SidebarPayloadSchema = z.object({
   responseDraft: ResponseDraftSchema.optional(),
   kbArticles: z.array(KBResultSchema).optional(),
   similarTickets: z.array(SimilarTicketSchema).optional(),
+  qaScore: QAScoreSchema.optional(),
   processedAt: z.string().optional(),
 });
 // Note: SidebarPayload interface is defined in types/index.ts to avoid name collision on barrel re-export
