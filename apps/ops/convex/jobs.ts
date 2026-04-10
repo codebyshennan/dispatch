@@ -220,32 +220,7 @@ export const updateJobCounts = internalMutation({
     const job = await ctx.db.get(args.jobId);
     if (!job) return;
 
-    const patch: Partial<typeof job> = {};
-
-    if (args.outcomeStatus === "succeeded") {
-      patch.succeededCount = job.succeededCount + 1;
-    } else if (
-      args.outcomeStatus === "failed_retryable" ||
-      args.outcomeStatus === "failed_permanent"
-    ) {
-      patch.failedCount = job.failedCount + 1;
-    } else if (args.outcomeStatus === "cancelled") {
-      patch.cancelledCount = job.cancelledCount + 1;
-    } else if (args.outcomeStatus === "skipped") {
-      patch.skippedCount = job.skippedCount + 1;
-    }
-
-    // Check if job is complete
-    const updatedSucceeded = patch.succeededCount ?? job.succeededCount;
-    const updatedFailed = patch.failedCount ?? job.failedCount;
-    const updatedSkipped = patch.skippedCount ?? job.skippedCount;
-    const updatedCancelled = patch.cancelledCount ?? job.cancelledCount;
-    const done = updatedSucceeded + updatedFailed + updatedSkipped + updatedCancelled;
-
-    if (done >= job.totalItems) {
-      patch.status = updatedFailed > 0 ? "completed_with_failures" : "completed";
-    }
-
+    const patch = applyOutcomeToJobCounts(job, args.outcomeStatus);
     await ctx.db.patch(args.jobId, patch);
   },
 });
