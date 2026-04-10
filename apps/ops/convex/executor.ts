@@ -97,7 +97,7 @@ export const executeItem = internalAction({
     }
 
     const newRetryCount = item.retryCount + 1;
-    const isPermanent = result.failureType === "permanent" || newRetryCount >= MAX_RETRIES;
+    const isPermanent = result.failureType === "permanent" || isRetryExhausted(newRetryCount);
 
     await ctx.runMutation(internal.executor.setItemFailed, {
       itemId: args.itemId,
@@ -110,8 +110,7 @@ export const executeItem = internalAction({
 
     if (!isPermanent) {
       // Exponential backoff: 2s, 4s, 8s
-      const backoffMs = Math.pow(2, newRetryCount) * 1000;
-      await ctx.scheduler.runAfter(backoffMs, internal.executor.executeItem, {
+      await ctx.scheduler.runAfter(backoffMs(newRetryCount), internal.executor.executeItem, {
         itemId: args.itemId,
         jobId: args.jobId,
       });
