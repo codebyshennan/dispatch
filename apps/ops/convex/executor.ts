@@ -6,8 +6,12 @@ import {
   internalQuery,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
-
-const MAX_RETRIES = 3;
+import {
+  simulateMockCardApi,
+  MAX_RETRIES,
+  isRetryExhausted,
+  backoffMs,
+} from "../src/lib/executor-logic";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
