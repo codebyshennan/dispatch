@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { mutation, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { checkPolicy } from "../src/lib/policy";
+import { applyOutcomeToJobCounts } from "../src/lib/job-counter-logic";
 
 // ─── createDraft ──────────────────────────────────────────────────────────────
 // Resolves target cards, runs policy, returns a preview — does NOT execute yet.
