@@ -65,39 +65,6 @@ export const setItemFailed = internalMutation({
   },
 });
 
-// ─── Mock card API simulation ─────────────────────────────────────────────────
-// ~18% retryable (timeout), ~6% permanent (locked). Deterministic per cardId+attempt.
-
-function simulateMockCardApi(
-  cardId: string,
-  attempt: number
-): { success: boolean; failureType?: "retryable" | "permanent"; failureCode?: string; failureDetail?: string } {
-  // Three specific cards always fail permanently (demo of hard failures)
-  if (cardId.includes("019") || cardId.includes("033") || cardId.includes("047")) {
-    return {
-      success: false,
-      failureType: "permanent",
-      failureCode: "CARD_LOCKED",
-      failureDetail: "Card is locked pending compliance review",
-    };
-  }
-
-  // Deterministic pseudo-random: hash cardId + attempt
-  const hash = cardId.split("").reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1), 0);
-  const roll = (hash * (attempt + 1)) % 100;
-
-  if (roll < 18) {
-    return {
-      success: false,
-      failureType: "retryable",
-      failureCode: "UPSTREAM_TIMEOUT",
-      failureDetail: "Card API request timed out",
-    };
-  }
-
-  return { success: true };
-}
-
 // ─── Main executor action ─────────────────────────────────────────────────────
 
 export const executeItem = internalAction({
