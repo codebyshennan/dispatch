@@ -16,7 +16,6 @@ export default function OpsPage() {
   const { T } = useTheme();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const interpretIntent = useAction(api.interpreter.interpretIntent);
