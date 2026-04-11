@@ -1,5 +1,5 @@
 {
-  "name": "@meridian/lambda-classifier",
+  "name": "@beacon/lambda-classifier",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -11,11 +11,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.0.0",
-    "@meridian/core": "workspace:*",
+    "@aws-sdk/client-dynamodb": "^3.1029.0",
+    "@beacon/core": "workspace:*",
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "typescript": "5.8.3"
+    "typescript": "6.0.2"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@meridian/lambda-response-generator",
+  "name": "@beacon/lambda-response-generator",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -8,11 +8,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.0.0",
-    "@meridian/core": "workspace:*"
+    "@aws-sdk/client-dynamodb": "^3.1029.0",
+    "@beacon/core": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2"
   }
 }

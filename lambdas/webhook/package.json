@@ -1,5 +1,5 @@
 {
-  "name": "@meridian/lambda-webhook",
+  "name": "@beacon/lambda-webhook",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -8,13 +8,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.0.0",
-    "@aws-sdk/lib-dynamodb": "^3.0.0",
-    "@aws-sdk/client-eventbridge": "^3.0.0",
-    "@aws-sdk/client-sfn": "^3.0.0",
-    "hono": "4.12.8"
+    "@aws-sdk/client-dynamodb": "^3.1029.0",
+    "@aws-sdk/client-eventbridge": "^3.1029.0",
+    "@aws-sdk/client-sfn": "^3.1029.0",
+    "@aws-sdk/lib-dynamodb": "^3.1029.0",
+    "hono": "4.12.12"
   },
   "devDependencies": {
-    "typescript": "5.8.3"
+    "typescript": "6.0.2"
   }
 }

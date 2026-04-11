@@ -1,5 +1,5 @@
 {
-  "name": "meridian",
+  "name": "beacon",
   "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@10.32.1",
@@ -8,11 +8,11 @@
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "dev": "turbo dev",
-    "eval": "pnpm --filter @meridian/lambda-eval eval"
+    "eval": "pnpm --filter @beacon/lambda-eval eval"
   },
   "devDependencies": {
-    "turbo": "2.8.20",
-    "typescript": "5.9.3",
-    "esbuild": "^0.25"
+    "esbuild": "^0.28.0",
+    "turbo": "2.9.6",
+    "typescript": "6.0.2"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@meridian/infra",
+  "name": "@beacon/infra",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -8,11 +8,11 @@
     "cdk": "cdk"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.244.0",
-    "constructs": "10.5.1"
+    "aws-cdk-lib": "2.248.0",
+    "constructs": "10.6.0"
   },
   "devDependencies": {
-    "aws-cdk": "2.1112.0",
-    "typescript": "5.9.3"
+    "aws-cdk": "2.1118.0",
+    "typescript": "6.0.2"
   }
 }

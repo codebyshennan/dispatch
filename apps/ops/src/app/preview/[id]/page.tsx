@@ -143,8 +143,19 @@ export default function PreviewPage() {
             marginBottom: 16,
           }}
         >
-          <strong>Approval required.</strong> This operation affects more than 25 cards. Proceed
-          only if you have authority to approve operations at this scale.
+          <p style={{ margin: "0 0 10px" }}>
+            <strong>Approval required.</strong> This operation affects more than 25 cards. Proceed
+            only if you have authority to approve operations at this scale.
+          </p>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#fcd34d" }}>
+            <input
+              type="checkbox"
+              checked={acknowledged}
+              onChange={(e) => setAcknowledged(e.target.checked)}
+              style={{ width: 14, height: 14, cursor: "pointer", accentColor: "#fcd34d" }}
+            />
+            I have authority to approve this operation
+          </label>
         </div>
       )}
 

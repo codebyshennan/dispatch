@@ -8,23 +8,23 @@
   },
   "dependencies": {
     "@beacon/core": "workspace:*",
-    "@zendeskgarden/react-theming": "~9.15.0",
     "@zendeskgarden/react-buttons": "~9.15.0",
-    "@zendeskgarden/react-loaders": "~9.15.0",
-    "@zendeskgarden/react-notifications": "~9.15.0",
-    "@zendeskgarden/react-typography": "~9.15.0",
-    "@zendeskgarden/react-modals": "~9.15.0",
     "@zendeskgarden/react-forms": "~9.15.0",
+    "@zendeskgarden/react-loaders": "~9.15.0",
+    "@zendeskgarden/react-modals": "~9.15.0",
+    "@zendeskgarden/react-notifications": "~9.15.0",
     "@zendeskgarden/react-tags": "~9.15.0",
+    "@zendeskgarden/react-theming": "~9.15.0",
+    "@zendeskgarden/react-typography": "~9.15.0",
     "fast-levenshtein": "^3.0.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.0",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.5.0",
-    "vite": "^5.4.0"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
   }
 }

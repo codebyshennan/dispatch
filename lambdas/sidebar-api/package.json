@@ -1,5 +1,5 @@
 {
-  "name": "@meridian/lambda-sidebar-api",
+  "name": "@beacon/lambda-sidebar-api",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -11,13 +11,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.0.0",
-    "@aws-sdk/client-lambda": "^3.0.0",
-    "@meridian/core": "workspace:*",
-    "hono": "4.12.8"
+    "@aws-sdk/client-dynamodb": "^3.1029.0",
+    "@aws-sdk/client-lambda": "^3.1029.0",
+    "@beacon/core": "workspace:*",
+    "hono": "4.12.12"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
-    "typescript": "5.8.3"
+    "esbuild": "^0.28.0",
+    "typescript": "6.0.2"
   }
 }

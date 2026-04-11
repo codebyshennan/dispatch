@@ -1,5 +1,5 @@
 {
-  "name": "@meridian/core",
+  "name": "@beacon/core",
   "version": "0.0.1",
   "private": true,
   "main": "dist/index.js",
@@ -10,13 +10,13 @@
     "lint": "echo 'no linter configured yet'"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "6.0.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.80.0",
-    "@aws-sdk/client-dynamodb": "^3.1014.0",
-    "@aws-sdk/lib-dynamodb": "^3.1014.0",
-    "openai": "6.32.0",
+    "@anthropic-ai/sdk": "0.88.0",
+    "@aws-sdk/client-dynamodb": "^3.1029.0",
+    "@aws-sdk/lib-dynamodb": "^3.1029.0",
+    "openai": "6.34.0",
     "zod": "4.3.6"
   }
 }
