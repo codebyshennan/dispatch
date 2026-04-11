@@ -48,7 +48,7 @@ const ProcessResultSchema = z.discriminatedUnion("type", [
 
 export const processRequest = action({
   args: { rawRequest: v.string() },
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
 
@@ -57,10 +57,24 @@ export const processRequest = action({
       apiKey,
     });
 
+    // Search KB for relevant articles to ground the response
+    let kbContext = "";
+    try {
+      const kbResults = await ctx.runAction(api.kb.searchKB, { query: args.rawRequest, limit: 4 });
+      if (kbResults.length > 0) {
+        kbContext = "\n\nKNOWLEDGE BASE ARTICLES (cite these as sources when relevant):\n" +
+          kbResults.map((r) => `[${r.id}] ${r.title}\n${r.snippet}`).join("\n\n");
+      }
+    } catch {
+      // KB unavailable (not seeded yet) — fall back gracefully
+    }
+
+    const systemPrompt = BASE_SYSTEM_PROMPT + kbContext;
+
     const response = await client.chat.completions.create({
       model: "openai/gpt-5.4-mini",
       messages: [
-        { role: "system", content: UNIFIED_SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         { role: "user", content: args.rawRequest },
       ],
       temperature: 0,
