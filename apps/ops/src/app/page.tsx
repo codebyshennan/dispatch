@@ -30,11 +30,12 @@ function uid() {
   return Math.random().toString(36).slice(2);
 }
 
-// ── Shared action-button style ────────────────────────────────────────────────
-function ActionButton({
-  onClick, children, T,
+// ── Icon buttons ──────────────────────────────────────────────────────────────
+function IconBtn({
+  onClick, title, children, T,
 }: {
   onClick: () => void;
+  title: string;
   children: React.ReactNode;
   T: ReturnType<typeof useTheme>["T"];
 }) {
@@ -42,17 +43,40 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
+      title={title}
+      aria-label={title}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: "transparent", border: `1px solid ${T.border}`,
-        borderRadius: 6, padding: "2px 8px", fontSize: 11,
-        color: hov ? T.text : T.muted, cursor: "pointer",
-        fontFamily: T.fontBody, transition: "all 0.15s ease",
+        flexShrink: 0, alignSelf: "center",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        width: 28, height: 28, borderRadius: 7,
+        border: `1px solid ${T.border}`,
+        background: hov ? T.elevated : "transparent",
+        color: hov ? T.textSub : T.muted,
+        cursor: "pointer", transition: "all 0.15s ease",
       }}
     >
       {children}
     </button>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+function RetryIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
   );
 }
 
@@ -67,10 +91,11 @@ function UserBubble({
   const [hov, setHov] = useState(false);
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}
+      style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
+      {hov && <IconBtn onClick={onEdit} title="Edit message" T={T}><EditIcon /></IconBtn>}
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 4px 12px",
         padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
@@ -79,9 +104,6 @@ function UserBubble({
       }}>
         {entry.text}
       </div>
-      {hov && (
-        <ActionButton onClick={onEdit} T={T}>Edit</ActionButton>
-      )}
     </div>
   );
 }
@@ -97,7 +119,7 @@ function AnswerBubble({
   const [hov, setHov] = useState(false);
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
@@ -110,9 +132,7 @@ function AnswerBubble({
       }}>
         {entry.text}
       </div>
-      {hov && (
-        <ActionButton onClick={onRetry} T={T}>↺ Retry</ActionButton>
-      )}
+      {hov && <IconBtn onClick={onRetry} title="Retry" T={T}><RetryIcon /></IconBtn>}
     </div>
   );
 }
@@ -129,7 +149,7 @@ function BulkOpCard({
   const [hov, setHov] = useState(false);
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
@@ -182,9 +202,7 @@ function BulkOpCard({
           Review plan →
         </button>
       </div>
-      {hov && (
-        <ActionButton onClick={onRetry} T={T}>↺ Retry</ActionButton>
-      )}
+      {hov && <IconBtn onClick={onRetry} title="Retry" T={T}><RetryIcon /></IconBtn>}
     </div>
   );
 }
@@ -200,7 +218,7 @@ function UnsupportedBubble({
   const [hov, setHov] = useState(false);
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
@@ -213,9 +231,7 @@ function UnsupportedBubble({
         <span style={{ fontStyle: "italic" }}>{entry.intent}</span> isn&apos;t automated in v1.
         Try: <span style={{ color: T.textSub }}>&quot;Update [team] card limits to SGD [amount]&quot;</span>
       </div>
-      {hov && (
-        <ActionButton onClick={onRetry} T={T}>↺ Retry</ActionButton>
-      )}
+      {hov && <IconBtn onClick={onRetry} title="Retry" T={T}><RetryIcon /></IconBtn>}
     </div>
   );
 }
