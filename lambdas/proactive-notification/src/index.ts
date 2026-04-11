@@ -1,5 +1,5 @@
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import type { RoutingMode } from '@meridian/core';
+import type { RoutingMode } from '@beacon/core';
 
 const dynamo = new DynamoDBClient({});
 

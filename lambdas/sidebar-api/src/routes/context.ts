@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { queryLatest } from '../dynamo.js';
-import type { SidebarPayload } from '@meridian/core';
+import type { SidebarPayload } from '@beacon/core';
 
 const app = new Hono();
 

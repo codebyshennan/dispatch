@@ -10,7 +10,7 @@
  *     node --loader ts-node/esm bootstrap-kb.ts [path/to/reap-help-center.jsonl]
  *
  * Optional env:
- *   KB_INDEXER_FUNCTION_NAME  (default: meridian-dev-kb-indexer)
+ *   KB_INDEXER_FUNCTION_NAME  (default: beacon-dev-kb-indexer)
  *   DRY_RUN=true              (parse + chunk only, skip S3 upload and Lambda invoke)
  */
 
@@ -106,7 +106,7 @@ async function main(): Promise<void> {
 
   const bucketName = process.env.ASSETS_BUCKET_NAME;
   const voyageKey = process.env.VOYAGE_API_KEY;
-  const functionName = process.env.KB_INDEXER_FUNCTION_NAME ?? 'meridian-dev-kb-indexer';
+  const functionName = process.env.KB_INDEXER_FUNCTION_NAME ?? 'beacon-dev-kb-indexer';
 
   if (!isDryRun) {
     if (!bucketName) {

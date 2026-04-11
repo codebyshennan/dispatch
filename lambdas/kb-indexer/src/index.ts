@@ -55,7 +55,7 @@ async function insertChunk(
   await rds.send(new ExecuteStatementCommand({
     resourceArn: clusterArn,
     secretArn: secretArn,
-    database: 'meridian',
+    database: 'beacon',
     sql: `
       INSERT INTO kb_articles (article_id, title, html_url, updated_at, section_id, chunk_index, text, embedding)
       VALUES (:articleId, :title, :htmlUrl, :updatedAt::timestamptz, :sectionId, :chunkIndex, :text, :embedding::vector)

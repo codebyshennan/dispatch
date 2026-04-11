@@ -22,7 +22,7 @@ import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
-export interface MeridianStackProps extends cdk.StackProps {
+export interface BeaconStackProps extends cdk.StackProps {
   /**
    * Application environment (dev | staging | prod).
    * Controls retention policies and other env-specific settings.
@@ -42,9 +42,9 @@ export interface MeridianStackProps extends cdk.StackProps {
  * - Lambda eval function with pnpm workspace bundling
  * - IAM execution role for Lambda functions
  *
- * All resources follow the `meridian-{env}-{resource}` naming convention.
+ * All resources follow the `beacon-{env}-{resource}` naming convention.
  */
-export class MeridianStack extends cdk.Stack {
+export class BeaconStack extends cdk.Stack {
   /** DynamoDB audit log table */
   public readonly auditTable: dynamodb.TableV2;
 
@@ -72,12 +72,12 @@ export class MeridianStack extends cdk.Stack {
   /** Runbook Executor Lambda — dispatches sidebar action requests to runbook implementations */
   public readonly runbookExecutorLambda: lambda.IFunction;
 
-  constructor(scope: Construct, id: string, props: MeridianStackProps = {}) {
+  constructor(scope: Construct, id: string, props: BeaconStackProps = {}) {
     super(scope, id, props);
 
     const appEnv = props.appEnv ?? 'dev';
     const isProd = appEnv === 'prod';
-    const prefix = `meridian-${appEnv}`;
+    const prefix = `beacon-${appEnv}`;
 
     // ---------------------------------------------------------------
     // SQS — Tickets Queue + DLQ (INFRA-05)
@@ -172,7 +172,7 @@ export class MeridianStack extends cdk.Stack {
     const dbSecret = new secretsmanager.Secret(this, 'DbSecret', {
       secretName: `${prefix}-db-credentials`,
       generateSecretString: {
-        secretStringTemplate: JSON.stringify({ username: 'meridian' }),
+        secretStringTemplate: JSON.stringify({ username: 'beacon' }),
         generateStringKey: 'password',
         excludePunctuation: true,
       },
@@ -194,7 +194,7 @@ export class MeridianStack extends cdk.Stack {
           : ec2.SubnetType.PRIVATE_ISOLATED,
       },
       credentials: rds.Credentials.fromSecret(dbSecret),
-      defaultDatabaseName: 'meridian',
+      defaultDatabaseName: 'beacon',
       storageEncrypted: true,
       deletionProtection: isProd,
       removalPolicy: isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
@@ -213,7 +213,7 @@ export class MeridianStack extends cdk.Stack {
         parameters: {
           resourceArn: this.dbCluster.clusterArn,
           secretArn: dbSecret.secretArn,
-          database: 'meridian',
+          database: 'beacon',
           sql: 'CREATE EXTENSION IF NOT EXISTS vector;',
         },
         physicalResourceId: cr.PhysicalResourceId.of('pgvector-init'),
@@ -237,7 +237,7 @@ export class MeridianStack extends cdk.Stack {
         parameters: {
           resourceArn: this.dbCluster.clusterArn,
           secretArn: dbSecret.secretArn,
-          database: 'meridian',
+          database: 'beacon',
           sql: `
             CREATE TABLE IF NOT EXISTS kb_articles (
               id          BIGSERIAL PRIMARY KEY,
@@ -269,7 +269,7 @@ export class MeridianStack extends cdk.Stack {
     // IAM execution role for Lambda functions
     // ---------------------------------------------------------------
     this.lambdaExecutionRole = new iam.Role(this, 'LambdaExecutionRole', {
-      roleName: `meridian-lambda-${appEnv}`,
+      roleName: `beacon-lambda-${appEnv}`,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -285,7 +285,7 @@ export class MeridianStack extends cdk.Stack {
     // ---------------------------------------------------------------
     // Eval Lambda with pnpm workspace bundling (CRITICAL esbuild config)
     // depsLockFilePath MUST point to root pnpm-lock.yaml so transitive
-    // deps from @meridian/core (e.g. @anthropic-ai/sdk) resolve correctly
+    // deps from @beacon/core (e.g. @anthropic-ai/sdk) resolve correctly
     // ---------------------------------------------------------------
     const evalLambda = new NodejsFunction(this, 'EvalLambda', {
       functionName: `${prefix}-eval`,
@@ -295,7 +295,7 @@ export class MeridianStack extends cdk.Stack {
       handler: 'handler',
       // CRITICAL: must point to root pnpm-lock.yaml for workspace symlink resolution.
       // __dirname resolves to infra/dist/stacks at runtime (or infra/src/stacks in ts-node).
-      // 3 levels up from infra/dist/stacks reaches the workspace root (meridian/).
+      // 3 levels up from infra/dist/stacks reaches the workspace root (beacon/).
       depsLockFilePath: path.join(__dirname, '../../../pnpm-lock.yaml'),
       bundling: {
         // AWS SDK v3 is pre-installed in Node 20 Lambda runtime
@@ -303,7 +303,7 @@ export class MeridianStack extends cdk.Stack {
         target: 'node20',
         minify: true,
         sourceMap: false,
-        // Workspace packages (e.g. @meridian/core) must be bundled — not external
+        // Workspace packages (e.g. @beacon/core) must be bundled — not external
         nodeModules: [],
       },
       environment: {
@@ -568,7 +568,7 @@ export class MeridianStack extends cdk.Stack {
     // ClassifyTicket → WriteShadowNote; CloudWatch logging at ERROR level
     // ---------------------------------------------------------------
     const workflowLogs = new logs.LogGroup(this, 'WorkflowLogs', {
-      logGroupName: `/meridian/${appEnv}/ticket-processing`,
+      logGroupName: `/beacon/${appEnv}/ticket-processing`,
       retention: logs.RetentionDays.ONE_WEEK,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });

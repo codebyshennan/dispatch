@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useClient } from '../contexts/ClientProvider';
 import { useTicketId } from './useTicketId';
-import type { SidebarPayload } from '@meridian/core';
+import type { SidebarPayload } from '@beacon/core';
 
 const MAX_POLLS = 6; // up to ~90s wait
 const POLL_INTERVAL_MS = 10_000; // 10 seconds between polls
 
-export function useMeridianData() {
+export function useBeaconData() {
   const client = useClient();
   const ticketId = useTicketId();
   const [data, setData] = useState<SidebarPayload | null>(null);

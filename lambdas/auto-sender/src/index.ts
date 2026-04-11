@@ -1,5 +1,5 @@
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
-import type { Classification, ResponseDraft, RoutingMode } from '@meridian/core';
+import type { Classification, ResponseDraft, RoutingMode } from '@beacon/core';
 
 const dynamo = new DynamoDBClient({});
 

@@ -1,11 +1,11 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { classify, type ClassifyInput } from './classify.js';
 import { writeShadowNote } from './shadow.js';
-import type { Classification } from '@meridian/core';
+import type { Classification } from '@beacon/core';
 
 // Re-export classify function and types for workspace consumers
-// (e.g. @meridian/lambda-batch-classifier) so they can import via
-// '@meridian/lambda-classifier' without reaching into internal source paths.
+// (e.g. @beacon/lambda-batch-classifier) so they can import via
+// '@beacon/lambda-classifier' without reaching into internal source paths.
 export { classify, type ClassifyInput, type ClassifyOutput } from './classify.js';
 
 // DynamoDB client — module-level singleton, reused across Lambda warm invocations
@@ -41,7 +41,7 @@ export async function classifyHandler(event: ClassifyInput) {
 
     // Write SIMILAR# record for the sidebar IntelligencePanel similar-ticket section.
     // TODO(Phase 5): populate similarTickets via a secondary query after a GSI on `category`
-    // is added to meridian-dev-audit-log (currently no GSI — Scan not viable in real-time path).
+    // is added to beacon-dev-audit-log (currently no GSI — Scan not viable in real-time path).
     // For now, write an empty array as a placeholder so sidebar-api can detect the record exists.
     try {
       await dynamoClient.send(new PutItemCommand({

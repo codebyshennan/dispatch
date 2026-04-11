@@ -1,4 +1,4 @@
-import type { Classification } from '@meridian/core';
+import type { Classification } from '@beacon/core';
 
 function formatPriority(urgency: string): string {
   const labels: Record<string, string> = {

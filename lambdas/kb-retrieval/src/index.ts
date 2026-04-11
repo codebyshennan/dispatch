@@ -1,5 +1,5 @@
 import { RDSDataClient, ExecuteStatementCommand } from '@aws-sdk/client-rds-data';
-import type { KBResult } from '@meridian/core';
+import type { KBResult } from '@beacon/core';
 
 /**
  * Input shape from the Step Functions state machine.
@@ -63,7 +63,7 @@ async function retrieveTopK(embedding: number[], k = 3): Promise<KBResult[]> {
     new ExecuteStatementCommand({
       resourceArn: process.env.DB_CLUSTER_ARN!,
       secretArn: process.env.DB_SECRET_ARN!,
-      database: 'meridian',
+      database: 'beacon',
       formatRecordsAs: 'JSON',
       sql: `
         SELECT article_id, title, html_url, updated_at::text, text,

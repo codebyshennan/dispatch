@@ -108,7 +108,7 @@ async function findStaleArticles(rds: RDSDataClient): Promise<StaleRecord[]> {
   const result = await rds.send(new ExecuteStatementCommand({
     resourceArn: DB_CLUSTER_ARN,
     secretArn: DB_SECRET_ARN,
-    database: 'meridian',
+    database: 'beacon',
     sql: `
       SELECT DISTINCT article_id, title, html_url, updated_at, indexed_at
       FROM kb_articles

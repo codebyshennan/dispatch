@@ -1,5 +1,5 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { CircuitBreaker } from '@meridian/core';
+import { CircuitBreaker } from '@beacon/core';
 
 /**
  * RUN-04: Card freeze/unfreeze — write operation with circuit-breaker protection.

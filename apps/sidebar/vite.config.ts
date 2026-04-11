@@ -12,14 +12,14 @@ export default defineConfig({
     },
     outDir: 'dist',
   },
-  // Exclude @meridian/core from pre-bundling — its node16 .js extensions
+  // Exclude @beacon/core from pre-bundling — its node16 .js extensions
   // cause Vite's optimizer to fail. Import types only; no runtime code from core.
   optimizeDeps: {
-    exclude: ['@meridian/core'],
+    exclude: ['@beacon/core'],
   },
   resolve: {
     alias: {
-      '@meridian/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
+      '@beacon/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
     },
   },
 });

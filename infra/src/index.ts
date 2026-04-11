@@ -1,2 +1,2 @@
-export { MeridianStack } from './stacks/meridian-stack.js';
-export type { MeridianStackProps } from './stacks/meridian-stack.js';
+export { BeaconStack } from './stacks/beacon-stack.js';
+export type { BeaconStackProps } from './stacks/beacon-stack.js';

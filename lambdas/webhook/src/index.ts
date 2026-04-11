@@ -64,7 +64,7 @@ app.post('/webhook/zendesk', async (c) => {
   await ebClient.send(new PutEventsCommand({
     Entries: [{
       EventBusName: eventBusName,
-      Source: 'meridian.webhook',
+      Source: 'beacon.webhook',
       DetailType: eventType,
       Detail: JSON.stringify({ ticket: ticketData }),
     }],

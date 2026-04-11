@@ -59,7 +59,7 @@ async function fetchArticles(subdomain: string, apiToken: string): Promise<Zende
 
 async function embedText(text: string): Promise<number[]> {
   // Embedding uses Voyage AI (voyage-3-lite) via raw fetch.
-  // @meridian/core invoke() is a chat-completion wrapper only — do NOT use it here.
+  // @beacon/core invoke() is a chat-completion wrapper only — do NOT use it here.
   // If VOYAGE_API_KEY is not set, return empty array; Phase 3 will re-embed during pgvector load.
   const voyageKey = process.env.VOYAGE_API_KEY;
   if (!voyageKey) {
