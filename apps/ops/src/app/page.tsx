@@ -382,7 +382,7 @@ export default function OpsPage() {
       if (result.type === "question") {
         setThread((prev) => prev.map((e) =>
           e.id === responseId
-            ? { id: responseId, pairId, kind: "answer", text: result.answer, userText }
+            ? { id: responseId, pairId, kind: "answer", text: result.answer, sources: result.sources, userText }
             : e
         ));
       } else {
