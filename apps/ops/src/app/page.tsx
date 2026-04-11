@@ -399,6 +399,247 @@ function BulkOpCard({
   );
 }
 
+// ── JobPreviewCard ────────────────────────────────────────────────────────────
+function JobPreviewCard({
+  entry, onConfirmed, onDismiss, T,
+}: {
+  entry: Extract<Entry, { kind: "job_preview" }>;
+  onConfirmed: () => void;
+  onDismiss: () => void;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [showAllExclusions, setShowAllExclusions] = useState(false);
+  const summary = useQuery(api.queries.getJobStatusSummary, { jobId: entry.jobId });
+  const confirmJob = useMutation(api.jobs.confirmJob);
+
+  async function handleConfirm() {
+    setConfirming(true);
+    try {
+      await confirmJob({ jobId: entry.jobId });
+      onConfirmed();
+    } catch (err) {
+      toast.error("Failed to confirm", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+      setConfirming(false);
+    }
+  }
+
+  if (!summary) return <LoadingBubble T={T} />;
+
+  const isBlocked = confirming || (summary.approvalRequired && !acknowledged);
+  const excluded = summary.excludedCards;
+  const shownExclusions = showAllExclusions ? excluded : excluded.slice(0, 3);
+
+  return (
+    <div style={{
+      borderRadius: 12, border: `1px solid ${T.border}`,
+      background: T.surface, padding: "16px 20px",
+      display: "flex", flexDirection: "column", gap: 12,
+      maxWidth: "80%",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: T.textSub }}>Execution plan</span>
+        <span style={{ fontSize: 11, color: T.muted }}>Nothing runs until you confirm</span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {[
+          { label: "Team", value: summary.targetGroup },
+          { label: "New limit", value: `${summary.newLimit.currency} ${summary.newLimit.amount.toLocaleString()}` },
+        ].map(({ label, value }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: T.muted }}>{label}</span>
+            <span style={{ fontWeight: 500, color: T.text }}>{value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+        {[
+          { label: "Total", value: summary.totalItems, color: T.text },
+          { label: "Eligible", value: summary.eligibleItems, color: T.accent },
+          { label: "Excluded", value: summary.totalItems - summary.eligibleItems, color: T.muted },
+        ].map(({ label, value, color }) => (
+          <div key={label} style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color }}>{value}</div>
+            <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {summary.approvalRequired && (
+        <div style={{ borderRadius: 8, border: "1px solid #78350f", background: "#1c0d00", padding: "10px 14px" }}>
+          <p style={{ margin: "0 0 8px", fontSize: 12, color: "#fcd34d" }}>
+            <strong>Approval required</strong> — affects more than 25 cards.
+          </p>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#fcd34d", fontSize: 12 }}>
+            <input
+              type="checkbox"
+              checked={acknowledged}
+              onChange={(e) => setAcknowledged(e.target.checked)}
+              style={{ width: 13, height: 13, cursor: "pointer", accentColor: "#fcd34d" }}
+            />
+            I have authority to approve this operation
+          </label>
+        </div>
+      )}
+
+      {excluded.length > 0 && (
+        <div style={{ borderRadius: 8, border: `1px solid ${T.border}`, padding: "10px 14px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: T.textSub }}>Excluded ({excluded.length})</span>
+            {excluded.length > 3 && (
+              <button onClick={() => setShowAllExclusions((v) => !v)} style={{ background: "none", border: "none", fontSize: 11, color: T.muted, cursor: "pointer", padding: 0 }}>
+                {showAllExclusions ? "Show less" : `+${excluded.length - 3} more`}
+              </button>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {shownExclusions.map((e) => (
+              <div key={e.cardId} style={{ display: "flex", gap: 8, fontSize: 12 }}>
+                <span style={{ fontFamily: T.fontMono, color: T.muted }}>{e.cardId}</span>
+                <span style={{ color: T.muted }}>—</span>
+                <span style={{ color: T.textSub, textTransform: "capitalize" }}>{e.reason}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          onClick={handleConfirm}
+          disabled={isBlocked}
+          style={{
+            flex: 1, borderRadius: 8, border: "none",
+            background: isBlocked ? T.elevated : T.accent,
+            color: isBlocked ? T.muted : "#0F172A",
+            padding: "8px 14px", fontSize: 13, fontWeight: 600,
+            fontFamily: T.fontBody,
+            cursor: isBlocked ? "not-allowed" : "pointer",
+            opacity: confirming ? 0.7 : 1,
+            transition: "all 0.15s ease",
+          }}
+        >
+          {confirming ? "Confirming…" : `Confirm — run for ${summary.eligibleItems} cards`}
+        </button>
+        <button
+          onClick={onDismiss}
+          disabled={confirming}
+          style={{
+            borderRadius: 8, border: `1px solid ${T.border}`,
+            background: "transparent", color: T.textSub,
+            padding: "8px 14px", fontSize: 13,
+            fontFamily: T.fontBody, cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── JobProgressCard ───────────────────────────────────────────────────────────
+const JOB_STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  draft:                   { bg: "#1E293B", color: "#94A3B8" },
+  confirmed:               { bg: "#0C2340", color: "#60A5FA" },
+  in_progress:             { bg: "#2D2A0F", color: "#FCD34D" },
+  completed:               { bg: "#052E16", color: "#4ADE80" },
+  completed_with_failures: { bg: "#431407", color: "#FB923C" },
+  cancelled:               { bg: "#1E293B", color: "#64748B" },
+  failed:                  { bg: "#3B0000", color: "#F87171" },
+};
+const JOB_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft", confirmed: "Confirmed", in_progress: "Running",
+  completed: "Completed", completed_with_failures: "Completed with failures",
+  cancelled: "Cancelled", failed: "Failed",
+};
+
+function JobProgressCard({
+  entry, T,
+}: {
+  entry: Extract<Entry, { kind: "job_progress" }>;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const data = useQuery(api.queries.getJobWithItems, { jobId: entry.jobId });
+
+  if (!data) return <LoadingBubble T={T} />;
+
+  const { job } = data;
+  const isRunning = job.status === "in_progress" || job.status === "confirmed";
+  const isDone = ["completed", "completed_with_failures", "cancelled", "failed"].includes(job.status);
+  const progress = job.eligibleItems > 0
+    ? Math.round(((job.succeededCount + job.failedCount + job.skippedCount) / job.eligibleItems) * 100)
+    : 0;
+  const remaining = Math.max(0, job.eligibleItems - job.succeededCount - job.failedCount - job.skippedCount - job.cancelledCount);
+  const statusStyle = JOB_STATUS_STYLE[job.status] ?? JOB_STATUS_STYLE.draft;
+
+  return (
+    <div style={{
+      borderRadius: 12, border: `1px solid ${T.border}`,
+      background: T.surface, padding: "14px 18px",
+      display: "flex", flexDirection: "column", gap: 10,
+      maxWidth: "80%",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 12, color: T.muted }}>
+          {job.normalizedPlan.targetGroup} — {job.normalizedPlan.newLimit.currency} {job.normalizedPlan.newLimit.amount.toLocaleString()}
+        </span>
+        <span style={{
+          display: "inline-flex", alignItems: "center",
+          borderRadius: 9999, padding: "2px 8px",
+          fontSize: 10, fontWeight: 500,
+          background: statusStyle.bg, color: statusStyle.color,
+        }}>
+          {JOB_STATUS_LABELS[job.status] ?? job.status}
+        </span>
+      </div>
+
+      {(isRunning || isDone) && (
+        <div style={{ height: 4, background: T.elevated, borderRadius: 4, overflow: "hidden" }}>
+          <div style={{
+            height: "100%", width: `${progress}%`,
+            background: job.status === "completed" ? "#4ADE80" : T.accent,
+            borderRadius: 4, transition: "width 0.5s ease",
+          }} />
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 16 }}>
+        {[
+          { label: "Succeeded", value: job.succeededCount, color: "#4ADE80" },
+          { label: "Failed", value: job.failedCount, color: "#F87171" },
+          ...(isRunning
+            ? [{ label: "Remaining", value: remaining, color: T.muted }]
+            : [{ label: "Skipped", value: job.skippedCount, color: T.muted }]
+          ),
+        ].map(({ label, value, color }) => (
+          <div key={label}>
+            <span style={{ fontSize: 16, fontWeight: 700, color }}>{value}</span>
+            <span style={{ fontSize: 11, color: T.muted, marginLeft: 5 }}>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {isDone && (
+        <p style={{ fontSize: 12, margin: 0, color: job.status === "completed" ? "#4ADE80" : "#FB923C" }}>
+          {job.status === "completed"
+            ? `All ${job.succeededCount} cards updated successfully.`
+            : `${job.succeededCount} succeeded, ${job.failedCount} failed.`}
+        </p>
+      )}
+
+      <Link href={`/jobs/${entry.jobId}`} style={{ fontSize: 11, color: T.muted, textDecoration: "none", alignSelf: "flex-end" }}>
+        View full details →
+      </Link>
+    </div>
+  );
+}
+
 // ── UnsupportedBubble ─────────────────────────────────────────────────────────
 function UnsupportedBubble({
   entry, onRetry, T,
