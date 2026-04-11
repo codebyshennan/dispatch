@@ -87,4 +87,43 @@ export default defineSchema({
   })
     .index("by_team", ["team"])
     .index("by_card_id", ["cardId"]),
+
+  /**
+   * Feedback on AI chat responses — thumbs up/down from ops users.
+   */
+  feedback: defineTable({
+    responseId: v.string(),
+    kind: v.union(v.literal("answer"), v.literal("bulk_op")),
+    rating: v.union(v.literal("up"), v.literal("down")),
+  }).index("by_response_id", ["responseId"]),
+
+  /**
+   * Append-only event log for metrics aggregation.
+   */
+  metrics_events: defineTable({
+    type: v.union(
+      v.literal("job_created"),
+      v.literal("job_completed"),
+      v.literal("feedback"),
+      v.literal("kb_gap")
+    ),
+    payload: v.any(),
+  }).index("by_type", ["type"]),
+
+  /**
+   * KB help-center articles with OpenAI embeddings for semantic search.
+   */
+  kb_articles: defineTable({
+    articleId: v.string(),
+    title: v.string(),
+    url: v.string(),
+    body: v.string(),
+    updatedAt: v.string(),
+    embedding: v.array(v.float64()),
+  })
+    .index("by_article_id", ["articleId"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+    }),
 });
