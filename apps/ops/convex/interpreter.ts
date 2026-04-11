@@ -28,18 +28,24 @@ export const interpretIntent = action({
       apiKey,
     });
 
-    const response = await client.beta.chat.completions.parse({
+    const response = await client.chat.completions.create({
       model: "google/gemma-3-27b-it:free",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: args.rawRequest },
+        {
+          role: "user",
+          content: `${args.rawRequest}\n\nRespond with valid JSON only, no markdown.`,
+        },
       ],
-      response_format: zodResponseFormat(BulkJobIntentSchema, "bulk_job_intent"),
       temperature: 0,
       max_tokens: 256,
     });
 
-    const parsed = response.choices[0]?.message?.parsed;
+    const content = response.choices[0]?.message?.content;
+    if (!content) throw new Error("LLM returned empty response");
+
+    const raw = JSON.parse(content.replace(/```json\n?|```/g, "").trim());
+    const parsed = BulkJobIntentSchema.parse(raw);
     if (!parsed) throw new Error("LLM did not return a valid intent");
 
     return parsed;
