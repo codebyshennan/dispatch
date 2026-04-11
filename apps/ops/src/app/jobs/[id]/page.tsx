@@ -389,51 +389,67 @@ export default function JobPage() {
           </h2>
           <span style={{ fontSize: 11, color: T.muted }}>{items.length} items</span>
         </div>
-        <div style={{ maxHeight: 384, overflowY: "auto" }}>
-          {items.map((item) => (
-            <div
-              key={item._id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "10px 20px",
-                borderBottom: `1px solid ${T.border}`,
-              }}
-            >
-              <div>
-                <span style={{ fontSize: 13, fontWeight: 500, color: T.text }}>
-                  {item.cardholderName}
-                </span>
-                <span style={{ marginLeft: 8, fontSize: 11, fontFamily: T.fontMono, color: T.muted }}>
-                  {item.cardId}
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                {item.failureCode && (
-                  <span
-                    title={item.failureDetail ?? ""}
-                    style={{ fontSize: 11, color: T.muted, cursor: "help" }}
-                  >
-                    {item.failureCode}
-                  </span>
-                )}
-                {item.retryCount > 0 && (
-                  <span style={{ fontSize: 11, color: T.muted }}>×{item.retryCount}</span>
-                )}
-                <span
+        <div style={{ maxHeight: 480, overflowY: "auto" }}>
+          {items.map((item) => {
+            const isExpanded = expandedCard === item.cardId;
+            return (
+              <div key={item._id} style={{ borderBottom: `1px solid ${T.border}` }}>
+                <div
+                  onClick={() => setExpandedCard(isExpanded ? null : item.cardId)}
                   style={{
-                    fontSize: 11,
-                    fontWeight: 500,
-                    textTransform: "capitalize",
-                    color: ITEM_STATUS_COLOR[item.status] ?? T.muted,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    background: isExpanded ? T.elevated : "transparent",
+                    transition: "background 0.15s ease",
                   }}
                 >
-                  {item.status.replace(/_/g, " ")}
-                </span>
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: T.text }}>
+                      {item.cardholderName}
+                    </span>
+                    <span style={{ marginLeft: 8, fontSize: 11, fontFamily: T.fontMono, color: T.muted }}>
+                      {item.cardId}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {item.failureCode && (
+                      <span
+                        title={item.failureDetail ?? ""}
+                        style={{ fontSize: 11, color: T.muted, cursor: "help" }}
+                      >
+                        {item.failureCode}
+                      </span>
+                    )}
+                    {item.retryCount > 0 && (
+                      <span style={{ fontSize: 11, color: T.muted }}>×{item.retryCount}</span>
+                    )}
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        textTransform: "capitalize",
+                        color: ITEM_STATUS_COLOR[item.status] ?? T.muted,
+                      }}
+                    >
+                      {item.status.replace(/_/g, " ")}
+                    </span>
+                    <svg
+                      width="10" height="10" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                      style={{ color: T.muted, transition: "transform 0.15s ease", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+                      aria-hidden="true"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+                {isExpanded && <CardActionsPanel cardId={item.cardId} T={T} />}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
