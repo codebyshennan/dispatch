@@ -71,8 +71,21 @@ export function NpsModal({ agentId, onClose }: NpsModalProps) {
 
   const scoreButtons = Array.from({ length: 10 }, (_, i) => i + 1);
 
+  if (submitted) {
+    return (
+      <Modal onClose={onClose} style={{ maxWidth: 'min(400px, 100%)' }}>
+        <ModalBody>
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+            <p style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 6px' }}>Thanks for your feedback!</p>
+            <p style={{ fontSize: '13px', color: '#68737d', margin: 0 }}>Your response has been recorded.</p>
+          </div>
+        </ModalBody>
+      </Modal>
+    );
+  }
+
   return (
-    <Modal onClose={onClose} style={{ maxWidth: '400px' }}>
+    <Modal onClose={onClose} style={{ maxWidth: 'min(400px, 100%)' }}>
       <Header>How helpful is Meridian in your daily work?</Header>
       <ModalBody>
         <div style={{ marginBottom: '16px' }}>
@@ -84,6 +97,8 @@ export function NpsModal({ agentId, onClose }: NpsModalProps) {
               <button
                 key={n}
                 onClick={() => setScore(n)}
+                aria-label={`Rate ${n} out of 10`}
+                aria-pressed={score === n}
                 style={{
                   width: '36px',
                   height: '36px',
@@ -113,7 +128,7 @@ export function NpsModal({ agentId, onClose }: NpsModalProps) {
         </Field>
 
         {error && (
-          <p style={{ fontSize: '12px', color: '#cc0000', marginTop: '8px' }}>{error}</p>
+          <p role="alert" style={{ fontSize: '12px', color: '#d93025', marginTop: '8px' }}>{error}</p>
         )}
       </ModalBody>
       <ModalFooter>
