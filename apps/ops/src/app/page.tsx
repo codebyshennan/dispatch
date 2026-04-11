@@ -453,6 +453,7 @@ function LoadingBubble({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
 // ── OpsPage ───────────────────────────────────────────────────────────────────
 export default function OpsPage() {
   const { T } = useTheme();
+  const router = useRouter();
   const [thread, setThread] = useState<Entry[]>([]);
   const [input, setInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
