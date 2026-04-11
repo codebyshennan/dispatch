@@ -24,7 +24,7 @@ const MARKETING_MEMBERS = [
 const FROZEN_INDICES = new Set([7, 15, 23]);
 const CANCELLED_INDICES = new Set([31, 42]);
 
-export const MOCK_CARDS: MockCard[] = MARKETING_MEMBERS.map((name, i) => ({
+const MARKETING_CARDS: MockCard[] = MARKETING_MEMBERS.map((name, i) => ({
   cardId: `CARD-MKT-${String(i + 1).padStart(3, "0")}`,
   cardholderName: name,
   team: "Marketing",
