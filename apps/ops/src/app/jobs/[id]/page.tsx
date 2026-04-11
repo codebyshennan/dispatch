@@ -211,7 +211,6 @@ export default function JobPage() {
   const isRunning = job.status === "in_progress" || job.status === "confirmed";
   const retryableItems = items.filter((i) => i.status === "failed_retryable");
   const hasRetryable = retryableItems.length > 0;
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const progress =
     job.eligibleItems > 0
       ? Math.round(((job.succeededCount + job.failedCount) / job.eligibleItems) * 100)
