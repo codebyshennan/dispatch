@@ -28,7 +28,7 @@ export const interpretIntent = action({
     });
 
     const response = await client.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "deepseek/deepseek-chat-v3-0324:free",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
