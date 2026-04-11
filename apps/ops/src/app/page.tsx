@@ -524,7 +524,7 @@ export default function OpsPage() {
                 <UserBubble
                   key={entry.id}
                   entry={entry}
-                  onEdit={() => handleEdit(entry.pairId, entry.text)}
+                  onEditSubmit={(newText) => handleEditSubmit(entry.pairId, newText)}
                   T={T}
                 />
               );
