@@ -1,27 +1,26 @@
 "use node";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import { api } from "./_generated/api";
 import OpenAI from "openai";
 import { z } from "zod";
 import { BulkJobIntentSchema } from "../src/lib/schemas";
 
-const UNIFIED_SYSTEM_PROMPT = `You are a CX operations assistant for Reap's card management team.
+const BASE_SYSTEM_PROMPT = `You are a CX operations assistant for Reap's card management team.
 
 Determine whether the user's message is a QUESTION or a BULK OPERATION REQUEST, then respond with JSON only.
 
-POLICY KNOWLEDGE — each rule has an ID you must cite as a source when relevant:
-[P1] Maximum card spending limit: SGD 5,000 | Minimum: SGD 0
-[P2] Supported currencies: SGD, USD, EUR, GBP
-[P3] Supported bulk operations: bulk_update_card_limit (fully automated), bulk_freeze_cards, bulk_notify_cardholders
+CORE POLICY RULES (always apply):
 [P4] Operations affecting more than 25 eligible cards require manager approval
 [P5] Maximum cards per bulk operation: 200
 [P6] Frozen and cancelled cards are automatically excluded from all bulk ops
+[P7] Supported bulk operations: bulk_update_card_limit (fully automated), bulk_freeze_cards, bulk_notify_cardholders
 
 RESPONSE FORMAT — return valid JSON only, no markdown:
 
 If the user is asking a question about policies, limits, approvals, or supported operations:
-{ "type": "question", "answer": "<concise direct answer>", "sources": [{ "id": "P1", "title": "<short rule title>", "snippet": "<exact policy text from the rule>" }] }
-Only include sources that directly support the answer. Omit sources array entries for rules that were not used.
+{ "type": "question", "answer": "<concise direct answer>", "sources": [{ "id": "<article id>", "title": "<article title>", "snippet": "<relevant excerpt from the article>" }] }
+Only include sources that directly support the answer.
 
 If the user is requesting a bulk operation:
 { "type": "bulk_op", "intent": {
