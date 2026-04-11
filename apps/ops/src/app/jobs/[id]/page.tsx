@@ -200,7 +200,7 @@ export default function JobPage() {
             onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "none")}
           >
-            ← Back to new job
+            ← Back to thread
           </Link>
         </div>
       </main>
