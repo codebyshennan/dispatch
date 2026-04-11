@@ -295,25 +295,28 @@ function AnswerBubble({
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
-      <div style={{
-        maxWidth: "80%", borderRadius: "12px 12px 12px 4px",
-        background: T.surface, color: T.text,
-        border: `1px solid ${T.border}`,
-        overflow: "hidden",
-      }}>
-        <div style={{ padding: "10px 14px", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-          {entry.text}
-        </div>
-        {hasSources && (
-          <div style={{ borderTop: `1px solid ${T.border}`, padding: "6px 14px 4px" }}>
-            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: T.muted, margin: "0 0 4px" }}>
-              Policy sources
-            </p>
-            {entry.sources.map((src, i) => (
-              <PolicySourceRow key={src.id} source={src} index={i} T={T} />
-            ))}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{
+          maxWidth: "80%", borderRadius: "12px 12px 12px 4px",
+          background: T.surface, color: T.text,
+          border: `1px solid ${T.border}`,
+          overflow: "hidden",
+        }}>
+          <div style={{ padding: "10px 14px", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+            {entry.text}
           </div>
-        )}
+          {hasSources && (
+            <div style={{ borderTop: `1px solid ${T.border}`, padding: "6px 14px 4px" }}>
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: T.muted, margin: "0 0 4px" }}>
+                Policy sources
+              </p>
+              {entry.sources.map((src, i) => (
+                <PolicySourceRow key={src.id} source={src} index={i} T={T} />
+              ))}
+            </div>
+          )}
+        </div>
+        {hov && <ThumbsRow responseId={entry.id} kind="answer" T={T} />}
       </div>
       {hov && <IconBtn onClick={onRetry} title="Retry" T={T}><RetryIcon /></IconBtn>}
     </div>
