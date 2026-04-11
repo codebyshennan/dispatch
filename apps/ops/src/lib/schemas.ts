@@ -14,7 +14,7 @@ export const BulkJobIntentSchema = z.object({
       amount: z.number().positive(),
     })
     .optional(),
-  notifyCardholders: z.boolean().default(false),
+  notifyCardholders: z.boolean().nullish().transform((v) => v ?? false),
 });
 
 export type BulkJobIntent = z.infer<typeof BulkJobIntentSchema>;
