@@ -47,7 +47,14 @@ const ProcessResultSchema = z.discriminatedUnion("type", [
 ]);
 
 export const processRequest = action({
-  args: { rawRequest: v.string() },
+  args: {
+    rawRequest: v.string(),
+    conversationHistory: v.optional(v.array(v.object({
+      role: v.union(v.literal("user"), v.literal("assistant")),
+      content: v.string(),
+    }))),
+    recentJobId: v.optional(v.id("jobs")),
+  },
   handler: async (ctx, args) => {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
@@ -69,12 +76,31 @@ export const processRequest = action({
       // KB unavailable (not seeded yet) — fall back gracefully
     }
 
-    const systemPrompt = BASE_SYSTEM_PROMPT + kbContext;
+    // Include most recent job result if available
+    let jobContext = "";
+    if (args.recentJobId) {
+      try {
+        const jobData = await ctx.runQuery(api.queries.getJobWithItems, { jobId: args.recentJobId });
+        if (jobData) {
+          const { job } = jobData;
+          jobContext = `\n\nMOST RECENT JOB RESULT (reference this when the user asks how a job went):
+Team: ${job.normalizedPlan.targetGroup}
+Operation: Update card limits to ${job.normalizedPlan.newLimit.currency} ${job.normalizedPlan.newLimit.amount.toLocaleString()}
+Status: ${job.status}
+Results: ${job.succeededCount} cards updated, ${job.failedCount} failed, ${job.skippedCount} excluded by policy`;
+        }
+      } catch {
+        // ignore — best-effort context
+      }
+    }
+
+    const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;
 
     const response = await client.chat.completions.create({
       model: "openai/gpt-5.4-mini",
       messages: [
         { role: "system", content: systemPrompt },
+        ...(args.conversationHistory ?? []),
         { role: "user", content: args.rawRequest },
       ],
       temperature: 0,
