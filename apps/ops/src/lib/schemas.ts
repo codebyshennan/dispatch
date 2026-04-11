@@ -7,7 +7,7 @@ export const BulkJobIntentSchema = z.object({
     "bulk_notify_cardholders",
   ]),
   targetGroup: z.string().min(1),
-  targetCountEstimate: z.number().int().positive().optional(),
+  targetCountEstimate: z.number().int().positive().nullish(),
   newLimit: z
     .object({
       currency: z.enum(["SGD", "USD", "EUR", "GBP"]),
