@@ -153,6 +153,7 @@ export default function JobPage() {
 
   const [retrying, setRetrying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const prevStatusRef = useRef<string | undefined>(undefined);
 
   const data = useQuery(api.queries.getJobWithItems, { jobId });
