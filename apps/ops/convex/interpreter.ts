@@ -60,7 +60,13 @@ export const processRequest = action({
     const content = response.choices[0]?.message?.content;
     if (!content) throw new Error("LLM returned empty response");
 
-    const raw = JSON.parse(content.replace(/```json\n?|```/g, "").trim());
+    const cleaned = content.replace(/```json\n?|```/g, "").trim();
+    let raw: unknown;
+    try {
+      raw = JSON.parse(cleaned);
+    } catch {
+      throw new Error(`LLM returned malformed JSON: ${cleaned.slice(0, 120)}`);
+    }
     return ProcessResultSchema.parse(raw);
   },
 });
