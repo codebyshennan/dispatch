@@ -82,20 +82,98 @@ function RetryIcon() {
 
 // ── UserBubble ────────────────────────────────────────────────────────────────
 function UserBubble({
-  entry, onEdit, T,
+  entry, onEditSubmit, T,
 }: {
   entry: Extract<Entry, { kind: "user" }>;
-  onEdit: () => void;
+  onEditSubmit: (newText: string) => void;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   const [hov, setHov] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(entry.text);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  function startEdit() {
+    setDraft(entry.text);
+    setEditing(true);
+    setTimeout(() => {
+      const ta = taRef.current;
+      if (ta) { ta.focus(); ta.selectionStart = ta.value.length; }
+    }, 0);
+  }
+
+  function cancel() {
+    setEditing(false);
+    setDraft(entry.text);
+  }
+
+  function submit() {
+    const text = draft.trim();
+    if (!text) return;
+    setEditing(false);
+    onEditSubmit(text);
+  }
+
+  if (editing) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, width: "100%" }}>
+        <textarea
+          ref={taRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+            if (e.key === "Escape") cancel();
+          }}
+          rows={Math.max(2, draft.split("\n").length)}
+          style={{
+            width: "80%", borderRadius: 10,
+            border: `1.5px solid ${T.accent}`,
+            background: T.surface, color: T.text,
+            padding: "10px 14px", fontSize: 13,
+            fontFamily: T.fontBody, resize: "none",
+            outline: "none", lineHeight: 1.6,
+            boxSizing: "border-box",
+          }}
+        />
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            onClick={cancel}
+            style={{
+              borderRadius: 7, border: `1px solid ${T.border}`,
+              background: "transparent", color: T.muted,
+              padding: "4px 12px", fontSize: 12,
+              fontFamily: T.fontBody, cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={!draft.trim()}
+            style={{
+              borderRadius: 7, border: "none",
+              background: draft.trim() ? T.accent : T.elevated,
+              color: draft.trim() ? "#0F172A" : T.muted,
+              padding: "4px 12px", fontSize: 12, fontWeight: 600,
+              fontFamily: T.fontBody,
+              cursor: draft.trim() ? "pointer" : "not-allowed",
+            }}
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
-      {hov && <IconBtn onClick={onEdit} title="Edit message" T={T}><EditIcon /></IconBtn>}
+      {hov && <IconBtn onClick={startEdit} title="Edit message" T={T}><EditIcon /></IconBtn>}
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 4px 12px",
         padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
