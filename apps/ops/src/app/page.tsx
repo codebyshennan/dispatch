@@ -441,9 +441,18 @@ export default function OpsPage() {
     }
   }
 
-  function handleEdit(pairId: string, userText: string) {
-    setInput(userText);
-    setThread((prev) => prev.filter((e) => e.pairId !== pairId));
+  async function handleEditSubmit(pairId: string, newText: string) {
+    // Update the stored user message text, then re-process its response.
+    setThread((prev) => prev.map((e) =>
+      e.pairId === pairId && e.kind === "user" ? { ...e, text: newText } : e
+    ));
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await process(newText, pairId);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleRetry(pairId: string, userText: string) {
