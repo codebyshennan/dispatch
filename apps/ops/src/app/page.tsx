@@ -907,11 +907,25 @@ export default function OpsPage() {
                 <BulkOpCard
                   key={entry.id}
                   entry={entry}
-                  onReview={() => router.push(`/preview/${entry.jobId}`)}
+                  onReview={() => handleReview(entry.jobId, entry.pairId)}
                   onRetry={() => handleRetry(entry.pairId, entry.userText)}
                   T={T}
                 />
               );
+            }
+            if (entry.kind === "job_preview") {
+              return (
+                <JobPreviewCard
+                  key={entry.id}
+                  entry={entry}
+                  onConfirmed={() => handleConfirmed(entry.id, entry.jobId, entry.pairId)}
+                  onDismiss={() => setThread((prev) => prev.filter((e) => e.id !== entry.id))}
+                  T={T}
+                />
+              );
+            }
+            if (entry.kind === "job_progress") {
+              return <JobProgressCard key={entry.id} entry={entry} T={T} />;
             }
             if (entry.kind === "unsupported") {
               return (
