@@ -39,6 +39,113 @@ const ITEM_STATUS_COLOR: Record<string, string> = {
   skipped:          "#64748B",
 };
 
+// ── CardActionsPanel ──────────────────────────────────────────────────────────
+function CardActionsPanel({ cardId, T }: { cardId: string; T: ReturnType<typeof useTheme>["T"] }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const freezeCard = useMutation(api.runbooks.freezeCard);
+  const blockCard = useMutation(api.runbooks.blockCard);
+  const reportFraud = useMutation(api.runbooks.reportFraud);
+  const transactions = useQuery(api.runbooks.listTransactions, { cardId });
+
+  async function run(label: string, fn: () => Promise<unknown>) {
+    setBusy(label);
+    setResult(null);
+    try {
+      const res = await fn();
+      setResult(JSON.stringify(res, null, 2));
+      toast.success(`${label} completed`);
+    } catch (err) {
+      toast.error(`${label} failed`, { description: err instanceof Error ? err.message : "Unknown error" });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const actions = [
+    {
+      label: "Freeze card",
+      fn: () => run("Freeze card", () => freezeCard({ cardId, freeze: true })),
+    },
+    {
+      label: "Unfreeze card",
+      fn: () => run("Unfreeze card", () => freezeCard({ cardId, freeze: false })),
+    },
+    {
+      label: "Block card",
+      fn: () => {
+        if (!confirm(`Permanently block ${cardId}? This cannot be undone.`)) return;
+        run("Block card", () => blockCard({ cardId }));
+      },
+    },
+    {
+      label: "Report fraud",
+      fn: () => run("Report fraud", () => reportFraud({ transactionId: "txn_8821c3d1", reason: "Unauthorized charge" })),
+    },
+  ];
+
+  return (
+    <div style={{
+      padding: "12px 20px",
+      borderTop: `1px solid ${T.border}`,
+      background: T.elevated,
+      display: "flex", flexDirection: "column", gap: 10,
+    }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {actions.map((a) => (
+          <button
+            key={a.label}
+            onClick={a.fn}
+            disabled={busy !== null}
+            style={{
+              borderRadius: 7,
+              border: `1px solid ${T.border}`,
+              background: busy === a.label ? T.elevated : "transparent",
+              color: busy === a.label ? T.muted : T.textSub,
+              padding: "4px 12px", fontSize: 12,
+              fontFamily: "inherit", cursor: busy !== null ? "not-allowed" : "pointer",
+              opacity: busy !== null && busy !== a.label ? 0.5 : 1,
+              transition: "all 0.15s ease",
+            }}
+          >
+            {busy === a.label ? "Running…" : a.label}
+          </button>
+        ))}
+      </div>
+
+      {transactions && (
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: T.muted, margin: "0 0 6px" }}>
+            Recent transactions
+          </p>
+          {transactions.data.map((tx) => (
+            <div key={tx.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "3px 0", borderBottom: `1px solid ${T.border}` }}>
+              <span style={{ color: T.textSub }}>{tx.merchantName}</span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontFamily: "monospace", color: tx.amount < 0 ? "#F87171" : "#4ADE80" }}>
+                  {tx.currency} {(Math.abs(tx.amount) / 100).toFixed(2)}
+                </span>
+                <span style={{ color: tx.status === "disputed" ? "#FB923C" : T.muted }}>{tx.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {result && (
+        <pre style={{
+          margin: 0, fontSize: 10, color: T.muted,
+          background: T.surface, borderRadius: 6,
+          padding: "8px 10px", overflowX: "auto",
+          maxHeight: 140, border: `1px solid ${T.border}`,
+        }}>
+          {result}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 export default function JobPage() {
   const { T } = useTheme();
   const { id } = useParams<{ id: string }>();
