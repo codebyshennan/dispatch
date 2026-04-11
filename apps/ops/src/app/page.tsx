@@ -335,58 +335,61 @@ function BulkOpCard({
   const [hov, setHov] = useState(false);
   return (
     <div
-      style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}
+      style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
-      <div style={{
-        borderRadius: 12, border: `1px solid ${T.border}`,
-        background: T.surface, padding: "14px 18px",
-        display: "flex", flexDirection: "column", gap: 10,
-        minWidth: 260,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{
-            display: "inline-flex", alignItems: "center",
-            borderRadius: 9999, padding: "2px 8px",
-            fontSize: 10, fontWeight: 600,
-            background: "#2D2A0F", color: "#FCD34D",
-          }}>
-            Draft ready
-          </span>
-          <span style={{ fontSize: 12, color: T.muted }}>Awaiting review</span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: T.muted }}>Team</span>
-            <span style={{ color: T.text, fontWeight: 500 }}>{entry.targetGroup}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: T.muted }}>New limit</span>
-            <span style={{ color: T.text, fontWeight: 500 }}>
-              {entry.newLimit.currency} {entry.newLimit.amount.toLocaleString()}
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{
+          borderRadius: 12, border: `1px solid ${T.border}`,
+          background: T.surface, padding: "14px 18px",
+          display: "flex", flexDirection: "column", gap: 10,
+          minWidth: 260,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center",
+              borderRadius: 9999, padding: "2px 8px",
+              fontSize: 10, fontWeight: 600,
+              background: "#2D2A0F", color: "#FCD34D",
+            }}>
+              Draft ready
             </span>
+            <span style={{ fontSize: 12, color: T.muted }}>Awaiting review</span>
           </div>
-          {entry.notifyCardholders && (
-            <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
-              Cardholders will be notified
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+              <span style={{ color: T.muted }}>Team</span>
+              <span style={{ color: T.text, fontWeight: 500 }}>{entry.targetGroup}</span>
             </div>
-          )}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+              <span style={{ color: T.muted }}>New limit</span>
+              <span style={{ color: T.text, fontWeight: 500 }}>
+                {entry.newLimit.currency} {entry.newLimit.amount.toLocaleString()}
+              </span>
+            </div>
+            {entry.notifyCardholders && (
+              <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                Cardholders will be notified
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => router.push(`/preview/${entry.jobId}`)}
+            style={{
+              borderRadius: 8, border: "none",
+              background: T.accent, color: "#0F172A",
+              padding: "7px 14px", fontSize: 13, fontWeight: 600,
+              fontFamily: T.fontBody, cursor: "pointer",
+              transition: "opacity 0.15s ease",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.85")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+          >
+            Review plan →
+          </button>
         </div>
-        <button
-          onClick={() => router.push(`/preview/${entry.jobId}`)}
-          style={{
-            borderRadius: 8, border: "none",
-            background: T.accent, color: "#0F172A",
-            padding: "7px 14px", fontSize: 13, fontWeight: 600,
-            fontFamily: T.fontBody, cursor: "pointer",
-            transition: "opacity 0.15s ease",
-          }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.85")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
-        >
-          Review plan →
-        </button>
+        {hov && <ThumbsRow responseId={entry.id} kind="bulk_op" T={T} />}
       </div>
       {hov && <IconBtn onClick={onRetry} title="Retry" T={T}><RetryIcon /></IconBtn>}
     </div>
