@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAction, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../convex/_generated/api";
+import { useTheme } from "./theme";
 
 const EXAMPLE_REQUESTS = [
   "Update the spending limits for all Marketing team cards to SGD 2,000 and notify the cardholders once done.",
@@ -11,6 +12,7 @@ const EXAMPLE_REQUESTS = [
 ];
 
 export default function OpsPage() {
+  const { T } = useTheme();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,6 @@ export default function OpsPage() {
     try {
       const intent = await interpretIntent({ rawRequest: input });
 
-      // Only bulk_update_card_limit is implemented in v1
       if (intent.intent !== "bulk_update_card_limit" || !intent.newLimit) {
         setError(
           `"${intent.intent}" is not supported in v1. Try: "Update Marketing team card limits to SGD 2,000"`
@@ -58,27 +59,61 @@ export default function OpsPage() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-16">
-      <div className="mb-10">
-        <h1 className="text-2xl font-semibold text-gray-900">CX Operations Assistant</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Describe a bulk operation in plain English. The system will interpret it,
-          validate it against policy, and show you a safe execution plan before anything runs.
+    <main style={{ maxWidth: 640, margin: "0 auto", padding: "64px 24px" }}>
+      <div style={{ marginBottom: 40 }}>
+        <h1
+          style={{
+            fontSize: 22,
+            fontWeight: 600,
+            color: T.text,
+            margin: 0,
+            fontFamily: T.fontMono,
+          }}
+        >
+          CX Operations Assistant
+        </h1>
+        <p style={{ marginTop: 6, fontSize: 13, color: T.muted, lineHeight: 1.6 }}>
+          Describe a bulk operation in plain English. The system will interpret it, validate it
+          against policy, and show you a safe execution plan before anything runs.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="e.g. Update the spending limits for all Marketing team cards to SGD 2,000 and notify the cardholders."
           rows={4}
-          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
           disabled={loading}
+          style={{
+            width: "100%",
+            borderRadius: 10,
+            border: `1px solid ${T.border}`,
+            background: T.surface,
+            color: T.text,
+            padding: "12px 16px",
+            fontSize: 14,
+            fontFamily: T.fontBody,
+            resize: "none",
+            outline: "none",
+            boxSizing: "border-box",
+            transition: "border-color 0.15s ease",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = T.accent)}
+          onBlur={(e) => (e.target.style.borderColor = T.border)}
         />
 
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          <div
+            style={{
+              borderRadius: 8,
+              border: "1px solid #7f1d1d",
+              background: "#1a0505",
+              padding: "12px 16px",
+              fontSize: 13,
+              color: "#fca5a5",
+            }}
+          >
             {error}
           </div>
         )}
@@ -86,22 +121,63 @@ export default function OpsPage() {
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          style={{
+            width: "100%",
+            borderRadius: 10,
+            border: "none",
+            background: loading || !input.trim() ? T.elevated : T.accent,
+            color: loading || !input.trim() ? T.muted : "#0F172A",
+            padding: "11px 16px",
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: T.fontBody,
+            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+            transition: "all 0.15s ease",
+          }}
         >
           {loading ? "Interpreting request…" : "Create execution plan →"}
         </button>
       </form>
 
-      <div className="mt-10">
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-400 mb-3">
+      <div style={{ marginTop: 40 }}>
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: T.muted,
+            marginBottom: 10,
+          }}
+        >
           Example requests
         </p>
-        <div className="space-y-2">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {EXAMPLE_REQUESTS.map((req) => (
             <button
               key={req}
               onClick={() => setInput(req)}
-              className="w-full text-left text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-4 py-2.5 hover:border-blue-300 hover:text-blue-700 transition-colors"
+              style={{
+                width: "100%",
+                textAlign: "left",
+                fontSize: 13,
+                color: T.textSub,
+                background: T.surface,
+                border: `1px solid ${T.border}`,
+                borderRadius: 10,
+                padding: "10px 16px",
+                cursor: "pointer",
+                fontFamily: T.fontBody,
+                transition: "border-color 0.15s ease, color 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = T.accent;
+                (e.currentTarget as HTMLButtonElement).style.color = T.text;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = T.border;
+                (e.currentTarget as HTMLButtonElement).style.color = T.textSub;
+              }}
             >
               {req}
             </button>
