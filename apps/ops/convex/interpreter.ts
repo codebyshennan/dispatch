@@ -49,7 +49,7 @@ export const answerPolicyQuestion = action({
     });
 
     const response = await client.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "openai/gpt-5-mini",
       messages: [
         { role: "system", content: POLICY_SYSTEM_PROMPT },
         { role: "user", content: args.question },
