@@ -738,11 +738,36 @@ export default function OpsPage() {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
   }
 
+  // Build conversation history and extract the most recent jobId for context.
+  function buildRequestContext(currentThread: Entry[]) {
+    const history: Array<{ role: "user" | "assistant"; content: string }> = [];
+    let recentJobId: (typeof currentThread[number] & { kind: "job_progress" })["jobId"] | undefined;
+
+    for (const e of currentThread) {
+      if (e.kind === "user") {
+        history.push({ role: "user", content: e.text });
+      } else if (e.kind === "answer") {
+        history.push({ role: "assistant", content: e.text });
+      } else if (e.kind === "bulk_op") {
+        history.push({
+          role: "assistant",
+          content: `Planned bulk operation: Update ${e.targetGroup} card limits to ${e.newLimit.currency} ${e.newLimit.amount.toLocaleString()}`,
+        });
+      } else if (e.kind === "job_progress") {
+        recentJobId = e.jobId;
+      }
+    }
+
+    return { conversationHistory: history.slice(-8), recentJobId };
+  }
+
   // Core processing logic — used by both initial submit and retry.
   // targetPairId: if set, replaces the response for that pair; if null, appends a new pair.
   async function process(userText: string, targetPairId: string | null) {
     const pairId = targetPairId ?? uid();
     const responseId = uid();
+    // Capture context before thread update (setThread is async)
+    const { conversationHistory, recentJobId } = buildRequestContext(thread);
 
     if (targetPairId) {
       // Replace existing response with loading
@@ -762,7 +787,7 @@ export default function OpsPage() {
     scrollToBottom();
 
     try {
-      const result = await processRequest({ rawRequest: userText });
+      const result = await processRequest({ rawRequest: userText, conversationHistory, recentJobId });
 
       if (result.type === "question") {
         setThread((prev) => prev.map((e) =>
