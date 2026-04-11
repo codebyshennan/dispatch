@@ -1,4 +1,3 @@
-"use node";
 import { internalMutation } from "./_generated/server";
 import { MOCK_CARDS } from "../src/lib/mock-cards";
 
