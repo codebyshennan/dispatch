@@ -1,6 +1,9 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useTheme } from "../../theme";
@@ -15,24 +18,25 @@ const STATUS_LABELS: Record<string, string> = {
   failed: "Failed",
 };
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  draft: { bg: "#1E293B", text: "#94A3B8" },
-  confirmed: { bg: "#1E3A5F", text: "#60A5FA" },
-  in_progress: { bg: "#2D2A0F", text: "#FCD34D" },
-  completed: { bg: "#0D2818", text: "#4ADE80" },
-  completed_with_failures: { bg: "#2D1A0F", text: "#FB923C" },
-  cancelled: { bg: "#1E293B", text: "#64748B" },
-  failed: { bg: "#2D0F0F", text: "#F87171" },
+// accent colors per status using token-like values
+const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  draft:                   { bg: "#1E293B", color: "#94A3B8" },
+  confirmed:               { bg: "#0C2340", color: "#60A5FA" },
+  in_progress:             { bg: "#2D2A0F", color: "#FCD34D" },
+  completed:               { bg: "#052E16", color: "#4ADE80" },
+  completed_with_failures: { bg: "#431407", color: "#FB923C" },
+  cancelled:               { bg: "#1E293B", color: "#64748B" },
+  failed:                  { bg: "#3B0000", color: "#F87171" },
 };
 
 const ITEM_STATUS_COLOR: Record<string, string> = {
-  queued: "#64748B",
-  in_progress: "#FCD34D",
-  succeeded: "#4ADE80",
+  queued:           "#64748B",
+  in_progress:      "#EAB308",
+  succeeded:        "#4ADE80",
   failed_retryable: "#FB923C",
   failed_permanent: "#F87171",
-  cancelled: "#475569",
-  skipped: "#475569",
+  cancelled:        "#64748B",
+  skipped:          "#64748B",
 };
 
 export default function JobPage() {
@@ -40,68 +44,137 @@ export default function JobPage() {
   const { id } = useParams<{ id: string }>();
   const jobId = id as Id<"jobs">;
 
+  const [retrying, setRetrying] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const prevStatusRef = useRef<string | undefined>(undefined);
+
   const data = useQuery(api.queries.getJobWithItems, { jobId });
   const retryFailed = useMutation(api.jobs.retryFailed);
   const cancelJob = useMutation(api.jobs.cancelJob);
 
+  // Fire toasts on status transitions (skip initial load)
+  useEffect(() => {
+    if (!data?.job) return;
+    const { status, succeededCount, failedCount } = data.job;
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+
+    if (prev === undefined || prev === status) return;
+
+    if (status === "completed") {
+      toast.success(`All ${succeededCount} cards updated successfully.`);
+    } else if (status === "completed_with_failures") {
+      toast.warning(`Completed with failures — ${failedCount} card${failedCount === 1 ? "" : "s"} failed.`);
+    } else if (status === "cancelled") {
+      toast.info("Job cancelled.");
+    } else if (status === "failed") {
+      toast.error("Job failed. Please contact support.");
+    }
+  }, [data]);
+
   if (data === undefined) return <LoadingShell />;
   if (data === null) {
     return (
-      <main style={{ maxWidth: 768, margin: "0 auto", padding: "48px 24px" }}>
-        <p style={{ color: "#f87171", fontSize: 14 }}>Job not found</p>
+      <main style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
+        <div
+          style={{
+            borderRadius: 12,
+            border: "1px solid #7f1d1d",
+            background: "#1a0505",
+            padding: "24px",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: 13, color: "#fca5a5", margin: "0 0 12px" }}>Job not found</p>
+          <Link
+            href="/"
+            style={{ fontSize: 13, color: "#00FBEC", textDecoration: "none" }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "none")}
+          >
+            ← Back to new job
+          </Link>
+        </div>
       </main>
     );
   }
 
   const { job, items } = data;
   const isRunning = job.status === "in_progress" || job.status === "confirmed";
-  const hasRetryable = items.some((i) => i.status === "failed_retryable");
+  const retryableItems = items.filter((i) => i.status === "failed_retryable");
+  const hasRetryable = retryableItems.length > 0;
   const progress =
     job.eligibleItems > 0
       ? Math.round(((job.succeededCount + job.failedCount) / job.eligibleItems) * 100)
       : 0;
 
-  const statusColors = STATUS_COLORS[job.status] ?? STATUS_COLORS.draft;
+  const statusStyle = STATUS_STYLE[job.status] ?? { bg: "#1E293B", color: "#94A3B8" };
+
+  async function handleRetry() {
+    setRetrying(true);
+    try {
+      await retryFailed({ jobId });
+      toast.success(`${retryableItems.length} card${retryableItems.length === 1 ? "" : "s"} re-queued for retry.`);
+    } catch (err) {
+      toast.error("Failed to retry", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setRetrying(false);
+    }
+  }
+
+  async function handleCancel() {
+    setCancelling(true);
+    try {
+      await cancelJob({ jobId });
+      toast.info("Cancellation requested.");
+    } catch (err) {
+      toast.error("Failed to cancel", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   return (
-    <main style={{ maxWidth: 768, margin: "0 auto", padding: "40px 24px" }}>
+    <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 24px" }}>
+      {/* Breadcrumb */}
+      <div style={{ marginBottom: 20 }}>
+        <Link
+          href="/"
+          style={{ fontSize: 13, color: T.muted, textDecoration: "none" }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = T.textSub)}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = T.muted)}
+        >
+          ← New job
+        </Link>
+      </div>
+
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          marginBottom: 24,
-          gap: 16,
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <h1
-            style={{
-              fontSize: 20,
-              fontWeight: 600,
-              color: T.text,
-              margin: 0,
-              fontFamily: T.fontMono,
-            }}
-          >
-            {job.normalizedPlan.targetGroup} — {job.normalizedPlan.newLimit.currency}{" "}
-            {job.normalizedPlan.newLimit.amount.toLocaleString()}
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: T.text, fontFamily: T.fontMono, margin: 0 }}>
+            Bulk limit update — {job.normalizedPlan.targetGroup}
           </h1>
-          <p style={{ fontSize: 13, color: T.muted, marginTop: 4 }}>{job.rawRequest}</p>
+          <p style={{ fontSize: 13, color: T.muted, marginTop: 4 }}>
+            {job.normalizedPlan.newLimit.currency}{" "}
+            {job.normalizedPlan.newLimit.amount.toLocaleString()} new limit
+          </p>
         </div>
         <span
           style={{
             display: "inline-flex",
             alignItems: "center",
             borderRadius: 9999,
-            padding: "3px 12px",
+            padding: "3px 10px",
             fontSize: 11,
             fontWeight: 500,
-            background: statusColors.bg,
-            color: statusColors.text,
-            whiteSpace: "nowrap",
+            background: statusStyle.bg,
+            color: statusStyle.color,
             flexShrink: 0,
+            marginLeft: 12,
           }}
         >
           {STATUS_LABELS[job.status] ?? job.status}
@@ -111,33 +184,17 @@ export default function JobPage() {
       {/* Progress bar */}
       {isRunning && (
         <div style={{ marginBottom: 24 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 12,
-              color: T.muted,
-              marginBottom: 6,
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.muted, marginBottom: 6 }}>
             <span>Progress</span>
-            <span style={{ fontFamily: T.fontMono }}>{progress}%</span>
+            <span>{progress}%</span>
           </div>
-          <div
-            style={{
-              height: 6,
-              width: "100%",
-              background: T.elevated,
-              borderRadius: 3,
-              overflow: "hidden",
-            }}
-          >
+          <div style={{ height: 4, width: "100%", background: T.elevated, borderRadius: 4, overflow: "hidden" }}>
             <div
               style={{
-                width: `${progress}%`,
                 height: "100%",
+                width: `${progress}%`,
                 background: T.accent,
-                borderRadius: 3,
+                borderRadius: 4,
                 transition: "width 0.5s ease",
               }}
             />
@@ -145,15 +202,8 @@ export default function JobPage() {
         </div>
       )}
 
-      {/* Count cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 10,
-          marginBottom: 20,
-        }}
-      >
+      {/* Counts */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
         <CountCard label="Succeeded" value={job.succeededCount} color="#4ADE80" T={T} />
         <CountCard label="Failed" value={job.failedCount} color="#F87171" T={T} />
         <CountCard label="Skipped" value={job.skippedCount} color={T.muted} T={T} />
@@ -165,48 +215,44 @@ export default function JobPage() {
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
           {hasRetryable && (
             <button
-              onClick={() => retryFailed({ jobId })}
+              onClick={handleRetry}
+              disabled={retrying}
               style={{
                 borderRadius: 8,
-                border: "1px solid #78350f",
-                background: "#1c0d00",
+                border: "1px solid #7C2D12",
+                background: retrying ? T.elevated : "#1c0900",
+                color: retrying ? T.muted : "#FB923C",
                 padding: "6px 14px",
                 fontSize: 12,
                 fontWeight: 500,
-                color: "#fb923c",
                 fontFamily: T.fontBody,
-                cursor: "pointer",
-                transition: "opacity 0.15s ease",
+                cursor: retrying ? "not-allowed" : "pointer",
+                opacity: retrying ? 0.7 : 1,
+                transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.75")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
             >
-              Retry failed ({items.filter((i) => i.status === "failed_retryable").length})
+              {retrying ? "Retrying…" : `Retry failed (${retryableItems.length})`}
             </button>
           )}
           {isRunning && (
             <button
-              onClick={() => cancelJob({ jobId })}
+              onClick={handleCancel}
+              disabled={cancelling}
               style={{
                 borderRadius: 8,
                 border: `1px solid ${T.border}`,
                 background: "transparent",
+                color: cancelling ? T.muted : T.textSub,
                 padding: "6px 14px",
                 fontSize: 12,
                 fontWeight: 500,
-                color: T.textSub,
                 fontFamily: T.fontBody,
-                cursor: "pointer",
-                transition: "border-color 0.15s ease",
+                cursor: cancelling ? "not-allowed" : "pointer",
+                opacity: cancelling ? 0.6 : 1,
+                transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.borderColor = T.muted)
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.borderColor = T.border)
-              }
             >
-              Cancel remaining
+              {cancelling ? "Cancelling…" : "Cancel remaining"}
             </button>
           )}
         </div>
@@ -233,11 +279,9 @@ export default function JobPage() {
           <h2 style={{ fontSize: 13, fontWeight: 500, color: T.textSub, margin: 0 }}>
             Card-level status
           </h2>
-          <span style={{ fontSize: 12, color: T.muted, fontFamily: T.fontMono }}>
-            {items.length} items
-          </span>
+          <span style={{ fontSize: 11, color: T.muted }}>{items.length} items</span>
         </div>
-        <div style={{ maxHeight: 400, overflowY: "auto" }}>
+        <div style={{ maxHeight: 384, overflowY: "auto" }}>
           {items.map((item) => (
             <div
               key={item._id}
@@ -253,34 +297,28 @@ export default function JobPage() {
                 <span style={{ fontSize: 13, fontWeight: 500, color: T.text }}>
                   {item.cardholderName}
                 </span>
-                <span
-                  style={{
-                    marginLeft: 10,
-                    fontSize: 12,
-                    fontFamily: T.fontMono,
-                    color: T.muted,
-                  }}
-                >
+                <span style={{ marginLeft: 8, fontSize: 11, fontFamily: T.fontMono, color: T.muted }}>
                   {item.cardId}
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {item.failureCode && (
-                  <span style={{ fontSize: 11, color: T.muted }} title={item.failureDetail ?? ""}>
+                  <span
+                    title={item.failureDetail ?? ""}
+                    style={{ fontSize: 11, color: T.muted, cursor: "help" }}
+                  >
                     {item.failureCode}
                   </span>
                 )}
                 {item.retryCount > 0 && (
-                  <span style={{ fontSize: 11, color: T.muted, fontFamily: T.fontMono }}>
-                    ×{item.retryCount}
-                  </span>
+                  <span style={{ fontSize: 11, color: T.muted }}>×{item.retryCount}</span>
                 )}
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 500,
-                    color: ITEM_STATUS_COLOR[item.status] ?? T.muted,
                     textTransform: "capitalize",
+                    color: ITEM_STATUS_COLOR[item.status] ?? T.muted,
                   }}
                 >
                   {item.status.replace(/_/g, " ")}
@@ -297,22 +335,20 @@ export default function JobPage() {
           style={{
             marginTop: 20,
             borderRadius: 12,
-            border: `1px solid ${job.status === "completed" ? "#14532d" : "#78350f"}`,
-            background: job.status === "completed" ? "#0d2818" : "#1c0d00",
-            padding: "18px 20px",
+            border: `1px solid ${job.status === "completed" ? "#14532d" : "#431407"}`,
+            background: job.status === "completed" ? "#052E16" : "#1c0900",
+            padding: "16px 20px",
             fontSize: 13,
-            color: job.status === "completed" ? "#4ade80" : "#fb923c",
           }}
         >
-          <strong>
+          <strong style={{ color: job.status === "completed" ? "#4ADE80" : "#FB923C" }}>
             {job.status === "completed"
               ? `All ${job.succeededCount} cards updated successfully.`
               : `Completed: ${job.succeededCount} succeeded, ${job.failedCount} failed, ${job.skippedCount} skipped.`}
           </strong>
           {job.failedCount > 0 && (
-            <p style={{ marginTop: 4, fontSize: 12, opacity: 0.75 }}>
-              Permanently failed cards require manual review. Retryable failures can be re-queued
-              above.
+            <p style={{ marginTop: 6, fontSize: 12, color: T.muted, margin: "6px 0 0" }}>
+              Permanently failed cards require manual review. Retryable failures can be re-queued above.
             </p>
           )}
         </div>
@@ -339,7 +375,7 @@ function CountCard({
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: 22, fontWeight: 700, color }}>{value}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color }}>{value}</div>
       <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{label}</div>
     </div>
   );
@@ -348,23 +384,18 @@ function CountCard({
 function LoadingShell() {
   const { T } = useTheme();
   return (
-    <main style={{ maxWidth: 768, margin: "0 auto", padding: "40px 24px" }}>
+    <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 24px" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ height: 28, width: 256, borderRadius: 6, background: T.elevated }} />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 10,
-          }}
-        >
+        <div style={{ height: 16, width: 64, borderRadius: 6, background: T.elevated }} />
+        <div style={{ height: 28, width: 240, borderRadius: 6, background: T.elevated }} />
+        <div style={{ height: 4, borderRadius: 4, background: T.elevated }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} style={{ height: 64, borderRadius: 10, background: T.elevated }} />
           ))}
         </div>
-        <div style={{ height: 280, borderRadius: 12, background: T.elevated }} />
+        <div style={{ height: 256, borderRadius: 12, background: T.elevated }} />
       </div>
-      <style>{`@keyframes pulse { 0%,100%{opacity:.6} 50%{opacity:.3} }`}</style>
     </main>
   );
 }
