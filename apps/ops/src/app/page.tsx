@@ -51,7 +51,9 @@ export default function OpsPage() {
 
       router.push(`/preview/${jobId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error("Failed to create execution plan", {
+        description: err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
