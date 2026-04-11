@@ -28,7 +28,7 @@ export const interpretIntent = action({
     });
 
     const response = await client.chat.completions.create({
-      model: "google/gemma-3-27b-it:free",
+      model: "meta-llama/llama-3.1-8b-instruct:free",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
