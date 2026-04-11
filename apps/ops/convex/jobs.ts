@@ -60,7 +60,7 @@ export const createDraft = mutation({
       eligibleItems: eligible.length,
       succeededCount: 0,
       failedCount: 0,
-      skippedCount: 0,
+      skippedCount: cards.length - eligible.length,
       cancelledCount: 0,
       approvalRequired: policy.approvalRequired,
       excludedCards: policy.excludedCardIds.map((cardId) => {
