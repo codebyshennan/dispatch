@@ -517,16 +517,6 @@ export default function OpsPage() {
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 600, color: T.text, margin: 0, fontFamily: T.fontMono }}>
-          CX Operations Assistant
-        </h1>
-        <p style={{ marginTop: 6, fontSize: 13, color: T.muted, lineHeight: 1.6 }}>
-          Ask about card policies or describe a bulk operation — the system will answer inline or build an execution plan.
-        </p>
-      </div>
-
       {/* Examples — shown when thread is empty */}
       {isEmpty && (
         <div style={{ marginBottom: 28 }}>
