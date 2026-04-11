@@ -19,9 +19,11 @@ const EXAMPLES = [
 // ── Thread entry types ────────────────────────────────────────────────────────
 // Every pair of (user msg + response) shares a pairId.
 // Response entries carry userText so Retry can re-run the original request.
+type PolicySource = { id: string; title: string; snippet: string };
+
 type Entry =
   | { id: string; pairId: string; kind: "user"; text: string }
-  | { id: string; pairId: string; kind: "answer"; text: string; userText: string }
+  | { id: string; pairId: string; kind: "answer"; text: string; sources: PolicySource[]; userText: string }
   | { id: string; pairId: string; kind: "bulk_op"; jobId: Id<"jobs">; targetGroup: string; newLimit: { currency: string; amount: number }; notifyCardholders: boolean; userText: string }
   | { id: string; pairId: string; kind: "loading"; userText: string }
   | { id: string; pairId: string; kind: "unsupported"; intent: string; userText: string };
