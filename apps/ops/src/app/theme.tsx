@@ -28,8 +28,8 @@ export const DARK: Tokens = {
   text: "#F8FAFC",
   textSub: "#CBD5E1",
   muted: "#64748B",
-  fontMono: "'Fira Code', 'Cascadia Code', monospace",
-  fontBody: "'Fira Sans', system-ui, sans-serif",
+  fontMono: "var(--font-mono), 'Cascadia Code', monospace",
+  fontBody: "var(--font-body), system-ui, sans-serif",
 };
 
 export const LIGHT: Tokens = {
@@ -42,8 +42,8 @@ export const LIGHT: Tokens = {
   text: "#0F172A",
   textSub: "#334155",
   muted: "#94A3B8",
-  fontMono: "'Fira Code', 'Cascadia Code', monospace",
-  fontBody: "'Fira Sans', system-ui, sans-serif",
+  fontMono: "var(--font-mono), 'Cascadia Code', monospace",
+  fontBody: "var(--font-body), system-ui, sans-serif",
 };
 
 interface ThemeCtx {
