@@ -15,7 +15,7 @@
 
 | Plan | Name | Commit | Summary |
 |------|------|--------|---------|
-| 01-01 | Monorepo scaffold + @meridian/core | 83e7b9a | Shared types, Zod schemas, stub packages |
+| 01-01 | Monorepo scaffold + @beacon/core | 83e7b9a | Shared types, Zod schemas, stub packages |
 | 01-02 | AWS CDK Infrastructure Stacks | 5e74d1e | DynamoDB tables, Lambda IAM role, CDK app entry point |
 
 ## Decisions

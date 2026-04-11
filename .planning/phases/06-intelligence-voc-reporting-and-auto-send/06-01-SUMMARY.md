@@ -6,7 +6,7 @@ tags: [auto-send, routing, step-functions, lambda, dynamodb, eventbridge, route-
 dependency_graph:
   requires: [05-04-SUMMARY.md, 05-05-SUMMARY.md]
   provides: [AutoSenderLambda, RoutingChoice state, ProactiveNotificationLambda, auto_send RoutingMode]
-  affects: [infra/src/stacks/meridian-stack.ts, packages/core/src/types/index.ts]
+  affects: [infra/src/stacks/beacon-stack.ts, packages/core/src/types/index.ts]
 tech_stack:
   added: [lambdas/auto-sender, lambdas/proactive-notification]
   patterns: [Step Functions Choice state, runtime mode gate from DynamoDB, AUTOSEND# audit records]
@@ -21,7 +21,7 @@ key_files:
   modified:
     - packages/core/src/types/index.ts
     - packages/core/src/schemas/index.ts
-    - infra/src/stacks/meridian-stack.ts
+    - infra/src/stacks/beacon-stack.ts
 decisions:
   - "[Phase 06-01]: AutoSenderLambda declared before Step Functions workflow in CDK — TypeScript hoisting requires const to be declared before use; moved to after ShadowLambda declaration"
   - "[Phase 06-01]: ModeStatusSchema enum updated to include auto_send — consistent with RoutingMode type extension; downstream consumers get accurate schema for GET /mode responses"
@@ -41,7 +41,7 @@ Auto-send routing implemented via Step Functions RoutingChoice branching on resp
 | Task | Name | Commit | Key Files |
 |------|------|--------|-----------|
 | 1 | AutoSenderLambda + RoutingMode type extension | 60591dc | lambdas/auto-sender/src/index.ts, packages/core/src/types/index.ts |
-| 2 | Step Functions Choice state + ProactiveNotificationLambda CDK wiring | 4d80179 | infra/src/stacks/meridian-stack.ts, lambdas/proactive-notification/src/index.ts |
+| 2 | Step Functions Choice state + ProactiveNotificationLambda CDK wiring | 4d80179 | infra/src/stacks/beacon-stack.ts, lambdas/proactive-notification/src/index.ts |
 
 ## What Was Built
 
@@ -62,7 +62,7 @@ Created `lambdas/auto-sender/` as a new monorepo package following the runbook-e
 
 ### Task 2: Step Functions Choice state + ProactiveNotificationLambda CDK wiring
 
-**RoutingChoice state in Step Functions (`infra/src/stacks/meridian-stack.ts`):**
+**RoutingChoice state in Step Functions (`infra/src/stacks/beacon-stack.ts`):**
 - Inserted `RoutingChoice` (sfn.Choice) after `GenerateResponse` step
 - When `$.responseResult.Payload.responseDraft.routing === 'auto_send'` → routes to `AutoSendResponse` (AutoSenderLambda)
 - Otherwise (agent_assisted, escalate) → routes to `WriteShadowNote` (existing shadow step)
@@ -84,7 +84,7 @@ Created `lambdas/auto-sender/` as a new monorepo package following the runbook-e
 - `cd lambdas/auto-sender && npx tsc --noEmit` — no errors
 - `pnpm -r typecheck` — ok (no errors across all packages)
 - `cd infra && pnpm build && npx cdk synth --quiet` — succeeds; RoutingChoice visible in synthesized CF template
-- `grep -r "RoutingChoice" infra/dist/` — found in meridian-stack.js
+- `grep -r "RoutingChoice" infra/dist/` — found in beacon-stack.js
 - `grep auto_send packages/core/src/types/index.ts` — RoutingMode includes new value
 
 ## Deviations from Plan
@@ -95,7 +95,7 @@ Created `lambdas/auto-sender/` as a new monorepo package following the runbook-e
 - **Found during:** Task 2
 - **Issue:** autoSenderStep referenced autoSenderFn at line 582, but the CDK NodejsFunction was declared at line 727 — TypeScript `const` does not allow use before declaration (TS2448, TS2454)
 - **Fix:** Moved the AutoSenderLambda CDK block to before the Step Functions workflow section (after ShadowLambda declaration); removed duplicate block that was in the Runbook Executor section
-- **Files modified:** infra/src/stacks/meridian-stack.ts
+- **Files modified:** infra/src/stacks/beacon-stack.ts
 - **Commit:** 4d80179 (included in Task 2 commit)
 
 ## Requirements Satisfied

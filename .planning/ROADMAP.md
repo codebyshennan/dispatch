@@ -12,7 +12,7 @@
 | 01-04 | Eval Lambda HTTP handler | Gap closure | Wire /eval/run endpoint to runEval() |
 
 Plans:
-- [x] 01-01-PLAN.md — Monorepo scaffold + @meridian/core shared types and schemas
+- [x] 01-01-PLAN.md — Monorepo scaffold + @beacon/core shared types and schemas
 - [x] 01-02-PLAN.md — AWS CDK infrastructure stacks (DynamoDB, SQS, Aurora, S3, IAM)
 - [ ] 01-03-PLAN.md — pgvector CDK custom resource + remove orphaned DynamoDbStack
 - [ ] 01-04-PLAN.md — Implement eval Lambda /eval/run HTTP handler (not a 501 stub)

@@ -7,11 +7,11 @@ tags: [aws-cdk, dynamodb, iam, lambda, cloudformation]
 # Dependency graph
 requires:
   - phase: 01-foundation-and-infrastructure
-    provides: "@meridian/core types: AuditLogEntry, CircuitBreakerState"
+    provides: "@beacon/core types: AuditLogEntry, CircuitBreakerState"
 provides:
   - DynamoDB AuditLog table (pk/sk composite, TTL)
   - DynamoDB CircuitBreaker table (pk)
-  - MeridianStack CDK stack with Lambda IAM execution role
+  - BeaconStack CDK stack with Lambda IAM execution role
   - CDK app entry point (src/app.ts) for deployment
 affects:
   - lambdas (will use Lambda execution role ARN)
@@ -24,14 +24,14 @@ tech-stack:
     - constructs@10.5.1
     - aws-cdk@2.1112.0 (CLI)
   patterns:
-    - "CDK stacks split by concern (DynamoDbStack, MeridianStack)"
+    - "CDK stacks split by concern (DynamoDbStack, BeaconStack)"
     - "appEnv parameter controls retention policies and naming"
     - "CloudFormation outputs export ARNs for cross-stack references"
 
 key-files:
   created:
     - infra/src/stacks/dynamodb.ts
-    - infra/src/stacks/meridian-stack.ts
+    - infra/src/stacks/beacon-stack.ts
     - infra/src/app.ts
   modified:
     - infra/src/index.ts (replaced stub with real exports)
@@ -46,7 +46,7 @@ key-decisions:
   - "Default region ap-southeast-1 (Southeast Asia deployment)"
 
 patterns-established:
-  - "Stack per concern pattern: DynamoDbStack separate from MeridianStack"
+  - "Stack per concern pattern: DynamoDbStack separate from BeaconStack"
   - "APP_ENV env var for environment selection (dev | staging | prod)"
   - "CloudFormation export names: meridian-{resource}-{type}"
 
@@ -73,7 +73,7 @@ completed: 2026-03-23
 
 - aws-cdk-lib and constructs installed in infra package
 - DynamoDB tables defined: AuditLog (pk/sk/TTL) and CircuitBreaker (pk)
-- MeridianStack CDK stack with Lambda IAM execution role
+- BeaconStack CDK stack with Lambda IAM execution role
 - CDK app entry point (src/app.ts) for `cdk deploy` workflow
 - Full workspace builds and typechecks cleanly (turbo)
 
@@ -83,7 +83,7 @@ Each task was committed atomically:
 
 1. **Task 1: Install CDK dependencies** - `6faa3c4` (chore)
 2. **Task 2: DynamoDB table constructs** - `c9ded27` (feat)
-3. **Task 3: MeridianStack CDK stack** - `6b8b942` (feat)
+3. **Task 3: BeaconStack CDK stack** - `6b8b942` (feat)
 4. **Task 4: CDK app entry point** - `5e74d1e` (feat)
 5. **Task 5: Workspace build verification** - no commit (verification only, no source changes)
 
@@ -92,9 +92,9 @@ Each task was committed atomically:
 ## Files Created/Modified
 
 - `infra/src/stacks/dynamodb.ts` - DynamoDbStack with AuditLog and CircuitBreaker tables
-- `infra/src/stacks/meridian-stack.ts` - MeridianStack composing DynamoDb + Lambda IAM role
+- `infra/src/stacks/beacon-stack.ts` - BeaconStack composing DynamoDb + Lambda IAM role
 - `infra/src/app.ts` - CDK app entry point, reads APP_ENV and CDK_DEFAULT_REGION
-- `infra/src/index.ts` - Replaced stub with real exports (DynamoDbStack, MeridianStack)
+- `infra/src/index.ts` - Replaced stub with real exports (DynamoDbStack, BeaconStack)
 - `infra/package.json` - Added aws-cdk-lib@2.244.0, constructs@10.5.1, aws-cdk@2.1112.0
 - `pnpm-lock.yaml` - Updated lockfile
 
