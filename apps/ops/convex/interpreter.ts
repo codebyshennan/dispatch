@@ -32,8 +32,18 @@ If the user is requesting a bulk operation:
   "notifyCardholders": <boolean>
 } }`;
 
+const SourceSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  snippet: z.string(),
+});
+
 const ProcessResultSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("question"), answer: z.string() }),
+  z.object({
+    type: z.literal("question"),
+    answer: z.string(),
+    sources: z.array(SourceSchema).default([]),
+  }),
   z.object({ type: z.literal("bulk_op"), intent: BulkJobIntentSchema }),
 ]);
 
