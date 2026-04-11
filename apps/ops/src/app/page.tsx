@@ -211,7 +211,14 @@ function PolicySourceRow({ source, index, T }: { source: PolicySource; index: nu
         <span style={{ flex: 1, fontSize: 11, color: T.textSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {source.title}
         </span>
-        <span style={{ fontSize: 10, color: T.muted, flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+        <svg
+          width="10" height="10" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          style={{ color: T.muted, flexShrink: 0, transition: "transform 0.15s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          aria-hidden="true"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </button>
       {open && (
         <p style={{ margin: "0 0 8px", fontSize: 11, color: T.muted, lineHeight: 1.6, paddingLeft: 28 }}>
