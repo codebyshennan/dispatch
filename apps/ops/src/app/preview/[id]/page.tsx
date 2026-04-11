@@ -215,19 +215,19 @@ export default function PreviewPage() {
       <div style={{ display: "flex", gap: 10 }}>
         <button
           onClick={handleConfirm}
-          disabled={confirming}
+          disabled={confirming || (summary.approvalRequired && !acknowledged)}
           style={{
             flex: 1,
             borderRadius: 10,
             border: "none",
-            background: confirming ? T.elevated : T.accent,
-            color: confirming ? T.muted : "#0F172A",
+            background: confirming || (summary.approvalRequired && !acknowledged) ? T.elevated : T.accent,
+            color: confirming || (summary.approvalRequired && !acknowledged) ? T.muted : "#0F172A",
             padding: "11px 16px",
             fontSize: 14,
             fontWeight: 600,
             fontFamily: T.fontBody,
-            cursor: confirming ? "not-allowed" : "pointer",
-            opacity: confirming ? 0.7 : 1,
+            cursor: confirming || (summary.approvalRequired && !acknowledged) ? "not-allowed" : "pointer",
+            opacity: confirming || (summary.approvalRequired && !acknowledged) ? 0.5 : 1,
             transition: "all 0.15s ease",
           }}
         >
