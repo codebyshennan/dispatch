@@ -59,7 +59,7 @@ export const processRequest = action({
     });
 
     const response = await client.chat.completions.create({
-      model: "openai/gpt-5-mini",
+      model: "openai/gpt-4o-mini",
       messages: [
         { role: "system", content: UNIFIED_SYSTEM_PROMPT },
         { role: "user", content: args.rawRequest },
@@ -68,8 +68,17 @@ export const processRequest = action({
       max_tokens: 512,
     });
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) throw new Error("LLM returned empty response");
+    const choice = response.choices[0];
+    const content = choice?.message?.content;
+    if (!content) {
+      const reason = choice?.finish_reason ?? "no choices returned";
+      const refusal = (choice?.message as { refusal?: string } | undefined)?.refusal;
+      throw new Error(
+        refusal
+          ? `LLM refused: ${refusal}`
+          : `LLM returned empty response (finish_reason: ${reason})`
+      );
+    }
 
     const cleaned = content.replace(/```json\n?|```/g, "").trim();
     let raw: unknown;
