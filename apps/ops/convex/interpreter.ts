@@ -37,6 +37,34 @@ Card Exclusions:
 
 Be concise and direct. Format numbers and policies clearly. If a question is outside card management policy, politely redirect.`;
 
+export const answerPolicyQuestion = action({
+  args: { question: v.string() },
+  handler: async (_ctx, args) => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
+
+    const client = new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey,
+    });
+
+    const response = await client.chat.completions.create({
+      model: "openai/gpt-4o-mini",
+      messages: [
+        { role: "system", content: POLICY_SYSTEM_PROMPT },
+        { role: "user", content: args.question },
+      ],
+      temperature: 0,
+      max_tokens: 300,
+    });
+
+    const answer = response.choices[0]?.message?.content;
+    if (!answer) throw new Error("LLM returned empty response");
+
+    return { answer };
+  },
+});
+
 export const interpretIntent = action({
   args: { rawRequest: v.string() },
   handler: async (_ctx, args) => {
