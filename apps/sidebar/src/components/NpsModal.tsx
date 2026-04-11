@@ -18,6 +18,7 @@ export function NpsModal({ agentId, onClose }: NpsModalProps) {
   const [score, setScore] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const currentYearMonth = new Date().toISOString().slice(0, 7);
@@ -36,11 +37,11 @@ export function NpsModal({ agentId, onClose }: NpsModalProps) {
       //
       // Per the plan: "The sidebar-api base URL comes from the same ZAF client
       // pattern used in other hooks" — App.tsx passes the base URL as a prop or
-      // the modal uses window.__meridianApiBase injected by main.tsx.
+      // the modal uses window.__beaconApiBase injected by main.tsx.
       //
       // In practice the ZAF client.request() proxy handles CORS. We use a global
       // that App.tsx sets on first successful context fetch to avoid prop drilling.
-      const apiBase: string = (window as Window & { __meridianApiBase?: string }).__meridianApiBase ?? '{{setting.api_base_url}}';
+      const apiBase: string = (window as Window & { __beaconApiBase?: string }).__beaconApiBase ?? '{{setting.api_base_url}}';
 
       const resp = await fetch(`${apiBase}/nps`, {
         method: 'POST',
@@ -57,9 +58,10 @@ export function NpsModal({ agentId, onClose }: NpsModalProps) {
         throw new Error(`NPS submit failed: ${resp.status}`);
       }
 
-      // Mark as shown in localStorage and close
+      // Mark as shown in localStorage, show success briefly, then close
       localStorage.setItem(`nps_shown_${currentYearMonth}`, 'true');
-      onClose();
+      setSubmitted(true);
+      setTimeout(onClose, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed');
     } finally {
