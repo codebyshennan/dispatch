@@ -149,6 +149,33 @@ function routingToStatus(routing: string): InboxTicket['status'] {
   return 'triaged';
 }
 
+// ── Seed classification cache ────────────────────────────────────────────────────
+const SEED_CACHE_KEY = 'beacon-seed-cache-v1';
+
+interface SeedCacheEntry {
+  originalId: string;          // seed-001 … seed-012
+  serverId: string;            // server-assigned UUID
+  classification: QueryEntryAnalysis;
+  payload: unknown;            // full SidebarPayload for /restore
+}
+
+function loadSeedCache(): Map<string, SeedCacheEntry> {
+  try {
+    const raw = localStorage.getItem(SEED_CACHE_KEY);
+    if (!raw) return new Map();
+    const entries: SeedCacheEntry[] = JSON.parse(raw);
+    return new Map(entries.map(e => [e.originalId, e]));
+  } catch {
+    return new Map();
+  }
+}
+
+function appendSeedCache(entry: SeedCacheEntry, current: SeedCacheEntry[]) {
+  try {
+    localStorage.setItem(SEED_CACHE_KEY, JSON.stringify([...current, entry]));
+  } catch { /* storage full — ignore */ }
+}
+
 function makeTmpId(): string {
   return `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
@@ -170,7 +197,10 @@ export function DemoApp() {
   }, [selectedTicketId]);
 
   // ── Core ticket helper ───────────────────────────────────────────────────────
-  const analyzeTicket = useCallback(async (ticket: InboxTicket) => {
+  const analyzeTicket = useCallback(async (
+    ticket: InboxTicket,
+    onComplete?: (serverId: string, classification: QueryEntryAnalysis) => void,
+  ) => {
     const tmpId = ticket.ticketId;
     setInbox(prev => [{ ...ticket, ticketId: tmpId, status: 'processing' }, ...prev]);
     try {
@@ -189,17 +219,65 @@ export function DemoApp() {
         t.ticketId === tmpId ? { ...t, ticketId: serverId, status, analysis: classification } : t
       ));
       setSelectedTicketId(prev => prev === tmpId ? serverId : prev);
+      onComplete?.(serverId, classification);
     } catch {
       // leave as processing on error
     }
   }, []);
 
-  // ── Seed on mount ────────────────────────────────────────────────────────────
+  // ── Seed on mount (with localStorage cache) ──────────────────────────────────
   const seededRef = useRef(false);
+  const seedCacheRef = useRef<SeedCacheEntry[]>([]);
+
   useEffect(() => {
     if (seededRef.current) return;
     seededRef.current = true;
-    SEED_TICKETS.forEach(t => analyzeTicket(t));
+
+    const cacheMap = loadSeedCache();
+    const toRestore: Array<{ ticketId: string; payload: unknown; subject: string; body: string }> = [];
+    const immediateTickets: InboxTicket[] = [];
+    const toAnalyze: InboxTicket[] = [];
+
+    for (const t of SEED_TICKETS) {
+      const hit = cacheMap.get(t.ticketId);
+      if (hit) {
+        immediateTickets.push({
+          ...t,
+          ticketId: hit.serverId,
+          status: routingToStatus(hit.classification.routing),
+          analysis: hit.classification,
+        });
+        toRestore.push({ ticketId: hit.serverId, payload: hit.payload, subject: t.subject, body: t.body });
+        seedCacheRef.current.push(hit);
+      } else {
+        toAnalyze.push(t);
+      }
+    }
+
+    // Populate inbox instantly from cache
+    if (immediateTickets.length > 0) {
+      setInbox(immediateTickets);
+      // Restore full payloads to server so AnalysisView can fetch /context/:id
+      fetch(`${API_URL}/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toRestore),
+      }).catch(() => {});
+    }
+
+    // Analyze any uncached tickets and cache the results
+    toAnalyze.forEach(t => {
+      analyzeTicket(t, (serverId, classification) => {
+        fetch(`${API_URL}/context/${serverId}`)
+          .then(r => r.json())
+          .then(payload => {
+            const entry: SeedCacheEntry = { originalId: t.ticketId, serverId, classification, payload };
+            appendSeedCache(entry, seedCacheRef.current);
+            seedCacheRef.current.push(entry);
+          })
+          .catch(() => {});
+      });
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Simulation ───────────────────────────────────────────────────────────────

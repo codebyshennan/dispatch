@@ -90,7 +90,7 @@ export async function regenerateDraft(input: RegenerateInput): Promise<string> {
 
   const result = await invoke(userMessage, {
     provider: 'openrouter',
-    model: 'anthropic/claude-3-5-haiku',
+    model: 'google/gemma-3-27b-it:free',
     system:
       'You are a CX agent assistant for Reap, a fintech company. ' +
       'Revise the draft response per the agent instruction. ' +

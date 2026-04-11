@@ -37,17 +37,24 @@ async function readArticles(): Promise<Article[]> {
   return articles;
 }
 
-async function embed(text: string, inputType: 'search_document' | 'search_query'): Promise<number[]> {
+const BATCH_SIZE = 90; // Cohere max is 96; stay under trial rate limit (100 calls/min)
+
+async function embedBatch(texts: string[], inputType: 'search_document' | 'search_query'): Promise<number[][]> {
   const res = await cohere.embed({
-    texts: [text.slice(0, 4096)], // Cohere v3 limit
+    texts: texts.map(t => t.slice(0, 4096)),
     model: EMBED_MODEL,
     inputType,
   });
-  const embedding = Array.isArray(res.embeddings) ? res.embeddings : res.embeddings.float;
-  if (!Array.isArray(embedding) || !Array.isArray(embedding[0])) {
+  const embeddings = Array.isArray(res.embeddings) ? res.embeddings : res.embeddings.float;
+  if (!Array.isArray(embeddings) || !Array.isArray(embeddings[0])) {
     throw new Error('Cohere embed returned unexpected shape');
   }
-  return embedding[0] as number[];
+  return embeddings as number[][];
+}
+
+async function embed(text: string, inputType: 'search_document' | 'search_query'): Promise<number[]> {
+  const results = await embedBatch([text], inputType);
+  return results[0];
 }
 
 export async function buildKBIndex(): Promise<void> {
@@ -56,23 +63,27 @@ export async function buildKBIndex(): Promise<void> {
   await idx.createIndex({ version: 1, deleteIfExists: true });
 
   const articles = await readArticles();
-  console.log(`[kb-index] Embedding ${articles.length} articles...`);
+  console.log(`[kb-index] Embedding ${articles.length} articles in batches of ${BATCH_SIZE}...`);
 
-  for (let i = 0; i < articles.length; i++) {
-    const article = articles[i];
-    const text = `${article.title}\n\n${article.body}`;
-    const vector = await embed(text, 'search_document');
-    await idx.insertItem({
-      vector,
-      metadata: {
-        article_id: Number(article.id),
-        title: article.title,
-        html_url: article.url,
-        updated_at: article.updated_at,
-        text: article.body.slice(0, 500),
-      },
-    });
-    if ((i + 1) % 10 === 0) console.log(`[kb-index]   ${i + 1}/${articles.length}`);
+  for (let i = 0; i < articles.length; i += BATCH_SIZE) {
+    const batch = articles.slice(i, i + BATCH_SIZE);
+    const texts = batch.map(a => `${a.title}\n\n${a.body}`);
+    const vectors = await embedBatch(texts, 'search_document');
+
+    for (let j = 0; j < batch.length; j++) {
+      const article = batch[j];
+      await idx.insertItem({
+        vector: vectors[j],
+        metadata: {
+          article_id: Number(article.id),
+          title: article.title,
+          html_url: article.url,
+          updated_at: article.updated_at,
+          text: article.body.slice(0, 500),
+        },
+      });
+    }
+    console.log(`[kb-index]   ${Math.min(i + BATCH_SIZE, articles.length)}/${articles.length}`);
   }
 
   index = idx;

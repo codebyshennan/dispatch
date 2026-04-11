@@ -179,6 +179,21 @@ app.post('/regenerate', async (c) => {
   return c.json({ draft: newDraft });
 });
 
+// POST /restore — repopulate in-memory results from client-side localStorage cache
+app.post('/restore', async (c) => {
+  let entries: Array<{ ticketId: string; payload: SidebarPayload; subject: string; body: string }>;
+  try {
+    entries = await c.req.json();
+  } catch {
+    return c.json({ error: 'invalid JSON' }, 400);
+  }
+  for (const { ticketId, payload, subject, body } of entries) {
+    results.set(ticketId, payload);
+    ticketContext.set(ticketId, { subject: subject.trim(), body: body.trim() });
+  }
+  return c.json({ ok: true, count: entries.length });
+});
+
 // GET /metrics — live session metrics polled by dashboard
 app.get('/metrics', (c) => c.json(sessionStore.getMetrics()));
 
