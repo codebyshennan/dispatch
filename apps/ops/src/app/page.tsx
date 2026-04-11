@@ -17,36 +17,90 @@ const EXAMPLES = [
 ];
 
 // ── Thread entry types ────────────────────────────────────────────────────────
+// Every pair of (user msg + response) shares a pairId.
+// Response entries carry userText so Retry can re-run the original request.
 type Entry =
-  | { id: string; kind: "user"; text: string }
-  | { id: string; kind: "answer"; text: string }
-  | { id: string; kind: "bulk_op"; jobId: Id<"jobs">; targetGroup: string; newLimit: { currency: string; amount: number }; notifyCardholders: boolean }
-  | { id: string; kind: "loading" }
-  | { id: string; kind: "unsupported"; intent: string };
+  | { id: string; pairId: string; kind: "user"; text: string }
+  | { id: string; pairId: string; kind: "answer"; text: string; userText: string }
+  | { id: string; pairId: string; kind: "bulk_op"; jobId: Id<"jobs">; targetGroup: string; newLimit: { currency: string; amount: number }; notifyCardholders: boolean; userText: string }
+  | { id: string; pairId: string; kind: "loading"; userText: string }
+  | { id: string; pairId: string; kind: "unsupported"; intent: string; userText: string };
 
 function uid() {
   return Math.random().toString(36).slice(2);
 }
 
-// ── Entry renderers ───────────────────────────────────────────────────────────
-function UserBubble({ text, T }: { text: string; T: ReturnType<typeof useTheme>["T"] }) {
+// ── Shared action-button style ────────────────────────────────────────────────
+function ActionButton({
+  onClick, children, T,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const [hov, setHov] = useState(false);
   return (
-    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: "transparent", border: `1px solid ${T.border}`,
+        borderRadius: 6, padding: "2px 8px", fontSize: 11,
+        color: hov ? T.text : T.muted, cursor: "pointer",
+        fontFamily: T.fontBody, transition: "all 0.15s ease",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── UserBubble ────────────────────────────────────────────────────────────────
+function UserBubble({
+  entry, onEdit, T,
+}: {
+  entry: Extract<Entry, { kind: "user" }>;
+  onEdit: () => void;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 4px 12px",
         padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
         background: T.accent, color: "#0F172A",
         whiteSpace: "pre-wrap",
       }}>
-        {text}
+        {entry.text}
       </div>
+      {hov && (
+        <ActionButton onClick={onEdit} T={T}>Edit</ActionButton>
+      )}
     </div>
   );
 }
 
-function AnswerBubble({ text, T }: { text: string; T: ReturnType<typeof useTheme>["T"] }) {
+// ── AnswerBubble ──────────────────────────────────────────────────────────────
+function AnswerBubble({
+  entry, onRetry, T,
+}: {
+  entry: Extract<Entry, { kind: "answer" }>;
+  onRetry: () => void;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const [hov, setHov] = useState(false);
   return (
-    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 12px 4px",
         padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
@@ -54,21 +108,31 @@ function AnswerBubble({ text, T }: { text: string; T: ReturnType<typeof useTheme
         border: `1px solid ${T.border}`,
         whiteSpace: "pre-wrap",
       }}>
-        {text}
+        {entry.text}
       </div>
+      {hov && (
+        <ActionButton onClick={onRetry} T={T}>↺ Retry</ActionButton>
+      )}
     </div>
   );
 }
 
+// ── BulkOpCard ────────────────────────────────────────────────────────────────
 function BulkOpCard({
-  entry, T,
+  entry, onRetry, T,
 }: {
   entry: Extract<Entry, { kind: "bulk_op" }>;
+  onRetry: () => void;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   const router = useRouter();
+  const [hov, setHov] = useState(false);
   return (
-    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
       <div style={{
         borderRadius: 12, border: `1px solid ${T.border}`,
         background: T.surface, padding: "14px 18px",
@@ -118,26 +182,45 @@ function BulkOpCard({
           Review plan →
         </button>
       </div>
+      {hov && (
+        <ActionButton onClick={onRetry} T={T}>↺ Retry</ActionButton>
+      )}
     </div>
   );
 }
 
-function UnsupportedBubble({ intent, T }: { intent: string; T: ReturnType<typeof useTheme>["T"] }) {
+// ── UnsupportedBubble ─────────────────────────────────────────────────────────
+function UnsupportedBubble({
+  entry, onRetry, T,
+}: {
+  entry: Extract<Entry, { kind: "unsupported" }>;
+  onRetry: () => void;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const [hov, setHov] = useState(false);
   return (
-    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 12px 4px",
         padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
         background: T.surface, color: T.muted,
         border: `1px solid ${T.border}`,
       }}>
-        <span style={{ fontStyle: "italic" }}>{intent}</span> isn&apos;t automated in v1.
+        <span style={{ fontStyle: "italic" }}>{entry.intent}</span> isn&apos;t automated in v1.
         Try: <span style={{ color: T.textSub }}>&quot;Update [team] card limits to SGD [amount]&quot;</span>
       </div>
+      {hov && (
+        <ActionButton onClick={onRetry} T={T}>↺ Retry</ActionButton>
+      )}
     </div>
   );
 }
 
+// ── LoadingBubble ─────────────────────────────────────────────────────────────
 function LoadingBubble({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
   return (
     <div style={{ display: "flex", justifyContent: "flex-start" }}>
@@ -174,47 +257,51 @@ export default function OpsPage() {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || submitting) return;
+  // Core processing logic — used by both initial submit and retry.
+  // targetPairId: if set, replaces the response for that pair; if null, appends a new pair.
+  async function process(userText: string, targetPairId: string | null) {
+    const pairId = targetPairId ?? uid();
+    const responseId = uid();
 
-    setInput("");
-    setSubmitting(true);
-
-    const userEntryId = uid();
-    const loadingId = uid();
-
-    setThread((prev) => [
-      ...prev,
-      { id: userEntryId, kind: "user", text },
-      { id: loadingId, kind: "loading" },
-    ]);
+    if (targetPairId) {
+      // Replace existing response with loading
+      setThread((prev) => prev.map((e) =>
+        e.pairId === targetPairId && e.kind !== "user"
+          ? { id: responseId, pairId, kind: "loading", userText }
+          : e
+      ));
+    } else {
+      // Append new user + loading pair
+      setThread((prev) => [
+        ...prev,
+        { id: uid(), pairId, kind: "user", text: userText },
+        { id: responseId, pairId, kind: "loading", userText },
+      ]);
+    }
     scrollToBottom();
 
     try {
-      const result = await processRequest({ rawRequest: text });
+      const result = await processRequest({ rawRequest: userText });
 
       if (result.type === "question") {
         setThread((prev) => prev.map((e) =>
-          e.id === loadingId
-            ? { id: loadingId, kind: "answer", text: result.answer }
+          e.id === responseId
+            ? { id: responseId, pairId, kind: "answer", text: result.answer, userText }
             : e
         ));
       } else {
-        // bulk_op
         const { intent } = result;
 
         if (intent.intent !== "bulk_update_card_limit" || !intent.newLimit) {
           setThread((prev) => prev.map((e) =>
-            e.id === loadingId
-              ? { id: loadingId, kind: "unsupported", intent: intent.intent }
+            e.id === responseId
+              ? { id: responseId, pairId, kind: "unsupported", intent: intent.intent, userText }
               : e
           ));
         } else {
           const idempotencyKey = `${intent.targetGroup}:${intent.intent}:${intent.newLimit.currency}${intent.newLimit.amount}:${Date.now()}`;
           const jobId = await createDraft({
-            rawRequest: text,
+            rawRequest: userText,
             intent: {
               targetGroup: intent.targetGroup,
               newLimit: intent.newLimit,
@@ -224,25 +311,54 @@ export default function OpsPage() {
           });
 
           setThread((prev) => prev.map((e) =>
-            e.id === loadingId
+            e.id === responseId
               ? {
-                  id: loadingId, kind: "bulk_op",
+                  id: responseId, pairId, kind: "bulk_op",
                   jobId, targetGroup: intent.targetGroup,
                   newLimit: intent.newLimit!,
                   notifyCardholders: intent.notifyCardholders,
+                  userText,
                 }
               : e
           ));
         }
       }
     } catch (err) {
-      setThread((prev) => prev.filter((e) => e.id !== loadingId));
+      // Remove the loading entry on error (don't leave ghost)
+      setThread((prev) => prev.filter((e) => e.id !== responseId));
       toast.error("Something went wrong", {
         description: err instanceof Error ? err.message : "Please try again.",
       });
     } finally {
-      setSubmitting(false);
       scrollToBottom();
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || submitting) return;
+    setInput("");
+    setSubmitting(true);
+    try {
+      await process(text, null);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleEdit(pairId: string, userText: string) {
+    setInput(userText);
+    setThread((prev) => prev.filter((e) => e.pairId !== pairId));
+  }
+
+  async function handleRetry(pairId: string, userText: string) {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await process(userText, pairId);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -300,11 +416,49 @@ export default function OpsPage() {
       {!isEmpty && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
           {thread.map((entry) => {
-            if (entry.kind === "user") return <UserBubble key={entry.id} text={entry.text} T={T} />;
-            if (entry.kind === "answer") return <AnswerBubble key={entry.id} text={entry.text} T={T} />;
-            if (entry.kind === "bulk_op") return <BulkOpCard key={entry.id} entry={entry} T={T} />;
-            if (entry.kind === "unsupported") return <UnsupportedBubble key={entry.id} intent={entry.intent} T={T} />;
-            if (entry.kind === "loading") return <LoadingBubble key={entry.id} T={T} />;
+            if (entry.kind === "user") {
+              return (
+                <UserBubble
+                  key={entry.id}
+                  entry={entry}
+                  onEdit={() => handleEdit(entry.pairId, entry.text)}
+                  T={T}
+                />
+              );
+            }
+            if (entry.kind === "answer") {
+              return (
+                <AnswerBubble
+                  key={entry.id}
+                  entry={entry}
+                  onRetry={() => handleRetry(entry.pairId, entry.userText)}
+                  T={T}
+                />
+              );
+            }
+            if (entry.kind === "bulk_op") {
+              return (
+                <BulkOpCard
+                  key={entry.id}
+                  entry={entry}
+                  onRetry={() => handleRetry(entry.pairId, entry.userText)}
+                  T={T}
+                />
+              );
+            }
+            if (entry.kind === "unsupported") {
+              return (
+                <UnsupportedBubble
+                  key={entry.id}
+                  entry={entry}
+                  onRetry={() => handleRetry(entry.pairId, entry.userText)}
+                  T={T}
+                />
+              );
+            }
+            if (entry.kind === "loading") {
+              return <LoadingBubble key={entry.id} T={T} />;
+            }
           })}
           <div ref={bottomRef} />
         </div>
