@@ -565,16 +565,32 @@ function JobProgressCard({
   T: ReturnType<typeof useTheme>["T"];
 }) {
   const data = useQuery(api.queries.getJobWithItems, { jobId: entry.jobId });
+  const retryFailed = useMutation(api.jobs.retryFailed);
+  const [retrying, setRetrying] = useState(false);
 
   if (!data) return <LoadingBubble T={T} />;
 
-  const { job } = data;
+  const { job, items } = data;
   const isRunning = job.status === "in_progress" || job.status === "confirmed";
   const isDone = ["completed", "completed_with_failures", "cancelled", "failed"].includes(job.status);
+  // skippedCount includes pre-excluded cards; progress and remaining are relative to eligible only
   const progress = job.eligibleItems > 0
-    ? Math.round(((job.succeededCount + job.failedCount + job.skippedCount) / job.eligibleItems) * 100)
+    ? Math.round(((job.succeededCount + job.failedCount) / job.eligibleItems) * 100)
     : 0;
-  const remaining = Math.max(0, job.eligibleItems - job.succeededCount - job.failedCount - job.skippedCount - job.cancelledCount);
+  const remaining = Math.max(0, job.eligibleItems - job.succeededCount - job.failedCount - job.cancelledCount);
+  const retryableCount = items.filter((i) => i.status === "failed_retryable").length;
+  const canRetry = job.status === "completed_with_failures" && retryableCount > 0;
+
+  async function handleRetry() {
+    setRetrying(true);
+    try {
+      await retryFailed({ jobId: entry.jobId });
+    } catch {
+      // ignore — jobs/[id] page shows detailed errors
+    } finally {
+      setRetrying(false);
+    }
+  }
   const statusStyle = JOB_STATUS_STYLE[job.status] ?? JOB_STATUS_STYLE.draft;
 
   return (
