@@ -26,15 +26,14 @@ export default function OpsPage() {
     if (!input.trim()) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       const intent = await interpretIntent({ rawRequest: input });
 
       if (intent.intent !== "bulk_update_card_limit" || !intent.newLimit) {
-        setError(
-          `"${intent.intent}" is not supported in v1. Try: "Update Marketing team card limits to SGD 2,000"`
-        );
+        toast.error(`"${intent.intent}" is not supported in v1`, {
+          description: 'Try: "Update Marketing team card limits to SGD 2,000"',
+        });
         return;
       }
 
