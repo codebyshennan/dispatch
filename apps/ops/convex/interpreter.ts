@@ -2,7 +2,6 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import { BulkJobIntentSchema } from "../src/lib/schemas";
 
 const SYSTEM_PROMPT = `You are a CX operations assistant that converts natural language requests into structured bulk operation plans.
