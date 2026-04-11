@@ -160,7 +160,9 @@ function VocStrip({ themes, T }: { themes: VocTheme[]; T: Tokens }) {
             background: T.elevated, borderRadius: 8, padding: '8px 14px',
             border: `1px solid ${T.border}`,
           }}>
-            <span style={{ fontSize: 14 }}>{t.severity === 'high' ? '🔴' : '🟡'}</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                <circle cx="5" cy="5" r="5" fill={t.severity === 'high' ? '#ef4444' : '#f59e0b'} />
+              </svg>
             <span style={{ fontSize: 13, color: T.text }}>{t.theme}</span>
           </div>
         ))}
@@ -235,8 +237,32 @@ export function DashboardPage() {
       {/* Body */}
       <div style={{ flex: 1, padding: '32px', maxWidth: 1100, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {!metrics ? (
-          <div style={{ color: T.muted, fontSize: 14, marginTop: 40, textAlign: 'center' }}>
-            Connecting to demo server...
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* KPI row skeleton */}
+            <div style={{ display: 'flex', gap: 16 }}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} style={{ flex: 1, background: T.surface, borderRadius: 12, padding: '20px 24px', border: `1px solid ${T.border}` }}>
+                  <div style={{ height: 36, width: 64, borderRadius: 6, background: T.elevated, margin: '0 auto 10px' }} />
+                  <div style={{ height: 10, width: 80, borderRadius: 4, background: T.elevated, margin: '0 auto 6px' }} />
+                  <div style={{ height: 10, width: 56, borderRadius: 4, background: T.elevated, margin: '0 auto' }} />
+                </div>
+              ))}
+            </div>
+            {/* Routing bar skeleton */}
+            <div style={{ background: T.surface, borderRadius: 12, padding: '20px 24px', border: `1px solid ${T.border}` }}>
+              <div style={{ height: 10, width: 120, borderRadius: 4, background: T.elevated, marginBottom: 16 }} />
+              <div style={{ height: 24, borderRadius: 6, background: T.elevated, marginBottom: 10 }} />
+              <div style={{ display: 'flex', gap: 20 }}>
+                {[0, 1, 2].map((i) => <div key={i} style={{ height: 10, width: 80, borderRadius: 4, background: T.elevated }} />)}
+              </div>
+            </div>
+            {/* Table skeleton */}
+            <div style={{ background: T.surface, borderRadius: 12, padding: '20px 24px', border: `1px solid ${T.border}` }}>
+              <div style={{ height: 10, width: 140, borderRadius: 4, background: T.elevated, marginBottom: 16 }} />
+              {[0, 1, 2].map((i) => (
+                <div key={i} style={{ height: 12, borderRadius: 4, background: T.elevated, marginBottom: 10, opacity: 1 - i * 0.2 }} />
+              ))}
+            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
