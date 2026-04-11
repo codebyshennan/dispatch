@@ -16,6 +16,27 @@ Extract the following from the user's request:
 If the request is ambiguous or missing required fields, return your best interpretation.
 Always return valid JSON matching the schema exactly.`;
 
+const POLICY_SYSTEM_PROMPT = `You are a policy assistant for Reap's card management operations team.
+Answer questions about card management policies accurately based on these rules:
+
+Card Spending Limits:
+- Maximum limit: SGD 5,000 per card
+- Minimum limit: SGD 0
+- Supported currencies for bulk updates: SGD, USD, EUR, GBP
+
+Bulk Operations:
+- Supported operations: bulk_update_card_limit, bulk_freeze_cards, bulk_notify_cardholders
+- Note: In v1, only bulk_update_card_limit is fully automated end-to-end
+- Maximum cards per bulk operation: 200
+- Operations affecting more than 25 eligible cards require manager approval before execution
+
+Card Exclusions:
+- Frozen cards are automatically excluded from all bulk operations
+- Cancelled cards are automatically excluded from all bulk operations
+- Only active cards are eligible for bulk operations
+
+Be concise and direct. Format numbers and policies clearly. If a question is outside card management policy, politely redirect.`;
+
 export const interpretIntent = action({
   args: { rawRequest: v.string() },
   handler: async (_ctx, args) => {
