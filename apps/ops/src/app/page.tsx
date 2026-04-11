@@ -648,7 +648,24 @@ function JobProgressCard({
         </p>
       )}
 
-      <Link href={`/jobs/${entry.jobId}`} style={{ fontSize: 11, color: T.muted, textDecoration: "none", alignSelf: "flex-end" }}>
+      {canRetry && (
+        <button
+          onClick={handleRetry}
+          disabled={retrying}
+          style={{
+            borderRadius: 7, border: `1px solid #FB923C44`,
+            background: "transparent", color: "#FB923C",
+            padding: "4px 12px", fontSize: 12,
+            fontFamily: "inherit", cursor: retrying ? "not-allowed" : "pointer",
+            alignSelf: "flex-start", opacity: retrying ? 0.6 : 1,
+            transition: "all 0.15s ease",
+          }}
+        >
+          {retrying ? "Retrying…" : `Retry ${retryableCount} failed card${retryableCount === 1 ? "" : "s"}`}
+        </button>
+      )}
+
+      <Link href={`/jobs/${entry.jobId}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: T.muted, textDecoration: "none", alignSelf: "flex-end" }}>
         View full details →
       </Link>
     </div>
