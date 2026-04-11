@@ -821,6 +821,23 @@ export default function OpsPage() {
     }
   }
 
+  function handleReview(jobId: Id<"jobs">, pairId: string) {
+    setThread((prev) => [
+      ...prev,
+      { id: uid(), pairId, kind: "job_preview" as const, jobId },
+    ]);
+    scrollToBottom();
+  }
+
+  function handleConfirmed(previewEntryId: string, jobId: Id<"jobs">, pairId: string) {
+    setThread((prev) => prev.map((e) =>
+      e.id === previewEntryId
+        ? { id: previewEntryId, pairId, kind: "job_progress" as const, jobId }
+        : e
+    ));
+    scrollToBottom();
+  }
+
   const isEmpty = thread.length === 0;
 
   return (
