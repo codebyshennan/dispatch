@@ -104,21 +104,6 @@ export default function OpsPage() {
           onBlur={(e) => (e.target.style.borderColor = T.border)}
         />
 
-        {error && (
-          <div
-            style={{
-              borderRadius: 8,
-              border: "1px solid #7f1d1d",
-              background: "#1a0505",
-              padding: "12px 16px",
-              fontSize: 13,
-              color: "#fca5a5",
-            }}
-          >
-            {error}
-          </div>
-        )}
-
         <button
           type="submit"
           disabled={loading || !input.trim()}
