@@ -188,6 +188,40 @@ function UserBubble({
   );
 }
 
+// ── PolicySourceRow ───────────────────────────────────────────────────────────
+function PolicySourceRow({ source, index, T }: { source: PolicySource; index: number; T: ReturnType<typeof useTheme>["T"] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderBottom: index > 0 ? `1px solid ${T.border}` : undefined }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 8,
+          background: "transparent", border: "none", padding: "7px 0",
+          cursor: "pointer", textAlign: "left",
+        }}
+      >
+        <span style={{
+          fontSize: 9, fontWeight: 700, color: "#fff",
+          background: "#3b82f6", borderRadius: 3, padding: "1px 5px",
+          flexShrink: 0, letterSpacing: "0.03em",
+        }}>
+          {source.id}
+        </span>
+        <span style={{ flex: 1, fontSize: 11, color: T.textSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {source.title}
+        </span>
+        <span style={{ fontSize: 10, color: T.muted, flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <p style={{ margin: "0 0 8px", fontSize: 11, color: T.muted, lineHeight: 1.6, paddingLeft: 28 }}>
+          {source.snippet}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── AnswerBubble ──────────────────────────────────────────────────────────────
 function AnswerBubble({
   entry, onRetry, T,
@@ -197,20 +231,32 @@ function AnswerBubble({
   T: ReturnType<typeof useTheme>["T"];
 }) {
   const [hov, setHov] = useState(false);
+  const hasSources = entry.sources.length > 0;
   return (
     <div
-      style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}
+      style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 6 }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 12px 4px",
-        padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
         background: T.surface, color: T.text,
         border: `1px solid ${T.border}`,
-        whiteSpace: "pre-wrap",
+        overflow: "hidden",
       }}>
-        {entry.text}
+        <div style={{ padding: "10px 14px", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+          {entry.text}
+        </div>
+        {hasSources && (
+          <div style={{ borderTop: `1px solid ${T.border}`, padding: "6px 14px 4px" }}>
+            <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: T.muted, margin: "0 0 4px" }}>
+              Policy sources
+            </p>
+            {entry.sources.map((src, i) => (
+              <PolicySourceRow key={src.id} source={src} index={i} T={T} />
+            ))}
+          </div>
+        )}
       </div>
       {hov && <IconBtn onClick={onRetry} title="Retry" T={T}><RetryIcon /></IconBtn>}
     </div>
