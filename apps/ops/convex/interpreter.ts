@@ -54,7 +54,7 @@ export const processRequest = action({
         { role: "user", content: args.rawRequest },
       ],
       temperature: 0,
-      max_tokens: 300,
+      max_tokens: 512,
     });
 
     const content = response.choices[0]?.message?.content;
