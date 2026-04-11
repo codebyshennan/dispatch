@@ -40,6 +40,57 @@ export const MOCK_CARDS: MockCard[] = MARKETING_MEMBERS.map((name, i) => ({
   email: `${name.toLowerCase().replace(/ /g, ".")}@company.com`,
 }));
 
+const ENGINEERING_MEMBERS = [
+  "Alan Tan", "Ben Lim", "Clara Ng", "Derek Koh", "Elaine Yeo",
+  "Felix Low", "Gina Sim", "Harry Tay", "Ivy Chan", "Jake Ong",
+  "Kelly Pek", "Liam Goh", "Megan Lau", "Nick Soh", "Olivia Teo",
+  "Patrick Woo", "Rosa Bala", "Sam Tan", "Tara Ng", "Umar Lee",
+];
+
+const ENG_FROZEN_INDICES = new Set([4, 12]);
+const ENG_CANCELLED_INDICES = new Set([17]);
+
+const ENGINEERING_CARDS: MockCard[] = ENGINEERING_MEMBERS.map((name, i) => ({
+  cardId: `CARD-ENG-${String(i + 1).padStart(3, "0")}`,
+  cardholderName: name,
+  team: "Engineering",
+  currentLimit: {
+    currency: "SGD",
+    amount: 800 + (i % 4) * 300, // 800 | 1100 | 1400 | 1700
+  },
+  status: ENG_FROZEN_INDICES.has(i)
+    ? "frozen"
+    : ENG_CANCELLED_INDICES.has(i)
+    ? "cancelled"
+    : "active",
+  email: `${name.toLowerCase().replace(/ /g, ".")}@company.com`,
+}));
+
+const FINANCE_MEMBERS = [
+  "Adam Chua", "Bella Tan", "Calvin Ho", "Diana Koh", "Edward Yeo",
+  "Faye Low", "Gary Sim", "Helen Tay", "Ivan Chan", "Jessica Ong",
+];
+
+const FIN_FROZEN_INDICES = new Set([2]);
+
+const FINANCE_CARDS: MockCard[] = FINANCE_MEMBERS.map((name, i) => ({
+  cardId: `CARD-FIN-${String(i + 1).padStart(3, "0")}`,
+  cardholderName: name,
+  team: "Finance",
+  currentLimit: {
+    currency: "SGD",
+    amount: 1000 + (i % 3) * 500, // 1000 | 1500 | 2000
+  },
+  status: FIN_FROZEN_INDICES.has(i) ? "frozen" : "active",
+  email: `${name.toLowerCase().replace(/ /g, ".")}@company.com`,
+}));
+
+export const MOCK_CARDS: MockCard[] = [
+  ...MARKETING_CARDS,
+  ...ENGINEERING_CARDS,
+  ...FINANCE_CARDS,
+];
+
 export function getCardsByTeam(team: string): MockCard[] {
   return MOCK_CARDS.filter(
     (c) => c.team.toLowerCase() === team.toLowerCase()
