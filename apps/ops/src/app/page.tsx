@@ -327,13 +327,13 @@ function AnswerBubble({
 
 // ── BulkOpCard ────────────────────────────────────────────────────────────────
 function BulkOpCard({
-  entry, onRetry, T,
+  entry, onReview, onRetry, T,
 }: {
   entry: Extract<Entry, { kind: "bulk_op" }>;
+  onReview: () => void;
   onRetry: () => void;
   T: ReturnType<typeof useTheme>["T"];
 }) {
-  const router = useRouter();
   const [hov, setHov] = useState(false);
   return (
     <div
@@ -377,7 +377,7 @@ function BulkOpCard({
             )}
           </div>
           <button
-            onClick={() => router.push(`/preview/${entry.jobId}`)}
+            onClick={onReview}
             style={{
               borderRadius: 8, border: "none",
               background: T.accent, color: "#0F172A",
