@@ -130,8 +130,16 @@ export default function JobsPage() {
             background: T.surface,
             padding: "48px 24px",
             textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 12,
           }}
         >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: T.muted }} aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <path d="M3 9h18M9 21V9" />
+          </svg>
           <p style={{ fontSize: 14, color: T.muted, margin: 0 }}>
             No jobs yet.{" "}
             <Link href="/" style={{ color: T.accent, textDecoration: "none" }}>
