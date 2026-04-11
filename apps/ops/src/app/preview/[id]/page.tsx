@@ -1,6 +1,9 @@
 "use client";
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useTheme } from "../../theme";
@@ -9,29 +12,49 @@ export default function PreviewPage() {
   const { T } = useTheme();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   const summary = useQuery(api.queries.getJobStatusSummary, {
     jobId: id as Id<"jobs">,
   });
 
   const confirmJob = useMutation(api.jobs.confirmJob);
-  const cancelJob = useMutation(api.jobs.cancelJob);
 
   if (summary === undefined) return <LoadingShell />;
   if (summary === null) return <ErrorShell message="Job not found" />;
 
   async function handleConfirm() {
-    await confirmJob({ jobId: id as Id<"jobs"> });
-    router.push(`/jobs/${id}`);
+    setConfirming(true);
+    try {
+      await confirmJob({ jobId: id as Id<"jobs"> });
+      router.push(`/jobs/${id}`);
+    } catch (err) {
+      toast.error("Failed to confirm job", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+      setConfirming(false);
+    }
   }
 
-  async function handleCancel() {
-    await cancelJob({ jobId: id as Id<"jobs"> });
+  function handleCancel() {
     router.push("/");
   }
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 24px" }}>
+      {/* Breadcrumb */}
+      <div style={{ marginBottom: 24 }}>
+        <Link
+          href="/"
+          style={{ fontSize: 13, color: T.muted, textDecoration: "none" }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = T.textSub)}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = T.muted)}
+        >
+          ← New job
+        </Link>
+      </div>
+
       {/* Status badge + heading */}
       <div style={{ marginBottom: 24 }}>
         <span
@@ -181,26 +204,27 @@ export default function PreviewPage() {
       <div style={{ display: "flex", gap: 10 }}>
         <button
           onClick={handleConfirm}
+          disabled={confirming}
           style={{
             flex: 1,
             borderRadius: 10,
             border: "none",
-            background: T.accent,
-            color: "#0F172A",
+            background: confirming ? T.elevated : T.accent,
+            color: confirming ? T.muted : "#0F172A",
             padding: "11px 16px",
             fontSize: 14,
             fontWeight: 600,
             fontFamily: T.fontBody,
-            cursor: "pointer",
-            transition: "opacity 0.15s ease",
+            cursor: confirming ? "not-allowed" : "pointer",
+            opacity: confirming ? 0.7 : 1,
+            transition: "all 0.15s ease",
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.85")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
         >
-          Confirm — run for {summary.eligibleItems} cards
+          {confirming ? "Confirming…" : `Confirm — run for ${summary.eligibleItems} cards`}
         </button>
         <button
           onClick={handleCancel}
+          disabled={confirming}
           style={{
             borderRadius: 10,
             border: `1px solid ${T.border}`,
@@ -210,11 +234,16 @@ export default function PreviewPage() {
             fontSize: 14,
             fontWeight: 500,
             fontFamily: T.fontBody,
-            cursor: "pointer",
+            cursor: confirming ? "not-allowed" : "pointer",
+            opacity: confirming ? 0.5 : 1,
             transition: "border-color 0.15s ease",
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.borderColor = T.muted)}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.borderColor = T.border)}
+          onMouseEnter={(e) => {
+            if (!confirming) (e.currentTarget as HTMLButtonElement).style.borderColor = T.muted;
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = T.border;
+          }}
         >
           Cancel
         </button>
@@ -257,10 +286,10 @@ function LoadingShell() {
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 24px" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ height: 16, width: 64, borderRadius: 6, background: T.elevated }} />
         <div style={{ height: 24, width: 128, borderRadius: 6, background: T.elevated }} />
         <div style={{ height: 180, borderRadius: 12, background: T.elevated }} />
       </div>
-      <style>{`@keyframes pulse { 0%,100%{opacity:.6} 50%{opacity:.3} }`}</style>
     </main>
   );
 }
@@ -276,11 +305,17 @@ function ErrorShell({ message }: { message: string }) {
           background: "#1a0505",
           padding: "24px",
           textAlign: "center",
-          fontSize: 13,
-          color: "#fca5a5",
         }}
       >
-        {message}
+        <p style={{ fontSize: 13, color: "#fca5a5", margin: "0 0 12px" }}>{message}</p>
+        <Link
+          href="/"
+          style={{ fontSize: 13, color: T.accent, textDecoration: "none" }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline")}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "none")}
+        >
+          ← Back to new job
+        </Link>
       </div>
     </main>
   );
