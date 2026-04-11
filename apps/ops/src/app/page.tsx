@@ -647,6 +647,7 @@ export default function OpsPage() {
                 <BulkOpCard
                   key={entry.id}
                   entry={entry}
+                  onReview={() => router.push(`/preview/${entry.jobId}`)}
                   onRetry={() => handleRetry(entry.pairId, entry.userText)}
                   T={T}
                 />
