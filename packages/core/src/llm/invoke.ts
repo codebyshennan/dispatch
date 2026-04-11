@@ -136,6 +136,7 @@ async function callOpenRouter<T>(
     ],
     max_tokens: options.maxTokens ?? 1024,
     ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
+    response_format: { type: 'json_object' },
   });
 
   const content = response.choices[0]?.message?.content;
@@ -165,6 +166,48 @@ function estimateCost(
 }
 
 // ---------------------------------------------------------------------------
+// JSON repair helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Escape literal control characters (newlines, tabs, etc.) that appear inside
+ * JSON string values. LLMs sometimes emit unescaped newlines which make the
+ * JSON technically invalid. This fixes them before parsing.
+ */
+function fixJsonControlChars(text: string): string {
+  let result = '';
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (escaped) {
+      result += char;
+      escaped = false;
+    } else if (char === '\\' && inString) {
+      result += char;
+      escaped = true;
+    } else if (char === '"') {
+      inString = !inString;
+      result += char;
+    } else if (inString) {
+      const code = char.charCodeAt(0);
+      if (code < 0x20) {
+        // Escape control characters within strings
+        if (code === 0x0a) result += '\\n';
+        else if (code === 0x0d) result += '\\r';
+        else if (code === 0x09) result += '\\t';
+        else result += '\\u' + code.toString(16).padStart(4, '0');
+      } else {
+        result += char;
+      }
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Main invoke function
 // ---------------------------------------------------------------------------
 
@@ -176,8 +219,7 @@ const BASE_BACKOFF_MS = 1000;
  *
  * Model tiering is caller-delegated (INFRA-04): pass the exact model string in
  * `options.model`. Convention:
- *   - Complex tasks (classification, response draft): `claude-opus-4-5`
- *   - Routine / high-volume tasks (intent detection, simple extraction): `claude-haiku-3-5`
+ *   - All tasks (via OpenRouter free tier): `google/gemma-3-27b-it:free`
  *
  * Retry policy: 3 attempts with exponential backoff starting at 1s (1s, 2s, 4s).
  * On permanent failure, throws MeridianLLMError with structured metadata.
@@ -211,12 +253,47 @@ export async function invoke<T>(
 
       // Zod validation — caller provides the schema; parse throws on mismatch
       let parsed: T;
+
+      // Strip markdown code fences (```json ... ``` or ``` ... ```) that some models
+      // add even when response_format=json_object is specified.
+      // Use indexOf/lastIndexOf for robustness across different line ending variations.
+      let stripped = rawText;
+      const fenceStart = rawText.indexOf('```');
+      if (fenceStart !== -1) {
+        const contentStart = rawText.indexOf('\n', fenceStart);
+        const fenceEnd = rawText.lastIndexOf('```');
+        if (contentStart !== -1 && fenceEnd > contentStart) {
+          const contentEnd = rawText.lastIndexOf('\n', fenceEnd);
+          if (contentEnd > contentStart) {
+            stripped = rawText.slice(contentStart + 1, contentEnd).trim();
+          }
+        }
+      }
+
       try {
-        const raw: unknown = JSON.parse(rawText);
+        let raw: unknown = JSON.parse(fixJsonControlChars(stripped));
+        // Handle the case where the model returns a JSON-encoded string (not an object).
+        // Some models via OpenRouter wrap their response in a string even with response_format=json_object.
+        // Try to extract a JSON object from the inner string using brace-matching.
+        if (typeof raw === 'string') {
+          const inner = raw as string;
+          const start = inner.indexOf('{');
+          const end = inner.lastIndexOf('}');
+          if (start !== -1 && end !== -1 && end > start) {
+            raw = JSON.parse(inner.slice(start, end + 1));
+          } else {
+            raw = JSON.parse(inner);
+          }
+        }
         parsed = options.schema.parse(raw);
-      } catch {
-        // Try parsing the rawText directly if it's not JSON (for string schemas)
-        parsed = options.schema.parse(rawText);
+      } catch (e) {
+        // For schemas that accept strings, try rawText directly.
+        // For all other failures, rethrow the original error so the real cause propagates.
+        try {
+          parsed = options.schema.parse(rawText);
+        } catch {
+          throw e;
+        }
       }
 
       const now = new Date().toISOString();
