@@ -126,7 +126,7 @@ export async function classify(input: ClassifyInput): Promise<ClassifyOutput> {
 
   const response = await invoke<Classification>(userMessage, {
     provider: 'openrouter',
-    model: 'anthropic/claude-3-5-haiku', // routine classification — haiku tier
+    model: 'google/gemma-3-27b-it:free',
     system: systemPrompt,
     schema: ClassificationSchema,
     maxTokens: 512,

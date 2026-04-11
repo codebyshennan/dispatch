@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import { invoke, ClassificationSchema } from '@meridian/core';
+import { invoke, ClassificationSchema } from '@beacon/core';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -161,8 +161,8 @@ export async function runEval(opts: {
       const userContent = promptBody.replace('{ticket_text}', record.ticket_text);
 
       const llmResult = await invoke<ClassificationResult>(userContent, {
-        provider: 'anthropic',
-        model: 'claude-haiku-3-5',
+        provider: 'openrouter',
+        model: 'google/gemma-3-27b-it:free',
         system: systemText,
         schema: ClassificationSchema,
         maxTokens: 512,
@@ -236,7 +236,7 @@ export async function runEval(opts: {
 const program = new Command();
 
 program
-  .name('meridian-eval')
+  .name('beacon-eval')
   .description('Run Meridian classification prompt eval against a golden dataset')
   .requiredOption('--prompt <name>', 'Prompt name under prompts/ dir (e.g. classification/v1)')
   .requiredOption('--dataset <name>', 'Dataset name under datasets/golden/ (e.g. classification-v1)')

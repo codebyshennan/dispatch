@@ -4,7 +4,7 @@ import {
   QueryCommand,
 } from '@aws-sdk/client-dynamodb';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { invoke } from '@meridian/core';
+import { invoke } from '@beacon/core';
 import { z } from 'zod';
 import type { S3Event } from 'aws-lambda';
 import { createZendeskTicketFromReview } from './zendesk.js';
@@ -131,8 +131,8 @@ async function runMonthlyCorrelationAnalysis(tableName: string): Promise<void> {
 
   try {
     const result = await invoke<Insights>(prompt, {
-      provider: 'anthropic',
-      model: 'claude-3-5-haiku-20241022',
+      provider: 'openrouter',
+      model: 'google/gemma-3-27b-it:free',
       schema: InsightsSchema,
     });
     insights = result.data;

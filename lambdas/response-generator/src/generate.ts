@@ -230,13 +230,12 @@ export async function generateResponse(input: GenerateInput): Promise<GenerateOu
     kbContext,
   ].join('\n');
 
-  // CRITICAL: model 'anthropic/claude-opus-4-5' per INFRA-04 model tiering — complex drafting requires Opus tier
   const response = await invoke<ResponseDraft>(userMessage, {
     provider: 'openrouter',
-    model: 'anthropic/claude-opus-4-5',
+    model: 'google/gemma-3-27b-it:free',
     system: systemPrompt,
     schema: ResponseDraftSchema,
-    maxTokens: 1024,
+    maxTokens: 2048,
     temperature: 0.3,
   });
 

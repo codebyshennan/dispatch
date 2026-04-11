@@ -1,4 +1,4 @@
-import { invoke } from '@meridian/core';
+import { invoke } from '@beacon/core';
 import { z } from 'zod';
 import {
   DynamoDBClient,
@@ -34,8 +34,8 @@ export async function generateAndStageReplyDraft(
   ].join('\n');
 
   const result = await invoke<string>(prompt, {
-    provider: 'anthropic',
-    model: 'claude-3-5-haiku-20241022',
+    provider: 'openrouter',
+    model: 'google/gemma-3-27b-it:free',
     schema: z.string(),
   });
   const draft = result.data;
