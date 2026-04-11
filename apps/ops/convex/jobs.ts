@@ -47,7 +47,7 @@ export const createDraft = mutation({
     const excludedSet = new Set(policy.excludedCardIds);
     const eligible = cards.filter((c) => !excludedSet.has(c.cardId));
 
-    return await ctx.db.insert("jobs", {
+    const jobId = await ctx.db.insert("jobs", {
       status: "draft",
       operationType: "bulk_update_card_limit",
       rawRequest: args.rawRequest,
@@ -71,6 +71,13 @@ export const createDraft = mutation({
       policyNotes: policy.notes,
       idempotencyKey: args.idempotencyKey,
     });
+
+    await ctx.runMutation(internal.metrics.recordMetricEvent, {
+      type: "job_created",
+      payload: { targetGroup: args.intent.targetGroup, eligibleItems: eligible.length },
+    });
+
+    return jobId;
   },
 });
 
