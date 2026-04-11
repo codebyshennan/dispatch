@@ -7,6 +7,56 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useTheme } from "./theme";
 
+// ── ThumbsRow ─────────────────────────────────────────────────────────────────
+function ThumbsRow({
+  responseId, kind, T,
+}: {
+  responseId: string;
+  kind: "answer" | "bulk_op";
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const [rated, setRated] = useState<"up" | "down" | null>(null);
+  const submitFeedback = useMutation(api.feedback.submitFeedback);
+
+  async function rate(rating: "up" | "down") {
+    if (rated === rating) return;
+    setRated(rating);
+    try {
+      await submitFeedback({ responseId, kind, rating });
+    } catch {
+      setRated(null);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+      {(["up", "down"] as const).map((r) => (
+        <button
+          key={r}
+          onClick={() => rate(r)}
+          title={r === "up" ? "Helpful" : "Not helpful"}
+          aria-label={r === "up" ? "Helpful" : "Not helpful"}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 24, height: 24, borderRadius: 6,
+            border: `1px solid ${rated === r ? T.accent : T.border}`,
+            background: rated === r ? `${T.accent}22` : "transparent",
+            color: rated === r ? T.accent : T.muted,
+            cursor: "pointer", transition: "all 0.15s ease",
+            padding: 0,
+          }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+            style={{ transform: r === "down" ? "scaleY(-1)" : undefined }}>
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
+            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── Examples ─────────────────────────────────────────────────────────────────
 const EXAMPLES = [
   "Update the spending limits for all Marketing team cards to SGD 2,000 and notify the cardholders.",
