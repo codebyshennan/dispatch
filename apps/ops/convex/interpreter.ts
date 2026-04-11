@@ -28,7 +28,7 @@ export const interpretIntent = action({
     });
 
     const response = await client.chat.completions.create({
-      model: "meta-llama/llama-3.1-8b-instruct:free",
+      model: "openai/gpt-4o-mini",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
