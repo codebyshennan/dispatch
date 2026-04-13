@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Beacon is an AI-powered CX triage and resolution system for Reap's Zendesk support team. It classifies inbound tickets, generates KB-grounded draft responses, and surfaces intelligence in a Zendesk sidebar copilot (ZAF app).
+Dispatch is an AI-powered CX triage and resolution system for Reap's Zendesk support team. It classifies inbound tickets, generates KB-grounded draft responses, and surfaces intelligence in a Zendesk sidebar copilot (ZAF app).
 
 ## Commands
 
@@ -39,7 +39,7 @@ beacon/
 │   └── demo-server/      # Local Hono server simulating the production API for demo
 ├── lambdas/              # AWS Lambda functions (Node.js, esbuild-bundled)
 ├── packages/
-│   └── core/             # @beacon/core — shared by all Lambdas
+│   └── core/             # @dispatch/core — shared by all Lambdas
 ├── infra/                # AWS CDK — BeaconStack
 ├── prompts/              # Versioned prompt files (YAML frontmatter + Markdown body)
 └── datasets/             # JSONL golden datasets for eval
@@ -50,12 +50,12 @@ beacon/
 **Ticket flow:** Zendesk webhook → EventBridge → SQS → `classifier` Lambda → Aurora (pgvector) + DynamoDB → `response-generator` Lambda → ZAF sidebar
 
 **Key patterns:**
-- Every LLM call goes through `@beacon/core`'s `invoke()` — never call Anthropic/OpenAI/OpenRouter SDKs directly in Lambdas
+- Every LLM call goes through `@dispatch/core`'s `invoke()` — never call Anthropic/OpenAI/OpenRouter SDKs directly in Lambdas
 - `invoke()` handles 3× retry with exponential backoff, Zod schema validation, JSON repair, and audit log entry creation. The **caller** persists the `auditEntry` to DynamoDB.
 - The circuit breaker is DynamoDB-backed and shared across Lambda instances: `CLOSED → OPEN (5 failures/60s) → HALF_OPEN → CLOSED`
-- All AWS resources are named `beacon-{env}-{resource}` and managed in a single CDK stack (`BeaconStack`)
+- All AWS resources are named `dispatch-{env}-{resource}` and managed in a single CDK stack (`BeaconStack`)
 
-## `@beacon/core` (`packages/core`)
+## `@dispatch/core` (`packages/core`)
 
 The single shared package imported by every Lambda. Key exports:
 - `invoke(userContent, options)` — unified LLM abstraction supporting `anthropic`, `openai`, and `openrouter` providers
@@ -84,7 +84,7 @@ Prompts under `prompts/` are versioned Markdown files with YAML frontmatter. The
 
 ## DynamoDB Access Patterns
 
-The `beacon-{env}-audit-log` table uses the following key patterns:
+The `dispatch-{env}-audit-log` table uses the following key patterns:
 - `pk: AUDIT#<promptHash>` / `sk: <ISO timestamp>` — LLM call audit entries
 - `pk: TICKET#<ticketId>` / `sk: CLASSIFICATION#<ISO timestamp>` — classifier output
 - `pk: TICKET#<ticketId>` / `sk: SIMILAR#<category>` — similar ticket placeholders
