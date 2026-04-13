@@ -53,7 +53,7 @@ dispatch/
 - Every LLM call goes through `@dispatch/core`'s `invoke()` — never call Anthropic/OpenAI/OpenRouter SDKs directly in Lambdas
 - `invoke()` handles 3× retry with exponential backoff, Zod schema validation, JSON repair, and audit log entry creation. The **caller** persists the `auditEntry` to DynamoDB.
 - The circuit breaker is DynamoDB-backed and shared across Lambda instances: `CLOSED → OPEN (5 failures/60s) → HALF_OPEN → CLOSED`
-- All AWS resources are named `dispatch-{env}-{resource}` and managed in a single CDK stack (`BeaconStack`)
+- All AWS resources are named `dispatch-{env}-{resource}` and managed in a single CDK stack (`DispatchStack`)
 
 ## `@dispatch/core` (`packages/core`)
 
