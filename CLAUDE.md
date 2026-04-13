@@ -74,7 +74,7 @@ Model tiering convention: complex tasks (classification, response drafts) → `c
 
 ## Demo App (`apps/demo-server`)
 
-A local Hono server that replicates the production Lambda pipeline without AWS dependencies. Uses Vectra (local vector index at `.beacon-demo-index/`) and Cohere embeddings instead of Aurora pgvector. Requires a `.env` file at the repo root. The demo React app (`apps/demo`) connects to this server.
+A local Hono server that replicates the production Lambda pipeline without AWS dependencies. Uses Vectra (local vector index at `.dispatch-demo-index/`) and Cohere embeddings instead of Aurora pgvector. Requires a `.env` file at the repo root. The demo React app (`apps/demo`) connects to this server.
 
 Integration tests in `apps/demo-server/src/__tests__/` use vitest and read `.env` from the repo root via `vitest.config.ts`.
 
