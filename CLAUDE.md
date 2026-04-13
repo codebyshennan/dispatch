@@ -33,14 +33,14 @@ cdk deploy --all
 ## Monorepo Structure
 
 ```
-beacon/
+dispatch/
 ├── apps/
 │   ├── sidebar/          # ZAF React sidebar (Vite + Zendesk Garden) — three panels
 │   └── demo-server/      # Local Hono server simulating the production API for demo
 ├── lambdas/              # AWS Lambda functions (Node.js, esbuild-bundled)
 ├── packages/
 │   └── core/             # @dispatch/core — shared by all Lambdas
-├── infra/                # AWS CDK — BeaconStack
+├── infra/                # AWS CDK — DispatchStack
 ├── prompts/              # Versioned prompt files (YAML frontmatter + Markdown body)
 └── datasets/             # JSONL golden datasets for eval
 ```
