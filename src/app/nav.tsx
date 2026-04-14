@@ -83,7 +83,7 @@ export function NavHeader() {
     >
       {/* Brand */}
       <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-        <BeaconLogo size={18} />
+        <DispatchLogo size={18} />
         <span
           style={{
             fontFamily: T.fontMono,
