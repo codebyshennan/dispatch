@@ -62,7 +62,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const saved = localStorage.getItem("beacon-ops-theme") as Theme | null;
+    const saved = localStorage.getItem("dispatch-ops-theme") as Theme | null;
     if (saved === "light" || saved === "dark") setTheme(saved);
   }, []);
 
