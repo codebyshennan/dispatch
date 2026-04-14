@@ -6,7 +6,7 @@ import type { SidebarPayload } from '@dispatch/core';
 const MAX_POLLS = 6; // up to ~90s wait
 const POLL_INTERVAL_MS = 10_000; // 10 seconds between polls
 
-export function useBeaconData() {
+export function useDispatchData() {
   const client = useClient();
   const ticketId = useTicketId();
   const [data, setData] = useState<SidebarPayload | null>(null);
