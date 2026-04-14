@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useTheme, BeaconLogo, ThemeToggle } from "./theme";
+import { useTheme, DispatchLogo, ThemeToggle } from "./theme";
 
 function PlusIcon() {
   return (
