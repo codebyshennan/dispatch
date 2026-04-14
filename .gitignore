@@ -12,3 +12,4 @@ cdk.context.json
 .superpowers/
 test-results/
 tsconfig.tsbuildinfo
+.vercel

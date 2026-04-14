@@ -1,0 +1,17 @@
+node_modules
+lambdas
+infra
+apps
+packages
+scripts
+datasets
+docs
+prompts
+cdk.out
+.next
+.turbo
+test-results
+.beacon-demo-index
+.playwright-mcp
+.superpowers
+.planning
