@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
 import { Fira_Code, Fira_Sans } from "next/font/google";
-import { ConvexClientProvider } from "./ConvexClientProvider";
-import { ThemeProvider } from "./theme";
-import { NavHeader } from "./nav";
+import dynamic from "next/dynamic";
 import "./globals.css";
+
+// Skip SSR so Convex hooks are only initialised client-side.
+// This avoids build-time prerender errors when NEXT_PUBLIC_CONVEX_URL is absent.
+const ConvexClientProvider = dynamic(
+  () => import("./ConvexClientProvider").then((m) => ({ default: m.ConvexClientProvider })),
+  { ssr: false }
+);
+const ThemeProvider = dynamic(
+  () => import("./theme").then((m) => ({ default: m.ThemeProvider })),
+  { ssr: false }
+);
+const NavHeader = dynamic(
+  () => import("./nav").then((m) => ({ default: m.NavHeader })),
+  { ssr: false }
+);
 
 const firaCode = Fira_Code({
   subsets: ["latin"],
