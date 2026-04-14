@@ -1,7 +1,7 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { classify, type ClassifyInput } from './classify.js';
 import { writeShadowNote } from './shadow.js';
-import type { Classification } from '@beacon/core';
+import type { Classification } from '@dispatch/core';
 
 // Re-export classify function and types for workspace consumers
 // (e.g. @beacon/lambda-batch-classifier) so they can import via

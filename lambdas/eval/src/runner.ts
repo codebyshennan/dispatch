@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import { invoke, ClassificationSchema } from '@beacon/core';
+import { invoke, ClassificationSchema } from '@dispatch/core';
 
 // ---------------------------------------------------------------------------
 // Types

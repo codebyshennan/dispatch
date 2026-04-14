@@ -1,5 +1,5 @@
 import { RDSDataClient, ExecuteStatementCommand } from '@aws-sdk/client-rds-data';
-import type { KBResult } from '@beacon/core';
+import type { KBResult } from '@dispatch/core';
 
 /**
  * Input shape from the Step Functions state machine.

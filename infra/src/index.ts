@@ -1,2 +1,2 @@
-export { BeaconStack } from './stacks/beacon-stack.js';
-export type { BeaconStackProps } from './stacks/beacon-stack.js';
+export { DispatchStack } from './stacks/dispatch-stack.js';
+export type { DispatchStackProps } from './stacks/dispatch-stack.js';

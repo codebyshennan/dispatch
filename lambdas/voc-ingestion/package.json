@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/lambda-voc-ingestion",
+  "name": "@dispatch/lambda-voc-ingestion",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

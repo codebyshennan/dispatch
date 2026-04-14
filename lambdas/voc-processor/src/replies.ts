@@ -1,4 +1,4 @@
-import { invoke } from '@beacon/core';
+import { invoke } from '@dispatch/core';
 import { z } from 'zod';
 import {
   DynamoDBClient,

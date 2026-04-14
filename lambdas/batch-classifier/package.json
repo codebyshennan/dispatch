@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/lambda-batch-classifier",
+  "name": "@dispatch/lambda-batch-classifier",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -10,8 +10,8 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1029.0",
     "@aws-sdk/lib-dynamodb": "^3.1029.0",
-    "@beacon/core": "workspace:*",
-    "@beacon/lambda-classifier": "workspace:*"
+    "@dispatch/core": "workspace:*",
+    "@dispatch/lambda-classifier": "workspace:*"
   },
   "devDependencies": {
     "typescript": "6.0.2"

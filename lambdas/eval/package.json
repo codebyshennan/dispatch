@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/lambda-eval",
+  "name": "@dispatch/lambda-eval",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "eval": "ts-node --project tsconfig.runner.json src/runner.ts"
   },
   "dependencies": {
-    "@beacon/core": "workspace:*",
+    "@dispatch/core": "workspace:*",
     "@hono/node-server": "^1.19.13",
     "commander": "^14.0.3",
     "hono": "4.12.12",

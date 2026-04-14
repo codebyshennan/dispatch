@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/lambda-sidebar-api",
+  "name": "@dispatch/lambda-sidebar-api",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -13,7 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1029.0",
     "@aws-sdk/client-lambda": "^3.1029.0",
-    "@beacon/core": "workspace:*",
+    "@dispatch/core": "workspace:*",
     "hono": "4.12.12"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@ import {
   QueryCommand,
 } from '@aws-sdk/client-dynamodb';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { invoke } from '@beacon/core';
+import { invoke } from '@dispatch/core';
 import { z } from 'zod';
 import type { S3Event } from 'aws-lambda';
 import { createZendeskTicketFromReview } from './zendesk.js';

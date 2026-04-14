@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useClient } from '../contexts/ClientProvider';
 import { useTicketId } from './useTicketId';
-import type { SidebarPayload } from '@beacon/core';
+import type { SidebarPayload } from '@dispatch/core';
 
 const MAX_POLLS = 6; // up to ~90s wait
 const POLL_INTERVAL_MS = 10_000; // 10 seconds between polls

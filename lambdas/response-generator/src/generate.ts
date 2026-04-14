@@ -1,4 +1,4 @@
-import { invoke, ResponseDraftSchema, type ResponseDraft, type Classification, type KBResult, type PromptVariantConfig } from '@beacon/core';
+import { invoke, ResponseDraftSchema, type ResponseDraft, type Classification, type KBResult, type PromptVariantConfig } from '@dispatch/core';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';

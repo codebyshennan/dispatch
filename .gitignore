@@ -6,3 +6,9 @@ cdk.context.json
 .env
 .env.*
 *.js.map
+.next/
+.beacon-demo-index/
+.playwright-mcp/
+.superpowers/
+test-results/
+tsconfig.tsbuildinfo

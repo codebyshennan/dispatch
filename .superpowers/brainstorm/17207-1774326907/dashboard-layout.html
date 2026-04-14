@@ -1,0 +1,148 @@
+<h2>Dashboard layout — which structure?</h2>
+<p class="subtitle">Showing the sections and how they're arranged. All options use the same Reap dark theme.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#020617;padding:10px;border-radius:6px;font-family:monospace;font-size:8px;color:#94A3B8">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1E293B">
+        <span style="color:#00FBEC;font-weight:700">◉ Beacon</span>
+        <span style="color:#64748B">/ demo</span>
+        <div style="flex:1"></div>
+        <span style="color:#94A3B8;text-decoration:underline;cursor:pointer">← Back to demo</span>
+      </div>
+      <!-- KPI strip -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px">
+        <div style="background:#0F172A;border-radius:3px;padding:4px;border-left:2px solid #00FBEC">
+          <div style="color:#64748B;font-size:7px">TICKETS</div>
+          <div style="font-size:13px;font-weight:700;color:#F8FAFC">247</div>
+          <div style="color:#4ade80;font-size:7px">↑ 12%</div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:4px;border-left:2px solid #4ade80">
+          <div style="color:#64748B;font-size:7px">DEFLECTION</div>
+          <div style="font-size:13px;font-weight:700;color:#4ade80">73%</div>
+          <div style="color:#4ade80;font-size:7px">↑ 8pts</div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:4px;border-left:2px solid #60a5fa">
+          <div style="color:#64748B;font-size:7px">ACCEPTANCE</div>
+          <div style="font-size:13px;font-weight:700;color:#60a5fa">68%</div>
+          <div style="color:#4ade80;font-size:7px">↑ 5pts</div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:4px;border-left:2px solid #f59e0b">
+          <div style="color:#64748B;font-size:7px">KB GAPS</div>
+          <div style="font-size:13px;font-weight:700;color:#f59e0b">3</div>
+          <div style="color:#94A3B8;font-size:7px">this week</div>
+        </div>
+      </div>
+      <!-- Middle row: routing breakdown + QA score dist -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
+        <div style="background:#0F172A;border-radius:3px;padding:5px">
+          <div style="color:#64748B;font-size:7px;margin-bottom:4px">ROUTING BREAKDOWN</div>
+          <div style="display:flex;height:10px;border-radius:2px;overflow:hidden;margin-bottom:3px">
+            <div style="width:41%;background:#4ade80"></div>
+            <div style="width:38%;background:#60a5fa"></div>
+            <div style="width:21%;background:#f87171"></div>
+          </div>
+          <div style="display:flex;gap:6px;font-size:7px">
+            <span style="color:#4ade80">■ Auto 41%</span>
+            <span style="color:#60a5fa">■ Assisted 38%</span>
+            <span style="color:#f87171">■ Escalate 21%</span>
+          </div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:5px">
+          <div style="color:#64748B;font-size:7px;margin-bottom:4px">QA SCORE DISTRIBUTION</div>
+          <div style="display:flex;align-items:flex-end;gap:2px;height:20px">
+            <div style="flex:1;background:#4ade8044;border-radius:1px 1px 0 0" title="High"></div>
+            <div style="flex:1;background:#4ade8066;border-radius:1px 1px 0 0;height:60%"></div>
+            <div style="flex:1;background:#4ade8099;border-radius:1px 1px 0 0;height:100%"></div>
+            <div style="flex:1;background:#f59e0b88;border-radius:1px 1px 0 0;height:55%"></div>
+            <div style="flex:1;background:#f59e0b55;border-radius:1px 1px 0 0;height:30%"></div>
+            <div style="flex:1;background:#f8717155;border-radius:1px 1px 0 0;height:15%"></div>
+          </div>
+          <div style="font-size:7px;color:#94A3B8;margin-top:2px">78% high · 17% medium · 5% low</div>
+        </div>
+      </div>
+      <!-- Bottom: KB gaps + VoC -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div style="background:#0F172A;border-radius:3px;padding:5px">
+          <div style="color:#64748B;font-size:7px;margin-bottom:3px">KB GAPS THIS WEEK</div>
+          <div style="color:#f59e0b;font-size:7px;margin-bottom:2px">⚠ fx_inquiry — no articles above 60%</div>
+          <div style="color:#f59e0b;font-size:7px;margin-bottom:2px">⚠ kyc — 2 low-confidence hits</div>
+          <div style="color:#f59e0b;font-size:7px">⚠ stablecoin — no articles</div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:5px">
+          <div style="color:#64748B;font-size:7px;margin-bottom:3px">VOC THEMES (monthly)</div>
+          <div style="color:#94A3B8;font-size:7px;margin-bottom:2px">🔴 FX fee confusion</div>
+          <div style="color:#94A3B8;font-size:7px;margin-bottom:2px">🔴 Card limit queries</div>
+          <div style="color:#94A3B8;font-size:7px">🟡 KYC re-verification</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — KPI strip + 2×2 grid</h3>
+      <p>4 headline numbers at top, then routing breakdown + QA distribution side-by-side, then KB gaps + VoC at the bottom. Dense but scannable.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#020617;padding:10px;border-radius:6px;font-family:monospace;font-size:8px;color:#94A3B8">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #1E293B">
+        <span style="color:#00FBEC;font-weight:700">◉ Beacon</span>
+        <span style="color:#64748B">/ dashboard</span>
+        <div style="flex:1"></div>
+        <span style="color:#94A3B8">← Back</span>
+      </div>
+      <!-- 3 big KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px">
+        <div style="background:#0F172A;border-radius:3px;padding:6px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#00FBEC">73%</div>
+          <div style="color:#64748B;font-size:7px">Deflection Rate</div>
+          <div style="color:#4ade80;font-size:7px">↑ 8pts this week</div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:6px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#4ade80">68%</div>
+          <div style="color:#64748B;font-size:7px">Draft Acceptance</div>
+          <div style="color:#4ade80;font-size:7px">↑ 5pts this week</div>
+        </div>
+        <div style="background:#0F172A;border-radius:3px;padding:6px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#f59e0b">3</div>
+          <div style="color:#64748B;font-size:7px">KB Gaps Detected</div>
+          <div style="color:#f59e0b;font-size:7px">needs attention</div>
+        </div>
+      </div>
+      <!-- Routing bar -->
+      <div style="background:#0F172A;border-radius:3px;padding:5px;margin-bottom:4px">
+        <div style="color:#64748B;font-size:7px;margin-bottom:3px">ROUTING — 247 tickets this session</div>
+        <div style="display:flex;height:12px;border-radius:3px;overflow:hidden">
+          <div style="width:41%;background:#4ade80;display:flex;align-items:center;justify-content:center;font-size:7px;color:#052e16;font-weight:700">41%</div>
+          <div style="width:38%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">38%</div>
+          <div style="width:21%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">21%</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:3px;font-size:7px">
+          <span style="color:#4ade80">■ Auto-send</span>
+          <span style="color:#60a5fa">■ Agent-assisted</span>
+          <span style="color:#f87171">■ Escalated</span>
+        </div>
+      </div>
+      <!-- KB gaps inline -->
+      <div style="background:#0F172A;border-radius:3px;padding:5px">
+        <div style="color:#64748B;font-size:7px;margin-bottom:3px">KB GAPS + ACTION ITEMS</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="color:#f59e0b;font-size:7px">fx_inquiry</span>
+          <span style="color:#94A3B8;font-size:7px">12 tickets · no article &gt;60% match</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:#f59e0b;font-size:7px">kyc</span>
+          <span style="color:#94A3B8;font-size:7px">8 tickets · 2 low-confidence hits</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Hero KPIs + routing bar + gaps</h3>
+      <p>3 big numbers that tell the ROI story immediately, then a stacked routing bar, then actionable KB gap list. Cleaner vertical flow, easier to present in an interview.</p>
+    </div>
+  </div>
+
+</div>

@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/lambda-response-generator",
+  "name": "@dispatch/lambda-response-generator",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1029.0",
-    "@beacon/core": "workspace:*"
+    "@dispatch/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

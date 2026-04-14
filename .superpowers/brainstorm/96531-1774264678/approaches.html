@@ -1,0 +1,55 @@
+<h2>3 approaches to the offline demo</h2>
+<p class="subtitle">All use Vectra (pure TypeScript vector store — no native bindings, just npm install). Pick based on how much you want to reuse existing code vs build time.</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Demo harness around existing sidebar ⭐ Recommended</h3>
+      <p>Add a thin <code>apps/demo</code> Vite app to the monorepo. It wraps the existing <strong>IntelligencePanel</strong> with a mock ZAF client (swaps <code>client.request()</code> → <code>fetch()</code> to a local server). A small Hono server imports the classifier + response-generator Lambda logic directly as modules — no AWS needed.</p>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div style="background:#f0f7f0;padding:8px;border-radius:4px">
+          <strong style="color:#2d7a2d">Left panel</strong><br>
+          Ticket/question textarea<br>+ Analyze button<br>+ message history
+        </div>
+        <div style="background:#f0f4f8;padding:8px;border-radius:4px">
+          <strong style="color:#1f73b7">Right panel</strong><br>
+          Existing IntelligencePanel<br>(unchanged component)<br>+ KB article cards
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:8px;background:#fffbe6;border-radius:4px;font-size:12px">
+        <strong>Stack:</strong> Vectra (embed on startup) · existing Lambda handlers as modules · Anthropic API · mock ZAF client<br>
+        <strong>Run:</strong> <code>node server.js &amp;&amp; pnpm dev</code> — two commands<br>
+        <strong>Build time: ~3–4h</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>New standalone demo app (chat-first)</h3>
+      <p>A purpose-built chat UI (new React app, clean slate). Left: chat bubbles with message history. Right: analysis card built from scratch to match IntelligencePanel visually. FAISS via <code>faiss-node</code> for embeddings. Doesn't reuse any existing UI components.</p>
+      <div style="margin-top:10px;padding:8px;background:#fff0f0;border-radius:4px;font-size:12px">
+        <strong>Stack:</strong> faiss-node (requires native build) · Express · new React components<br>
+        <strong>Run:</strong> <code>python -m pip install...</code> or <code>npm rebuild faiss-node</code> first<br>
+        <strong>Build time: ~6–8h + native dep setup risk</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Single-page HTML (no build)</h3>
+      <p>One <code>demo.html</code> file with inline JS. Open in browser, type a question, get a response. Calls Anthropic API directly. No vector store — stuffs all 115 article titles+summaries into context window. Quickest to run but limited retrieval quality and no real classification pipeline.</p>
+      <div style="margin-top:10px;padding:8px;background:#fff0f0;border-radius:4px;font-size:12px">
+        <strong>Stack:</strong> vanilla JS · Anthropic API (direct fetch)<br>
+        <strong>Run:</strong> open <code>demo.html</code><br>
+        <strong>Build time: ~1h but no real RAG, no existing UI reuse</strong>
+      </div>
+    </div>
+  </div>
+
+</div>

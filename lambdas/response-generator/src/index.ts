@@ -1,5 +1,5 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
-import { type Classification, type KBResult, type ResponseDraft } from '@beacon/core';
+import { type Classification, type KBResult, type ResponseDraft } from '@dispatch/core';
 import { generateResponse } from './generate.js';
 
 /**

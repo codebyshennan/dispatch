@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/sidebar",
+  "name": "@dispatch/sidebar",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "deploy": "zcli apps:update dist"
   },
   "dependencies": {
-    "@beacon/core": "workspace:*",
+    "@dispatch/core": "workspace:*",
     "@zendeskgarden/react-accordions": "~9.15.0",
     "@zendeskgarden/react-buttons": "~9.15.0",
     "@zendeskgarden/react-forms": "~9.15.0",

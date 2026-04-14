@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { GetItemCommand, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { dynamoClient } from '../dynamo.js';
-import type { ModeStatus } from '@beacon/core';
+import type { ModeStatus } from '@dispatch/core';
 
 export const modeRouter = new Hono();
 

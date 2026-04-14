@@ -1,0 +1,95 @@
+<h2>Architecture: Demo Harness</h2>
+<p class="subtitle">Two new packages. IntelligencePanel stays completely unchanged. The mock ZAF client is the key seam.</p>
+
+<div class="section">
+  <h3>What gets built</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+    <div style="border:2px solid #1f73b7;border-radius:8px;padding:12px">
+      <div class="label" style="color:#1f73b7">apps/demo (new)</div>
+      <p style="font-size:13px;margin:8px 0">Vite React app. Split layout: left input panel, right analysis panel. Provides a <strong>DemoClientProvider</strong> that mocks the ZAF client — <code>client.request()</code> becomes <code>fetch(localhost:3001)</code>. Imports IntelligencePanel from <code>apps/sidebar/src/panels/</code> directly.</p>
+      <div style="font-size:12px;color:#555;margin-top:8px">
+        <code>DemoApp.tsx</code> — split layout<br>
+        <code>DemoClientProvider.tsx</code> — mock ZAF<br>
+        <code>InputPanel.tsx</code> — chat history + textarea
+      </div>
+    </div>
+    <div style="border:2px solid #6b4fbb;border-radius:8px;padding:12px">
+      <div class="label" style="color:#6b4fbb">apps/demo-server (new)</div>
+      <p style="font-size:13px;margin:8px 0">Hono Node.js server. On startup embeds 115 KB articles with <strong>Vectra</strong> (TypeScript, no native deps). Exposes the same API surface as sidebar-api Lambda. Runs the full pipeline in-process — no AWS, no DynamoDB.</p>
+      <div style="font-size:12px;color:#555;margin-top:8px">
+        <code>POST /analyze</code> — submit ticket<br>
+        <code>GET /context/:id</code> — poll result<br>
+        <code>GET /mode</code> — returns agent_assisted
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Data flow for a single query</h3>
+  <div style="margin-top:8px;font-size:13px">
+    <div style="display:flex;align-items:stretch;gap:0">
+      <div style="background:#e8f0fe;border-radius:6px;padding:10px 14px;min-width:140px;text-align:center">
+        <strong>1. User types</strong><br>
+        <span style="font-size:12px;color:#555">subject + body<br>(or just a question)</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:0 8px;color:#888;font-size:18px">→</div>
+      <div style="background:#e8f0fe;border-radius:6px;padding:10px 14px;min-width:140px;text-align:center">
+        <strong>2. POST /analyze</strong><br>
+        <span style="font-size:12px;color:#555">demo-server receives<br>creates ticketId</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:0 8px;color:#888;font-size:18px">→</div>
+      <div style="background:#f3e8fd;border-radius:6px;padding:10px 14px;min-width:160px;text-align:center">
+        <strong>3. Pipeline runs</strong><br>
+        <span style="font-size:12px;color:#555">classify() → Vectra search<br>→ generate() — all in-process</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:0 8px;color:#888;font-size:18px">→</div>
+      <div style="background:#e8f5e9;border-radius:6px;padding:10px 14px;min-width:140px;text-align:center">
+        <strong>4. Result stored</strong><br>
+        <span style="font-size:12px;color:#555">SidebarPayload<br>in memory map</span>
+      </div>
+    </div>
+    <div style="margin-top:8px;display:flex;align-items:stretch;gap:0">
+      <div style="background:#fff3cd;border-radius:6px;padding:10px 14px;min-width:140px;text-align:center">
+        <strong>5. IntelligencePanel</strong><br>
+        <span style="font-size:12px;color:#555">polls GET /context/:id<br>gets status=ready</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:0 8px;color:#888;font-size:18px">→</div>
+      <div style="background:#e8f5e9;border-radius:6px;padding:10px 14px;flex:1;text-align:center">
+        <strong>6. Panel renders</strong><br>
+        <span style="font-size:12px;color:#555">Classification card · urgency badge · draft textarea<br>KB article references · Insert Draft button</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>The mock ZAF client (the key seam)</h3>
+  <div style="background:#f5f5f5;border-radius:6px;padding:12px;font-family:monospace;font-size:12px;line-height:1.6">
+    <span style="color:#888">// DemoClientProvider.tsx — IntelligencePanel never knows it's not in Zendesk</span><br>
+    const mockClient = {<br>
+    &nbsp;&nbsp;<span style="color:#2d7a2d">context</span>: () =&gt; Promise.resolve({ ticketId: currentTicketId }),<br>
+    &nbsp;&nbsp;<span style="color:#2d7a2d">request</span>: ({ url, type, data }) =&gt; {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;const actual = url.replace(<span style="color:#c41a16">'{{setting.api_base_url}}'</span>, <span style="color:#c41a16">'http://localhost:3001'</span>);<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;return fetch(actual, { method: type, body: data }).then(r =&gt; r.json());<br>
+    &nbsp;&nbsp;},<br>
+    &nbsp;&nbsp;<span style="color:#2d7a2d">on</span>: () =&gt; {}, <span style="color:#2d7a2d">off</span>: () =&gt; {}, <span style="color:#2d7a2d">get</span>: () =&gt; Promise.resolve({}), ...<br>
+    }
+  </div>
+</div>
+
+<div class="section">
+  <h3>What stays completely unchanged</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px">
+    <span style="background:#e8f5e9;padding:4px 10px;border-radius:12px">IntelligencePanel.tsx ✓</span>
+    <span style="background:#e8f5e9;padding:4px 10px;border-radius:12px">useBeaconData.ts ✓</span>
+    <span style="background:#e8f5e9;padding:4px 10px;border-radius:12px">classify() function ✓</span>
+    <span style="background:#e8f5e9;padding:4px 10px;border-radius:12px">generate() function ✓</span>
+    <span style="background:#e8f5e9;padding:4px 10px;border-radius:12px">@beacon/core types ✓</span>
+    <span style="background:#e8f5e9;padding:4px 10px;border-radius:12px">all prompts ✓</span>
+  </div>
+</div>
+
+<div style="margin-top:16px;padding:12px;background:#fffbe6;border-radius:6px;font-size:13px">
+  <strong>To run:</strong> <code>node apps/demo-server/dist/index.js</code> (or ts-node) + <code>pnpm --filter demo dev</code> → open <code>localhost:5173</code>
+</div>

@@ -9,7 +9,7 @@ import { Field, Label, Textarea } from '@zendeskgarden/react-forms';
 import { useBeaconData } from '../hooks/useBeaconData';
 import { useClient } from '../contexts/ClientProvider';
 import levenshtein from 'fast-levenshtein';
-import type { Classification, ResponseDraft, KBResult, SimilarTicket, ModeStatus, QAScore } from '@beacon/core';
+import type { Classification, ResponseDraft, KBResult, SimilarTicket, ModeStatus, QAScore } from '@dispatch/core';
 
 const URGENCY_COLOR: Record<string, string> = {
   P1: '#cc0000',

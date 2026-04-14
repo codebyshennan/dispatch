@@ -15,11 +15,11 @@ export default defineConfig({
   // Exclude @beacon/core from pre-bundling — its node16 .js extensions
   // cause Vite's optimizer to fail. Import types only; no runtime code from core.
   optimizeDeps: {
-    exclude: ['@beacon/core'],
+    exclude: ['@dispatch/core'],
   },
   resolve: {
     alias: {
-      '@beacon/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
+      '@dispatch/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
     },
   },
 });

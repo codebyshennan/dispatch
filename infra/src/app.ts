@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { BeaconStack } from './stacks/beacon-stack.js';
+import { DispatchStack } from './stacks/dispatch-stack.js';
 
 const app = new cdk.App();
 
@@ -16,7 +16,7 @@ const env: cdk.Environment = {
   region: process.env['CDK_DEFAULT_REGION'] ?? 'ap-southeast-1',
 };
 
-new BeaconStack(app, `BeaconStack-${appEnv}`, {
+new DispatchStack(app, `DispatchStack-${appEnv}`, {
   appEnv,
   env,
   description: `Meridian AI support ticket system — ${appEnv}`,
