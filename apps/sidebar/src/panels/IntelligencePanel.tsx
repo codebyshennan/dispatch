@@ -6,7 +6,7 @@ import { Paragraph, Span } from '@zendeskgarden/react-typography';
 import { Button } from '@zendeskgarden/react-buttons';
 import { Modal, Header, Body as ModalBody, Footer as ModalFooter, Close } from '@zendeskgarden/react-modals';
 import { Field, Label, Textarea } from '@zendeskgarden/react-forms';
-import { useBeaconData } from '../hooks/useBeaconData';
+import { useDispatchData } from '../hooks/useDispatchData';
 import { useClient } from '../contexts/ClientProvider';
 import levenshtein from 'fast-levenshtein';
 import type { Classification, ResponseDraft, KBResult, SimilarTicket, ModeStatus, QAScore } from '@dispatch/core';
