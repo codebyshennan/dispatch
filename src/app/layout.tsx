@@ -18,7 +18,7 @@ const firaSans = Fira_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Beacon Ops",
+  title: "Dispatch Ops",
   description: "AI-powered bulk CX operations",
 };
 
