@@ -137,7 +137,7 @@ beacon/                         # pnpm workspace · turborepo
 │   ├── kb-ingestion/             # [Phase 3] Help Center → pgvector
 │   ├── runbook/                  # [Phase 5] Internal API actions
 │   └── voc-ingestion/            # [Phase 6] Review platform scraping
-├── infra/                        # AWS CDK — BeaconStack
+├── infra/                        # AWS CDK — DispatchStack
 ├── prompts/                      # Versioned prompt files (YAML frontmatter + body)
 │   ├── classification/v1.md
 │   ├── response-generation/v1.md
@@ -148,7 +148,7 @@ beacon/                         # pnpm workspace · turborepo
 └── .github/workflows/eval.yml    # CI: run eval on prompts/** changes
 ```
 
-## AWS Resources (BeaconStack)
+## AWS Resources (DispatchStack)
 
 | Resource | Type | Purpose |
 |----------|------|---------|
