@@ -238,7 +238,7 @@ function RegenerateSection({
 
 // ── Main component ───────────────────────────────────────────────────────────
 export function IntelligencePanel() {
-  const { data, loading } = useBeaconData();
+  const { data, loading } = useDispatchData();
   const client = useClient();
   const [draft, setDraft] = useState<string>('');
   const [originalDraft, setOriginalDraft] = useState<string>('');
