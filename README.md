@@ -1,4 +1,4 @@
-# Beacon
+# Dispatch
 
 AI-powered CX triage, resolution, and intelligence system for Reap's Zendesk support organisation. Classifies inbound tickets, generates KB-grounded draft responses, and surfaces actionable intelligence directly in a Zendesk sidebar copilot.
 
@@ -27,7 +27,7 @@ The **demo app** (`apps/demo/` + `apps/demo-server/`) serves as the functional p
 |------------|-------------|
 | **Auto-classification** | Categorises tickets by type, priority, sentiment, language, compliance risk, and crypto-specific tags |
 | **Draft response generation** | Produces KB-grounded response drafts with top-3 KB references and top-3 similar resolved tickets |
-| **Zendesk sidebar copilot** | Three-panel ZAF app — Customer Context, Beacon Intelligence, Runbook Actions |
+| **Zendesk sidebar copilot** | Three-panel ZAF app — Customer Context, Dispatch Intelligence, Runbook Actions |
 | **Runbook execution** | One-click actions: check payment status, look up transaction, freeze/unfreeze card, escalate, resend notification |
 | **Voice of Customer ingestion** | Scrapes App Store, Google Play, and Trustpilot reviews on a 6–12h cadence |
 | **Prompt eval pipeline** | CI-gated accuracy evaluation (≥ 85%) that runs on every `prompts/**` change |
@@ -40,7 +40,7 @@ Zendesk webhook → EventBridge → SQS → classifyFn → Aurora (pgvector) + D
                                          responseGenFn → ZAF sidebar
 ```
 
-All AWS resources are managed by a single CDK stack (`BeaconStack`). See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full system diagram.
+All AWS resources are managed by a single CDK stack (`DispatchStack`). See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full system diagram.
 
 ## Monorepo layout
 
@@ -66,7 +66,7 @@ beacon/
 │   └── voc-processor/     # VoC normalisation
 ├── packages/
 │   └── core/              # @beacon/core — shared LLM client, circuit breaker, types
-├── infra/                 # AWS CDK — BeaconStack
+├── infra/                 # AWS CDK — DispatchStack
 ├── prompts/               # Versioned prompt files (YAML frontmatter + Markdown body)
 ├── datasets/
 │   └── golden/            # JSONL golden datasets for eval
