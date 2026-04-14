@@ -69,7 +69,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   function toggle() {
     setTheme((t) => {
       const next = t === "dark" ? "light" : "dark";
-      localStorage.setItem("beacon-ops-theme", next);
+      localStorage.setItem("dispatch-ops-theme", next);
       return next;
     });
   }
