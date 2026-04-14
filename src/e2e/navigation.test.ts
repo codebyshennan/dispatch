@@ -4,7 +4,7 @@ test.describe("Navigation", () => {
   test("nav header is present on every page", async ({ page }) => {
     for (const path of ["/", "/jobs", "/metrics"]) {
       await page.goto(path);
-      await expect(page.getByRole("link", { name: /Beacon \/ ops/i })).toBeVisible();
+      await expect(page.getByRole("link", { name: /Dispatch \/ ops/i })).toBeVisible();
       await expect(page.getByRole("link", { name: "New job" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Job history" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Metrics" })).toBeVisible();
@@ -33,9 +33,9 @@ test.describe("Navigation", () => {
     await expect(page.getByRole("heading", { name: "Metrics" })).toBeVisible();
   });
 
-  test("clicking Beacon logo returns to home", async ({ page }) => {
+  test("clicking Dispatch logo returns to home", async ({ page }) => {
     await page.goto("/jobs");
-    await page.getByRole("link", { name: /Beacon \/ ops/i }).click();
+    await page.getByRole("link", { name: /Dispatch \/ ops/i }).click();
     await expect(page).toHaveURL("/");
   });
 
@@ -57,10 +57,10 @@ test.describe("Navigation", () => {
     await expect(page.getByRole("button", { name: /switch to light mode/i })).toBeVisible();
   });
 
-  test("page title is Beacon Ops on all routes", async ({ page }) => {
+  test("page title is Dispatch Ops on all routes", async ({ page }) => {
     for (const path of ["/", "/jobs", "/metrics"]) {
       await page.goto(path);
-      await expect(page).toHaveTitle("Beacon Ops");
+      await expect(page).toHaveTitle("Dispatch Ops");
     }
   });
 
