@@ -98,7 +98,7 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export function BeaconLogo({ size = 20 }: { size?: number }) {
+export function DispatchLogo({ size = 20 }: { size?: number }) {
   const { T } = useTheme();
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
