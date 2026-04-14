@@ -93,7 +93,7 @@ export function NavHeader() {
             letterSpacing: "0.02em",
           }}
         >
-          Beacon
+          Dispatch
         </span>
         <span style={{ color: T.muted, fontSize: 12 }}>/ ops</span>
       </Link>
