@@ -1,18 +1,36 @@
 {
-  "name": "beacon",
+  "name": "dispatch",
   "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@10.32.1",
   "scripts": {
-    "build": "turbo build",
-    "typecheck": "turbo typecheck",
-    "lint": "turbo lint",
-    "dev": "turbo dev",
-    "eval": "pnpm --filter @beacon/lambda-eval eval"
+    "dev": "next dev",
+    "build": "next build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "convex": "^1.35.1",
+    "next": "^16.2.3",
+    "openai": "6.34.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "sonner": "^2.0.7",
+    "zod": "4.3.6"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0",
-    "turbo": "2.9.6",
-    "typescript": "6.0.2"
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^4.2.2",
+    "typescript": "6.0.2",
+    "vitest": "^4.1.4"
   }
 }
