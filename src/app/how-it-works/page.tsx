@@ -377,15 +377,96 @@ export default function HowItWorksPage() {
           {mono("processRequest")} accepts {mono("conversationHistory")} (prior turns) and an optional {mono("recentJobId")}. When a job ID is supplied, its result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like "how did that job go?".
         </Card>
 
-        <SubHeading T={T}>KB grounding</SubHeading>
+        <SubHeading T={T}>KB ingestion — ops path (Convex)</SubHeading>
         <p style={body}>
-          Before calling the LLM, {mono("processRequest")} runs a semantic search via {mono("searchKB")}. The query is embedded with {mono("text-embedding-3-small")} (1536-dim, via OpenRouter), then Convex vector search finds the top-4 most similar articles from {mono("kb_articles")}. Their titles and body excerpts are injected into the system prompt as grounding context.
+          The ops app seeds its own vector index from {mono("datasets/reap-help-center.jsonl")} — 115 Reap help-centre articles covering cards, payments, onboarding, accounting integrations, and team permissions. The {mono("kb:seed")} action streams the JSONL line-by-line, batches articles 20 at a time, and embeds each {mono("title + body")} string (truncated to 8 000 chars) via OpenRouter's {mono("text-embedding-3-small")} endpoint (1 536 dimensions). Each batch is written to {mono("kb_articles")} in a single Convex mutation; the body is stored at 2 000 chars to keep document payloads lean.
         </p>
+        <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — seed pipeline (batched 20 articles at a time)
+const texts = batch.map(a => \`\${a.title}\\n\\n\${a.body}\`.slice(0, 8000));
+const embeddings = await embedTexts(client, texts);   // text-embedding-3-small, 1536-dim
+
+await ctx.runMutation(internal.kb_queries.insertArticles, {
+  articles: batch.map((a, j) => ({
+    ...a,
+    body: a.body.slice(0, 2000),   // truncated for storage; full text used for embedding only
+    embedding: embeddings[j],       // float64[] stored as v.array(v.float64())
+  })),
+});`}</CodeBlock>
         <p style={body}>
-          The knowledge base is a scrape of Reap's Zendesk help centre at {mono("support.reap.global")} — 115 articles covering cards, payments, onboarding, accounting integrations, and team permissions, stored in {mono("datasets/reap-help-center.jsonl")}. Average body length is ~1,800 chars. The seed script ({mono("npx convex run kb:seed")}) reads articles in batches of 20, embeds each {mono("title + body")} string, and writes {mono("kb_articles")} records into the Convex vector index ({mono("by_embedding")}, 1536-dim).
+          The Convex schema declares a vector index on the {mono("embedding")} field, which Convex uses to power approximate nearest-neighbour search at query time:
         </p>
+        <CodeBlock lang="typescript" T={T}>{`// convex/schema.ts
+kb_articles: defineTable({
+  articleId: v.string(), title: v.string(),
+  url: v.string(),       body: v.string(),
+  updatedAt: v.string(), embedding: v.array(v.float64()),
+})
+  .index("by_article_id", ["articleId"])
+  .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
+
+        <SubHeading T={T}>KB ingestion — Lambda path (Aurora pgvector)</SubHeading>
+        <p style={body}>
+          The production Lambda pipeline uses a different strategy. Articles are pre-chunked before indexing: the {mono("kb-indexer")} Lambda reads JSONL files from S3 under {mono("help-center/chunks/")}. Each logical article maps to one or more chunk records (identified by {mono("chunkIndex")}), allowing long articles to be split for more granular retrieval. Chunks are embedded with Voyage AI's {mono("voyage-3-lite")} model (512 dimensions, {mono("input_type: \"document\"")}), then upserted into Aurora Serverless v2 via the pgvector extension:
+        </p>
+        <CodeBlock lang="sql" T={T}>{`-- Aurora pgvector — idempotent upsert
+INSERT INTO kb_articles
+  (article_id, title, html_url, updated_at, section_id, chunk_index, text, embedding)
+VALUES (:articleId, :title, :htmlUrl, :updatedAt::timestamptz,
+        :sectionId, :chunkIndex, :text, :embedding::vector)
+ON CONFLICT (article_id, chunk_index) DO UPDATE
+  SET text      = EXCLUDED.text,
+      embedding = EXCLUDED.embedding,
+      indexed_at = NOW()`}</CodeBlock>
+
+        <SubHeading T={T}>RAG retrieval — ops path</SubHeading>
+        <p style={body}>
+          At inference time, {mono("processRequest")} calls {mono("searchKB")} before the LLM. The raw user query is embedded with the same {mono("text-embedding-3-small")} model (same dimension, same provider), then Convex's {mono("ctx.vectorSearch")} performs approximate nearest-neighbour search:
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — searchKB action
+const [embedding] = await embedTexts(client, [args.query]);
+const hits = await ctx.vectorSearch("kb_articles", "by_embedding", {
+  vector: embedding,
+  limit: args.limit ?? 5,    // top-5 candidates by cosine similarity
+});
+
+return docs.map(doc => ({
+  id:      doc.articleId,
+  title:   doc.title,
+  snippet: doc.body.slice(0, 200),   // first 200 chars surfaced as snippet
+}));`}</CodeBlock>
+        <p style={body}>
+          The top-5 hits are formatted and injected into the system prompt as a grounding block. The model is instructed to cite article IDs in its JSON response — these are mapped back to retrieved hits by the frontend to render inline source cards:
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// convex/interpreter.ts — KB context block
+kbContext =
+  "\\n\\nKNOWLEDGE BASE ARTICLES (cite these as sources when relevant):\\n" +
+  kbResults.map(r => \`[\${r.id}] \${r.title}\\n\${r.snippet}\`).join("\\n\\n");
+
+const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
+
+        <SubHeading T={T}>RAG retrieval — Lambda path</SubHeading>
+        <p style={body}>
+          The {mono("kb-retrieval")} Lambda runs as a Step Functions task between the classifier and the response-generator. It embeds {mono("subject + body")} using Voyage's {mono("voyage-3-lite")} with {mono("input_type: \"query\"")} — Voyage uses asymmetric embeddings: documents are indexed with {mono("\"document\"")} to maximise recall; queries use {mono("\"query\"")} to maximise precision against those documents. The embedding then drives a pgvector cosine distance query:
+        </p>
+        <CodeBlock lang="sql" T={T}>{`SELECT article_id, title, html_url, updated_at::text, text,
+       1 - (embedding <=> :q::vector) AS similarity
+FROM kb_articles
+ORDER BY embedding <=> :q::vector   -- <=> is pgvector cosine distance operator
+LIMIT 3`}</CodeBlock>
+        <p style={body}>
+          The top-3 chunks — with similarity scores — are forwarded as {mono("kbArticles")} in the Step Functions state envelope to the response-generator Lambda.
+        </p>
+
+        <Table
+          headers={["Path", "Embedding model", "Dimensions", "Store", "Chunking", "Top-k"]}
+          rows={[
+            ["Ops (Convex)", mono("text-embedding-3-small"), "1 536", "Convex vectorIndex", "No — whole article", "5"],
+            ["Lambda (ZAF)", mono("voyage-3-lite"), "512", "Aurora pgvector", "Yes — per chunkIndex", "3"],
+          ]}
+          T={T}
+        />
         <Note T={T}>
-          If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} throws and the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
+          If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} (ops path) throws and the error is silently caught — the LLM call proceeds without KB context. The Lambda path allows the Step Functions task to fail and route to the DLQ.
         </Note>
       </section>
 
