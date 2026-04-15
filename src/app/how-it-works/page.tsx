@@ -476,13 +476,82 @@ LIMIT 3`}</CodeBlock>
       <section>
         <SectionHeading
           num={2} title="Inference"
-          sub="How the LLM classifies intent and the policy engine validates it."
+          sub="Classification, KB-grounded response generation, and deterministic post-processing."
           T={T}
         />
 
-        <SubHeading T={T}>Intent classification</SubHeading>
+        <SubHeading T={T}>Zendesk ticket classification</SubHeading>
         <p style={body}>
-          {mono("processRequest")} sends the user message to {mono("gpt-5.4-mini")} via OpenRouter at temperature 0. The system prompt instructs the model to return JSON only — no markdown, no prose. The response is one of two shapes:
+          The {mono("classifier")} Lambda calls {mono("invoke()")} from {mono("@dispatch/core")} with {mono("google/gemma-3-27b-it:free")} via OpenRouter at temperature 0. The user message is assembled from two prompt files: a static {mono("system/classification.md")} system prompt and a versioned {mono("classification/v1.md")} task prompt. Both files carry YAML frontmatter that is stripped before injection.
+        </p>
+        <p style={body}>
+          A/B prompt testing is built in. The classifier reads a {mono("SYSTEM#prompt_variant")} record from DynamoDB; when a variant is active, it assigns tickets deterministically using a hash of the ticket ID modulo 5 — 20% get variant B, 80% stay on control. {mono("Math.random()")} is intentionally never used: different retry attempts must receive the same variant.
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// lambdas/classifier/src/classify.ts — deterministic variant assignment
+function hashCode(s: string): number {
+  return Array.from(s).reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 0);
+}
+const isVariantB = variantConfig?.enabled === true &&
+  Math.abs(hashCode(ticketId)) % 5 === 0;   // 20% → variant, 80% → control`}</CodeBlock>
+
+        <p style={body}>
+          After the LLM returns, compliance flags are enforced deterministically — the model output is not trusted alone. A keyword scan runs over the raw ticket body; any match is merged into {mono("compliance_flags")} regardless of what the LLM returned:
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// lambdas/classifier/src/classify.ts — deterministic compliance enforcement
+const COMPLIANCE_KEYWORDS = [
+  'refund', 'legal action', 'regulatory complaint', 'ombudsman',
+  'media enquiry', 'journalist', 'solicitor', 'court', 'sue', 'lawsuit',
+];
+
+function enforceComplianceFlags(body: string, llmFlags: string[]): string[] {
+  const detected = COMPLIANCE_KEYWORDS.filter(kw => body.toLowerCase().includes(kw));
+  return [...new Set([...llmFlags, ...detected])];
+}`}</CodeBlock>
+
+        <SubHeading T={T}>Response generation</SubHeading>
+        <p style={body}>
+          The {mono("response-generator")} Lambda receives the full Step Functions state: ticket fields, the {mono("Classification")} output, and the {mono("kbArticles")} array from {mono("kb-retrieval")}. Each KB chunk is formatted with its relevance score before being injected into the prompt:
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// lambdas/response-generator/src/generate.ts — KB context block
+const kbContext = input.kbArticles
+  .map((a, i) =>
+    \`[KB\${i + 1}] \${a.title}\\n\${a.text}\\nSource: \${a.html_url} (relevance: \${(a.similarity * 100).toFixed(0)}%)\`
+  ).join("\\n\\n---\\n\\n");
+
+// Full user message includes prompt + ticket + classification + KB
+const userMessage = [
+  genPrompt, "",
+  \`Ticket ID: \${input.ticketId}\`,
+  \`Subject: \${input.subject}\`,
+  \`Body: \${input.body}\`,
+  \`Jurisdiction: \${input.jurisdiction ?? 'unknown'}\`,
+  "", "Classification:", JSON.stringify(input.classification, null, 2),
+  "", "KB Articles:", kbContext,
+].join("\\n");`}</CodeBlock>
+        <p style={body}>
+          The LLM call uses {mono("google/gemma-3-27b-it:free")} at temperature 0.3 (slight creativity for tone) with {mono("max_tokens: 2048")}. After the model responds, three deterministic post-processing steps run unconditionally — they are not prompt-dependent and cannot be overridden by the LLM:
+        </p>
+        <Table
+          headers={["Step", "What it does", "Why deterministic"]}
+          rows={[
+            [mono("applyTermSubstitution"), `Word-boundary regex replaces prohibited terms (e.g. "cryptocurrency" → "digital asset")`, "Regulatory — cannot rely on LLM to consistently apply"],
+            [mono("getJurisdictionFooter"), "Appends per-jurisdiction regulatory footer (SFC/HK, MAS/SG, BNM/MY, FSC/TW, BSP/PH)", "Compliance — must always appear for the correct regulator"],
+            [mono("routingDecision"), "Computes auto_send / agent_assisted / escalate from Classification, NOT from the LLM's self-assessment", "Safety — LLM must not influence its own routing outcome"],
+          ]}
+          T={T}
+        />
+        <CodeBlock lang="typescript" T={T}>{`// Routing logic (lambdas/response-generator/src/generate.ts)
+function routingDecision(c: Classification): 'auto_send' | 'agent_assisted' | 'escalate' {
+  if (c.compliance_flags.length > 0 || ['P1', 'P2'].includes(c.urgency))
+    return 'escalate';
+  if (['P3', 'P4'].includes(c.urgency) && c.confidence >= 0.90 && !c.compliance_flags.length)
+    return 'auto_send';
+  return 'agent_assisted';
+}`}</CodeBlock>
+
+        <SubHeading T={T}>Ops intent classification</SubHeading>
+        <p style={body}>
+          {mono("processRequest")} sends the user message to {mono("gpt-5.4-mini")} via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only. The response is one of two discriminated shapes:
         </p>
         <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
@@ -496,7 +565,7 @@ LIMIT 3`}</CodeBlock>
   "notifyCardholders": true
 } }`}</CodeBlock>
         <p style={body}>
-          The raw response string is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod ({mono("ProcessResultSchema")} — a discriminated union). An unsupported intent type surfaces an {mono('"unsupported"')} entry in the chat thread rather than throwing.
+          The raw response is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod ({mono("ProcessResultSchema")} — a discriminated union). An unsupported intent type surfaces an {mono('"unsupported"')} entry in the chat thread rather than throwing.
         </p>
 
         <SubHeading T={T}>Policy engine</SubHeading>
