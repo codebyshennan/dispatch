@@ -354,7 +354,7 @@ export default function HowItWorksPage() {
           {mono("processRequest")} accepts {mono("conversationHistory")} (prior turns) and an optional {mono("recentJobId")}. When a job ID is supplied, its result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like "how did that job go?".
         </Card>
 
-        <SubHeading T={T}>KB ingestion — ops path (Convex)</SubHeading>
+        <SubHeading T={T}>KB ingestion</SubHeading>
         <p style={body}>
           The ops app seeds its own vector index from {mono("datasets/reap-help-center.jsonl")} — 115 Reap help-centre articles covering cards, payments, onboarding, accounting integrations, and team permissions. The {mono("kb:seed")} action streams the JSONL line-by-line, batches articles 20 at a time, and embeds each {mono("title + body")} string (truncated to 8 000 chars) via OpenRouter's {mono("text-embedding-3-small")} endpoint (1 536 dimensions). Each batch is written to {mono("kb_articles")} in a single Convex mutation; the body is stored at 2 000 chars to keep document payloads lean.
         </p>
