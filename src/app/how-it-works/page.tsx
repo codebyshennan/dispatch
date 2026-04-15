@@ -1,12 +1,157 @@
 "use client";
+import React from "react";
 import { useTheme } from "../theme";
+
+// ── syntax highlighting ───────────────────────────────────────────────────────
+
+const KEYWORDS = new Set([
+  "export", "const", "let", "var", "function", "return", "if", "else",
+  "type", "interface", "import", "from", "async", "await", "new", "throw",
+  "true", "false", "null", "undefined", "class", "extends", "of", "for",
+  "while", "break", "continue", "switch", "case", "default", "try", "catch",
+]);
+
+const SYN = {
+  keyword: "#8B5CF6",
+  string:  "#10B981",
+  comment: "#6B7280",
+  number:  "#F59E0B",
+  punct:   "#94A3B8",
+};
+
+type Token = { t: "keyword" | "string" | "comment" | "number" | "punct" | "plain"; v: string };
+
+function tokenizeLine(line: string): Token[] {
+  const tokens: Token[] = [];
+
+  // Full-line comment
+  const stripped = line.trimStart();
+  if (stripped.startsWith("//")) {
+    tokens.push({ t: "comment", v: line });
+    return tokens;
+  }
+
+  let i = 0;
+  while (i < line.length) {
+    // String literal (double or single quote)
+    if (line[i] === '"' || line[i] === "'") {
+      const q = line[i];
+      let j = i + 1;
+      while (j < line.length && line[j] !== q) {
+        if (line[j] === "\\") j++;
+        j++;
+      }
+      tokens.push({ t: "string", v: line.slice(i, j + 1) });
+      i = j + 1;
+      continue;
+    }
+
+    // Number
+    if (/[0-9]/.test(line[i]) && (i === 0 || !/[a-zA-Z_$]/.test(line[i - 1]))) {
+      let j = i;
+      while (j < line.length && /[0-9.]/.test(line[j])) j++;
+      tokens.push({ t: "number", v: line.slice(i, j) });
+      i = j;
+      continue;
+    }
+
+    // Identifier / keyword
+    if (/[a-zA-Z_$]/.test(line[i])) {
+      let j = i;
+      while (j < line.length && /[a-zA-Z0-9_$]/.test(line[j])) j++;
+      const word = line.slice(i, j);
+      tokens.push({ t: KEYWORDS.has(word) ? "keyword" : "plain", v: word });
+      i = j;
+      continue;
+    }
+
+    // Punctuation
+    if (/[{}()[\]:;,.<>|&=+\-*/%!~^?@]/.test(line[i])) {
+      tokens.push({ t: "punct", v: line[i] });
+      i++;
+      continue;
+    }
+
+    // Whitespace / other — accumulate plain runs
+    const last = tokens[tokens.length - 1];
+    if (last?.t === "plain") {
+      last.v += line[i];
+    } else {
+      tokens.push({ t: "plain", v: line[i] });
+    }
+    i++;
+  }
+
+  return tokens;
+}
+
+function CodeBlock({ children, lang, T }: {
+  children: string;
+  lang?: string;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const lines = children.trimEnd().split("\n");
+
+  const colorFor = (t: Token["t"]): string => {
+    if (t === "keyword") return SYN.keyword;
+    if (t === "string")  return SYN.string;
+    if (t === "comment") return SYN.comment;
+    if (t === "number")  return SYN.number;
+    if (t === "punct")   return SYN.punct;
+    return T.textSub;
+  };
+
+  return (
+    <div style={{
+      background: T.bg,
+      border: `1px solid ${T.border}`,
+      borderRadius: 8,
+      margin: "10px 0 16px",
+      overflow: "hidden",
+    }}>
+      {lang && (
+        <div style={{
+          padding: "4px 12px",
+          borderBottom: `1px solid ${T.border}`,
+          fontSize: 10,
+          fontFamily: T.fontMono,
+          color: T.muted,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+        }}>
+          {lang}
+        </div>
+      )}
+      <pre style={{
+        margin: 0,
+        padding: "14px 16px",
+        fontFamily: T.fontMono,
+        fontSize: 12,
+        lineHeight: 1.7,
+        overflowX: "auto",
+      }}>
+        <code>
+          {lines.map((line, li) => {
+            const tokens = tokenizeLine(line);
+            return (
+              <React.Fragment key={li}>
+                {tokens.map((tok, ti) => (
+                  <span key={ti} style={{ color: colorFor(tok.t) }}>{tok.v}</span>
+                ))}
+                {li < lines.length - 1 && "\n"}
+              </React.Fragment>
+            );
+          })}
+        </code>
+      </pre>
+    </div>
+  );
+}
 
 // ── shared primitives ────────────────────────────────────────────────────────
 
 function SectionHeading({ num, title, sub, T }: {
-  num: number;
-  title: string;
-  sub: string;
+  num: number; title: string; sub: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   return (
@@ -27,9 +172,16 @@ function SectionHeading({ num, title, sub, T }: {
   );
 }
 
+function SubHeading({ children, T }: { children: React.ReactNode; T: ReturnType<typeof useTheme>["T"] }) {
+  return (
+    <h3 style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: "28px 0 10px", fontFamily: T.fontMono }}>
+      {children}
+    </h3>
+  );
+}
+
 function Card({ title, children, T }: {
-  title: string;
-  children: React.ReactNode;
+  title: string; children: React.ReactNode;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   return (
@@ -38,6 +190,7 @@ function Card({ title, children, T }: {
       border: `1px solid ${T.border}`,
       background: T.surface,
       padding: "14px 16px",
+      marginBottom: 10,
     }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 6, fontFamily: T.fontMono }}>
         {title}
@@ -46,14 +199,6 @@ function Card({ title, children, T }: {
         {children}
       </div>
     </div>
-  );
-}
-
-function SubHeading({ children, T }: { children: React.ReactNode; T: ReturnType<typeof useTheme>["T"] }) {
-  return (
-    <h3 style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: "24px 0 10px", fontFamily: T.fontMono }}>
-      {children}
-    </h3>
   );
 }
 
@@ -71,30 +216,11 @@ function Note({ children, T, variant = "info" }: {
       padding: "10px 14px",
       fontSize: 12,
       color: T.textSub,
-      margin: "12px 0",
+      margin: "12px 0 20px",
       lineHeight: 1.6,
     }}>
       {children}
     </div>
-  );
-}
-
-function CodeBlock({ children, T }: { children: string; T: ReturnType<typeof useTheme>["T"] }) {
-  return (
-    <pre style={{
-      background: T.bg,
-      border: `1px solid ${T.border}`,
-      borderRadius: 8,
-      padding: "12px 14px",
-      fontFamily: T.fontMono,
-      fontSize: 12,
-      color: T.textSub,
-      overflowX: "auto",
-      lineHeight: 1.6,
-      margin: "10px 0",
-    }}>
-      <code>{children}</code>
-    </pre>
   );
 }
 
@@ -104,7 +230,7 @@ function Table({ headers, rows, T }: {
   T: ReturnType<typeof useTheme>["T"];
 }) {
   return (
-    <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, overflow: "hidden", margin: "12px 0", fontSize: 12 }}>
+    <div style={{ borderRadius: 10, border: `1px solid ${T.border}`, overflow: "hidden", margin: "12px 0 20px", fontSize: 12 }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -137,45 +263,30 @@ function Table({ headers, rows, T }: {
   );
 }
 
-// ── flow diagram ─────────────────────────────────────────────────────────────
-
-function FlowStep({ label, sub, variant, T }: {
-  label: string;
-  sub: string;
-  variant?: "accent" | "default";
-  T: ReturnType<typeof useTheme>["T"];
-}) {
-  const isAccent = variant === "accent";
-  return (
-    <div style={{
-      flex: 1,
-      border: `1.5px solid ${isAccent ? T.accent : T.border}`,
-      borderRadius: 8,
-      padding: "10px 12px",
-      textAlign: "center",
-      background: isAccent ? `${T.accent}14` : T.surface,
-      minWidth: 110,
-    }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: isAccent ? T.accent : T.text, marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 11, color: T.muted }}>{sub}</div>
-    </div>
-  );
-}
-
 function Flow({ steps, T }: {
   steps: { label: string; sub: string; variant?: "accent" | "default" }[];
   T: ReturnType<typeof useTheme>["T"];
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "stretch", gap: 0, overflowX: "auto", padding: "4px 0 12px", marginBottom: 16 }}>
-      {steps.map((s, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", flex: 1 }}>
-          <FlowStep {...s} T={T} />
-          {i < steps.length - 1 && (
-            <div style={{ padding: "0 6px", color: T.muted, fontSize: 16, flexShrink: 0 }}>→</div>
-          )}
-        </div>
-      ))}
+    <div style={{ display: "flex", alignItems: "stretch", gap: 0, overflowX: "auto", padding: "4px 0 16px" }}>
+      {steps.map((s, i) => {
+        const isAccent = s.variant === "accent";
+        return (
+          <div key={i} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+            <div style={{
+              flex: 1, border: `1.5px solid ${isAccent ? T.accent : T.border}`,
+              borderRadius: 8, padding: "10px 12px", textAlign: "center",
+              background: isAccent ? `${T.accent}14` : T.surface, minWidth: 100,
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: isAccent ? T.accent : T.text, marginBottom: 3 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: T.muted }}>{s.sub}</div>
+            </div>
+            {i < steps.length - 1 && (
+              <div style={{ padding: "0 6px", color: T.muted, fontSize: 16, flexShrink: 0 }}>→</div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -188,9 +299,10 @@ export default function HowItWorksPage() {
     <code style={{ fontFamily: T.fontMono, fontSize: 12, color: T.accent }}>{s}</code>
   );
   const divider = <div style={{ height: 1, background: T.border, margin: "40px 0" }} />;
+  const body = { fontSize: 13, color: T.textSub, lineHeight: 1.7, marginBottom: 12 } as const;
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "48px 24px 80px" }}>
+    <main style={{ maxWidth: 700, margin: "0 auto", padding: "48px 24px 80px" }}>
       <div style={{ marginBottom: 40 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: T.text, margin: 0, fontFamily: T.fontMono }}>
           How Dispatch works
@@ -202,65 +314,96 @@ export default function HowItWorksPage() {
 
       {/* ── 1. Data capture ── */}
       <section>
-        <SectionHeading num={1} title="Data capture" sub="How user requests become structured job records." T={T} />
+        <SectionHeading
+          num={1} title="Data capture"
+          sub="How tickets are ingested from Zendesk and how ops requests are captured."
+          T={T}
+        />
+
+        <SubHeading T={T}>Zendesk ticket ingestion</SubHeading>
+        <p style={body}>
+          Inbound support tickets enter the pipeline via a Zendesk automation that fires on ticket creation. The automation POSTs a webhook containing the ticket ID, subject, body, requester email, tags, and custom fields to an HTTPS EventBridge endpoint secured with an API key.
+        </p>
+
+        <Flow steps={[
+          { label: "Zendesk trigger", sub: "on ticket create", variant: "default" },
+          { label: "Webhook", sub: "POST ticket JSON", variant: "default" },
+          { label: "EventBridge", sub: "custom event bus", variant: "accent" },
+          { label: "SQS", sub: "dispatch-{env}-tickets-queue", variant: "accent" },
+          { label: "Classifier Lambda", sub: "Step Functions task", variant: "default" },
+        ]} T={T} />
+
+        <Card title="Idempotency" T={T}>
+          Each ticket ID is checked against a DynamoDB idempotency table before processing begins. Duplicate deliveries — Zendesk retries on 5xx — are silently dropped, guaranteeing exactly-once processing.
+        </Card>
+        <Card title="Sidebar telemetry" T={T}>
+          When an agent opens the sidebar, a {mono("sidebar_viewed")} event fires via ZAF's {mono("client.request()")} to the {mono("/telemetry")} endpoint. It is non-blocking — the catch swallows failures so telemetry never disrupts the UI.
+        </Card>
+        <Note T={T}>
+          <strong>DynamoDB key pattern:</strong> {mono("pk: TICKET#<ticketId>")} / {mono("sk: CLASSIFICATION#<ISO timestamp>")} — the sidebar API queries this access pattern to serve the Intelligence panel.
+        </Note>
+
+        <SubHeading T={T}>Ops chat input</SubHeading>
+        <p style={body}>
+          In the ops app, input arrives as a natural language string typed into the chat interface. The frontend calls {mono("processRequest")} — a Convex action — passing the raw string and the full conversation history for context.
+        </p>
 
         <Flow steps={[
           { label: "Chat input", sub: "rawRequest string", variant: "default" },
           { label: "processRequest", sub: "Convex action", variant: "accent" },
           { label: "gpt-5.4-mini", sub: "via OpenRouter", variant: "default" },
           { label: "createDraft", sub: "Convex mutation", variant: "accent" },
-          { label: "jobs table", sub: "draft status", variant: "default" },
+          { label: "jobs table", sub: "status: draft", variant: "default" },
         ]} T={T} />
 
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 12, lineHeight: 1.6 }}>
-          The user types a natural language request. The frontend calls {mono("processRequest")} — a Convex action — passing the raw string and the full conversation history. The action calls OpenRouter (gpt-5.4-mini) and returns one of two discriminated types:
+        <p style={body}>
+          {mono("processRequest")} returns one of two discriminated types which the frontend renders differently:
         </p>
-
-        <CodeBlock T={T}>{`// Discriminated union returned by processRequest
+        <CodeBlock lang="typescript" T={T}>{`// Discriminated union returned by processRequest
 { type: "question", answer: string, sources: PolicySource[] }
 // or
 { type: "bulk_op", intent: BulkJobIntent }`}</CodeBlock>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, margin: "16px 0" }}>
-          <Card title="question path" T={T}>
-            The answer and KB sources are rendered inline in the chat thread. No job is created. Thumbs up/down feedback is captured via the {mono("feedback")} table using a stable {mono("responseId")}.
-          </Card>
-          <Card title="bulk_op path" T={T}>
-            The {mono("intent")} (targetGroup, newLimit, notifyCardholders) is passed to {mono("createDraft")}. A job record is written with status {mono('"draft"')}, policy output, and excluded cards. No cards are touched yet.
-          </Card>
-          <Card title="Idempotency" T={T}>
-            Before inserting, {mono("createDraft")} queries the {mono("by_idempotency_key")} index. If a job with the same key already exists, it returns the existing ID rather than creating a duplicate. The key is a hash of actor + operation + target group + limit.
-          </Card>
-          <Card title="Conversation context" T={T}>
-            {mono("processRequest")} accepts {mono("conversationHistory")} (prior turns) and {mono("recentJobId")}. If a job ID is provided, its result summary is appended to the system prompt so the model can answer follow-up questions like "how did that job go?".
-          </Card>
-        </div>
+        <Card title="question path" T={T}>
+          The answer and KB sources render inline in the chat thread. No job is created. Thumbs up/down feedback is captured in the {mono("feedback")} table keyed by a stable {mono("responseId")}.
+        </Card>
+        <Card title="bulk_op path" T={T}>
+          The {mono("intent")} (targetGroup, newLimit, notifyCardholders) is passed to {mono("createDraft")}. A job record is written with status {mono('"draft"')}, policy output, and excluded cards. No cards are touched yet.
+        </Card>
+        <Card title="Idempotency" T={T}>
+          Before inserting, {mono("createDraft")} queries the {mono("by_idempotency_key")} index. If a matching job already exists, it returns that ID rather than creating a duplicate. The key is derived from actor + operation + target group + limit.
+        </Card>
+        <Card title="Conversation context" T={T}>
+          {mono("processRequest")} accepts {mono("conversationHistory")} (prior turns) and an optional {mono("recentJobId")}. When a job ID is supplied, its result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like "how did that job go?".
+        </Card>
 
         <SubHeading T={T}>KB grounding</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 8, lineHeight: 1.6 }}>
-          Before calling the LLM, {mono("processRequest")} runs a semantic KB search against {mono("searchKB")}. The query is embedded with OpenAI {mono("text-embedding-3-small")} (1536-dim, via OpenRouter), then Convex vector search finds the top-4 most similar articles. Their titles and body excerpts are injected into the system prompt as grounding context.
+        <p style={body}>
+          Before calling the LLM, {mono("processRequest")} runs a semantic search via {mono("searchKB")}. The query is embedded with {mono("text-embedding-3-small")} (1536-dim, via OpenRouter), then Convex vector search finds the top-4 most similar articles from {mono("kb_articles")}. Their titles and body excerpts are injected into the system prompt as grounding context.
+        </p>
+        <p style={body}>
+          KB articles are seeded once from {mono("datasets/reap-help-center.jsonl")}. The seed script reads in batches of 20, embeds each {mono("title + body")} string (truncated to 8000 chars), and writes {mono("kb_articles")} records with the embedding vector. The vector index ({mono("by_embedding")}, 1536-dim) is declared in the Convex schema.
         </p>
         <Note T={T}>
-          If the KB hasn't been seeded yet, {mono("searchKB")} throws and the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
+          If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} throws and the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
         </Note>
-
-        <SubHeading T={T}>KB seed</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6 }}>
-          Articles come from {mono("datasets/reap-help-center.jsonl")}. The seed script reads them in batches of 20, embeds each {mono("title + body")} string (truncated to 8000 chars), and writes {mono("kb_articles")} records with the embedding vector. The vector index ({mono("by_embedding")}, 1536-dim) is defined in the Convex schema and queried at runtime.
-        </p>
       </section>
 
       {divider}
 
       {/* ── 2. Inference ── */}
       <section>
-        <SectionHeading num={2} title="Inference" sub="How the LLM classifies intent and the policy engine validates it." T={T} />
+        <SectionHeading
+          num={2} title="Inference"
+          sub="How the LLM classifies intent and the policy engine validates it."
+          T={T}
+        />
 
         <SubHeading T={T}>Intent classification</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 8, lineHeight: 1.6 }}>
-          {mono("processRequest")} sends the user message to {mono("gpt-5.4-mini")} via OpenRouter with temperature 0. The system prompt instructs the model to respond with JSON only — no markdown, no prose. The model returns one of two shapes:
+        <p style={body}>
+          {mono("processRequest")} sends the user message to {mono("gpt-5.4-mini")} via OpenRouter at temperature 0. The system prompt instructs the model to return JSON only — no markdown, no prose. The response is one of two shapes:
         </p>
-        <CodeBlock T={T}>{`// Question (policy Q&A)
+        <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
 
 // Bulk operation request
@@ -271,39 +414,38 @@ export default function HowItWorksPage() {
   "newLimit": { "currency": "SGD", "amount": 2000 },
   "notifyCardholders": true
 } }`}</CodeBlock>
-
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 8, lineHeight: 1.6 }}>
+        <p style={body}>
           The raw response string is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod ({mono("ProcessResultSchema")} — a discriminated union). An unsupported intent type surfaces an {mono('"unsupported"')} entry in the chat thread rather than throwing.
         </p>
 
         <SubHeading T={T}>Policy engine</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 8, lineHeight: 1.6 }}>
-          Once intent is confirmed as {mono("bulk_op")}, {mono("createDraft")} runs {mono("checkPolicy")} inline before writing any records. Policy runs synchronously inside the Convex mutation:
+        <p style={body}>
+          Once intent is confirmed as {mono("bulk_op")}, {mono("createDraft")} runs {mono("checkPolicy")} synchronously inside the Convex mutation before writing any records:
         </p>
         <Table
           headers={["Rule", "Behaviour", "Threshold"]}
           rows={[
-            [mono("MAX_LIMIT_SGD"), "Hard block — job not created", "SGD 5,000"],
-            [mono("MAX_BULK_ITEMS"), "Hard block — job not created", "200 eligible cards"],
-            [mono("EXCLUDED_STATUSES"), "Cards silently excluded from job", "frozen, cancelled"],
-            [mono("APPROVAL_THRESHOLD_ITEMS"), "Job created but approval flagged", "> 25 eligible cards"],
+            [mono("MAX_LIMIT_SGD"),           "Hard block — job not created",          "SGD 5,000"],
+            [mono("MAX_BULK_ITEMS"),           "Hard block — job not created",          "200 eligible cards"],
+            [mono("EXCLUDED_STATUSES"),        "Cards silently excluded from job",      "frozen, cancelled"],
+            [mono("APPROVAL_THRESHOLD_ITEMS"), "Job created but approval flagged",      "> 25 eligible cards"],
           ]}
           T={T}
         />
-        <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6 }}>
-          Hard blocks throw inside the mutation, which surfaces as an error bubble in the chat. Soft gates (approval required) allow the job to proceed to draft status with {mono("approvalRequired: true")} set on the record — the UI renders an approval warning before the confirm button.
+        <p style={body}>
+          Hard blocks throw inside the mutation and surface as error bubbles in the chat. Soft gates (approval required) allow the job to proceed to draft status with {mono("approvalRequired: true")} — the UI renders an approval warning before the confirm button is enabled.
         </p>
 
         <SubHeading T={T}>Draft → confirm → fan-out</SubHeading>
         <Flow steps={[
           { label: "createDraft", sub: "status: draft", variant: "accent" },
-          { label: "User confirms", sub: "UI confirm button", variant: "default" },
+          { label: "User confirms", sub: "confirm button", variant: "default" },
           { label: "confirmJob", sub: "Convex mutation", variant: "accent" },
-          { label: "job_items created", sub: "one per eligible card", variant: "default" },
+          { label: "job_items", sub: "one per eligible card", variant: "default" },
           { label: "ctx.scheduler", sub: "staggered fan-out", variant: "accent" },
         ]} T={T} />
-        <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6 }}>
-          {mono("confirmJob")} transitions the job to {mono('"in_progress"')}, inserts a {mono("job_items")} record for every card (excluded cards are inserted as {mono('"skipped"')} immediately), then calls {mono("ctx.scheduler.runAfter")} for each eligible item with a random stagger (500–3500ms) to simulate realistic async fan-out. The frontend subscribes to the job via {mono("useQuery")} and renders live progress as items complete.
+        <p style={body}>
+          {mono("confirmJob")} transitions the job to {mono('"in_progress"')}, inserts a {mono("job_items")} record for every card — excluded cards are inserted as {mono('"skipped"')} immediately — then calls {mono("ctx.scheduler.runAfter")} for each eligible item with a random stagger of 500–3500ms to simulate realistic async fan-out. The frontend subscribes via {mono("useQuery")} and re-renders as items complete.
         </p>
       </section>
 
@@ -311,68 +453,70 @@ export default function HowItWorksPage() {
 
       {/* ── 3. Exception handling ── */}
       <section>
-        <SectionHeading num={3} title="Exception handling" sub="Retries, permanent failures, and graceful degradation across all layers." T={T} />
+        <SectionHeading
+          num={3} title="Exception handling"
+          sub="Retries, permanent failures, and graceful degradation across all layers."
+          T={T}
+        />
 
         <SubHeading T={T}>Card executor — per-item retry</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 8, lineHeight: 1.6 }}>
+        <p style={body}>
           {mono("executeItem")} is a Convex internalAction. Each invocation simulates a card API call, determines the outcome, and either marks the item terminal or re-schedules itself with exponential backoff:
         </p>
-        <CodeBlock T={T}>{`// executor-logic.ts
+        <CodeBlock lang="typescript" T={T}>{`// src/lib/executor-logic.ts
 export const MAX_RETRIES = 3;
 
 export function backoffMs(retryCount: number): number {
-  return Math.pow(2, retryCount) * 1000;  // 2s, 4s, 8s
+  return Math.pow(2, retryCount) * 1000;  // 2s → 4s → 8s
 }
 
 export function isRetryExhausted(retryCount: number): boolean {
   return retryCount >= MAX_RETRIES;
 }`}</CodeBlock>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, margin: "16px 0" }}>
-          <Card title="Retryable failure" T={T}>
-            Outcome {mono('"failed_retryable"')} (e.g. {mono("UPSTREAM_TIMEOUT")}). The item is re-scheduled via {mono("ctx.scheduler.runAfter(backoffMs(retryCount), ...)")}. After {mono("MAX_RETRIES")} (3) attempts it is promoted to permanent.
-          </Card>
-          <Card title="Permanent failure" T={T}>
-            Outcome {mono('"failed_permanent"')} — either the mock API returns {mono("CARD_LOCKED")} (compliance-locked card IDs containing 019, 033, 047) or retry count is exhausted. No further scheduling.
-          </Card>
-          <Card title="Idempotent re-entry" T={T}>
-            {mono("executeItem")} checks the item status on entry. If it's already terminal ({mono("succeeded")}, {mono("failed_permanent")}, {mono("cancelled")}), it returns immediately. Convex's at-least-once delivery is safe.
-          </Card>
-          <Card title="Job count sync" T={T}>
-            After each terminal outcome, {mono("updateJobCounts")} (internalMutation) patches the parent job's {mono("succeededCount")} / {mono("failedCount")} / {mono("skippedCount")} atomically. When eligible items are fully resolved, the job status transitions to {mono('"completed"')} or {mono('"completed_with_failures"')}.
-          </Card>
-        </div>
+        <Card title="Retryable failure" T={T}>
+          Outcome {mono('"failed_retryable"')} (e.g. {mono("UPSTREAM_TIMEOUT")}). The item is re-scheduled via {mono("ctx.scheduler.runAfter(backoffMs(retryCount), ...)")}. After {mono("MAX_RETRIES")} attempts it is promoted to permanent and no further scheduling occurs.
+        </Card>
+        <Card title="Permanent failure" T={T}>
+          Outcome {mono('"failed_permanent"')} — either the mock API returns {mono("CARD_LOCKED")} (compliance-locked card IDs containing 019, 033, or 047) or retry count is exhausted. The item is written terminal immediately.
+        </Card>
+        <Card title="Idempotent re-entry" T={T}>
+          {mono("executeItem")} checks the item status on entry. If it is already terminal ({mono("succeeded")}, {mono("failed_permanent")}, {mono("cancelled")}), it returns immediately. This makes Convex's at-least-once delivery safe.
+        </Card>
+        <Card title="Job count sync" T={T}>
+          After each terminal outcome, {mono("updateJobCounts")} (internalMutation) atomically patches the parent job's {mono("succeededCount")} / {mono("failedCount")} / {mono("skippedCount")}. Once all eligible items are resolved, the job transitions to {mono('"completed"')} or {mono('"completed_with_failures"')}.
+        </Card>
 
         <SubHeading T={T}>Retry failed items</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6 }}>
-          {mono("retryFailed")} mutation lets operators re-queue all {mono('"failed_retryable"')} items on a completed-with-failures job. It resets their status to {mono('"queued"')}, clears {mono("failureCode")} / {mono("failureDetail")}, re-opens the job to {mono('"in_progress"')}, and schedules new {mono("executeItem")} calls with a fresh stagger. {mono('"failed_permanent"')} items are intentionally excluded — they cannot be retried.
+        <p style={body}>
+          {mono("retryFailed")} lets operators re-queue all {mono('"failed_retryable"')} items on a completed-with-failures job. It resets status to {mono('"queued"')}, clears {mono("failureCode")} and {mono("failureDetail")}, re-opens the job to {mono('"in_progress"')}, and schedules fresh {mono("executeItem")} calls with a new stagger. Items marked {mono('"failed_permanent"')} are intentionally excluded and cannot be retried.
         </p>
 
         <SubHeading T={T}>LLM error handling</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, marginBottom: 8, lineHeight: 1.6 }}>
-          {mono("processRequest")} handles three distinct failure modes before surfacing an error to the frontend:
+        <p style={body}>
+          {mono("processRequest")} handles three distinct failure modes before surfacing an error to the UI:
         </p>
         <Table
           headers={["Failure", "Detection", "Behaviour"]}
           rows={[
-            ["Empty / refused response", mono("choice?.message?.content") + " is falsy", "Throws with finish_reason or refusal text"],
-            ["Malformed JSON", mono("JSON.parse") + " throws", "Throws with first 120 chars of raw content"],
-            ["Schema mismatch", mono("ProcessResultSchema.parse") + " throws", "Zod error propagates to frontend"],
+            ["Empty / refused response", mono("choice?.message?.content") + " is falsy",   "Throws with finish_reason or refusal text"],
+            ["Malformed JSON",           mono("JSON.parse") + " throws",                   "Throws with first 120 chars of raw content"],
+            ["Schema mismatch",          mono("ProcessResultSchema.parse") + " throws",    "Zod error propagates to the frontend"],
           ]}
           T={T}
         />
-        <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6 }}>
-          All three cases surface as error toasts in the UI (via Sonner). The conversation history is not poisoned — the failed turn is discarded and the user can retry.
+        <p style={body}>
+          All three surface as error toasts via Sonner. The conversation history is not poisoned — the failed turn is discarded and the user can retry.
         </p>
 
         <SubHeading T={T}>Cancel</SubHeading>
-        <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6 }}>
-          {mono("cancelJob")} finds all {mono('"queued"')} items and marks them {mono('"cancelled"')} before patching the job status. In-flight items ({mono('"in_progress"')}) finish naturally — they check {mono("cancelled")} on entry via the idempotency guard and return early. There is no force-kill of running Convex scheduled functions.
+        <p style={body}>
+          {mono("cancelJob")} finds all {mono('"queued"')} items and marks them {mono('"cancelled"')} before patching the job status. In-flight items ({mono('"in_progress"')}) finish naturally — they hit the terminal-status guard on entry and return early. There is no force-kill of running Convex scheduled functions.
         </p>
 
         <SubHeading T={T}>Graceful degradation</SubHeading>
         <Note T={T} variant="ok">
-          KB unavailability (not seeded, embedding API down) is caught silently inside {mono("processRequest")} — the LLM call proceeds without KB context. Policy failures throw and are surfaced as user-readable error messages. Audit write failures are not applicable here: Convex mutations are transactional, so partial writes cannot occur.
+          KB unavailability is caught silently inside {mono("processRequest")} — the LLM call proceeds without KB context. Policy failures throw and surface as user-readable error messages in the chat. Partial write failures are not possible here: Convex mutations are transactional.
         </Note>
       </section>
     </main>
