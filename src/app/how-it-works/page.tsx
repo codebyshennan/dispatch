@@ -382,7 +382,7 @@ export default function HowItWorksPage() {
           Before calling the LLM, {mono("processRequest")} runs a semantic search via {mono("searchKB")}. The query is embedded with {mono("text-embedding-3-small")} (1536-dim, via OpenRouter), then Convex vector search finds the top-4 most similar articles from {mono("kb_articles")}. Their titles and body excerpts are injected into the system prompt as grounding context.
         </p>
         <p style={body}>
-          KB articles are seeded once from {mono("datasets/reap-help-center.jsonl")}. The seed script reads in batches of 20, embeds each {mono("title + body")} string (truncated to 8000 chars), and writes {mono("kb_articles")} records with the embedding vector. The vector index ({mono("by_embedding")}, 1536-dim) is declared in the Convex schema.
+          The knowledge base is a scrape of Reap's Zendesk help centre at {mono("support.reap.global")} — 115 articles covering cards, payments, onboarding, accounting integrations, and team permissions, stored in {mono("datasets/reap-help-center.jsonl")}. Average body length is ~1,800 chars. The seed script ({mono("npx convex run kb:seed")}) reads articles in batches of 20, embeds each {mono("title + body")} string, and writes {mono("kb_articles")} records into the Convex vector index ({mono("by_embedding")}, 1536-dim).
         </p>
         <Note T={T}>
           If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} throws and the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
