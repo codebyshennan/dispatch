@@ -381,21 +381,7 @@ kb_articles: defineTable({
   .index("by_article_id", ["articleId"])
   .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
 
-        <SubHeading T={T}>KB ingestion — Lambda path (Aurora pgvector)</SubHeading>
-        <p style={body}>
-          The production Lambda pipeline uses a different strategy. Articles are pre-chunked before indexing: the {mono("kb-indexer")} Lambda reads JSONL files from S3 under {mono("help-center/chunks/")}. Each logical article maps to one or more chunk records (identified by {mono("chunkIndex")}), allowing long articles to be split for more granular retrieval. Chunks are embedded with Voyage AI's {mono("voyage-3-lite")} model (512 dimensions, {mono("input_type: \"document\"")}), then upserted into Aurora Serverless v2 via the pgvector extension:
-        </p>
-        <CodeBlock lang="sql" T={T}>{`-- Aurora pgvector — idempotent upsert
-INSERT INTO kb_articles
-  (article_id, title, html_url, updated_at, section_id, chunk_index, text, embedding)
-VALUES (:articleId, :title, :htmlUrl, :updatedAt::timestamptz,
-        :sectionId, :chunkIndex, :text, :embedding::vector)
-ON CONFLICT (article_id, chunk_index) DO UPDATE
-  SET text      = EXCLUDED.text,
-      embedding = EXCLUDED.embedding,
-      indexed_at = NOW()`}</CodeBlock>
-
-        <SubHeading T={T}>RAG retrieval — ops path</SubHeading>
+        <SubHeading T={T}>RAG retrieval</SubHeading>
         <p style={body}>
           At inference time, {mono("processRequest")} calls {mono("searchKB")} before the LLM. The raw user query is embedded with the same {mono("text-embedding-3-small")} model (same dimension, same provider), then Convex's {mono("ctx.vectorSearch")} performs approximate nearest-neighbour search:
         </p>
