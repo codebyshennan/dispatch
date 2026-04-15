@@ -113,6 +113,7 @@ export function NavHeader() {
         <NavLink href="/" label="New job" icon={<PlusIcon />} />
         <NavLink href="/jobs" label="Job history" icon={<ClockIcon />} />
         <NavLink href="/metrics" label="Metrics" icon={<BarChartIcon />} />
+        <NavLink href="/how-it-works" label="How it works" icon={<InfoIcon />} />
       </div>
 
       <div style={{ flex: 1 }} />
