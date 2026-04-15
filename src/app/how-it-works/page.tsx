@@ -407,29 +407,8 @@ kbContext =
 
 const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
 
-        <SubHeading T={T}>RAG retrieval — Lambda path</SubHeading>
-        <p style={body}>
-          The {mono("kb-retrieval")} Lambda runs as a Step Functions task between the classifier and the response-generator. It embeds {mono("subject + body")} using Voyage's {mono("voyage-3-lite")} with {mono("input_type: \"query\"")} — Voyage uses asymmetric embeddings: documents are indexed with {mono("\"document\"")} to maximise recall; queries use {mono("\"query\"")} to maximise precision against those documents. The embedding then drives a pgvector cosine distance query:
-        </p>
-        <CodeBlock lang="sql" T={T}>{`SELECT article_id, title, html_url, updated_at::text, text,
-       1 - (embedding <=> :q::vector) AS similarity
-FROM kb_articles
-ORDER BY embedding <=> :q::vector   -- <=> is pgvector cosine distance operator
-LIMIT 3`}</CodeBlock>
-        <p style={body}>
-          The top-3 chunks — with similarity scores — are forwarded as {mono("kbArticles")} in the Step Functions state envelope to the response-generator Lambda.
-        </p>
-
-        <Table
-          headers={["Path", "Embedding model", "Dimensions", "Store", "Chunking", "Top-k"]}
-          rows={[
-            ["Ops (Convex)", mono("text-embedding-3-small"), "1 536", "Convex vectorIndex", "No — whole article", "5"],
-            ["Lambda (ZAF)", mono("voyage-3-lite"), "512", "Aurora pgvector", "Yes — per chunkIndex", "3"],
-          ]}
-          T={T}
-        />
         <Note T={T}>
-          If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} (ops path) throws and the error is silently caught — the LLM call proceeds without KB context. The Lambda path allows the Step Functions task to fail and route to the DLQ.
+          If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} throws and the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
         </Note>
       </section>
 
