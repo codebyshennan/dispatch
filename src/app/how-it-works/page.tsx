@@ -316,32 +316,9 @@ export default function HowItWorksPage() {
       <section>
         <SectionHeading
           num={1} title="Data capture"
-          sub="How tickets are ingested from Zendesk and how ops requests are captured."
+          sub="How ops requests are captured and how the KB is ingested."
           T={T}
         />
-
-        <SubHeading T={T}>Zendesk ticket ingestion</SubHeading>
-        <p style={body}>
-          Inbound support tickets enter the pipeline via a Zendesk automation that fires on ticket creation. The automation POSTs a webhook containing the ticket ID, subject, body, requester email, tags, and custom fields to an HTTPS EventBridge endpoint secured with an API key.
-        </p>
-
-        <Flow steps={[
-          { label: "Zendesk trigger", sub: "on ticket create", variant: "default" },
-          { label: "Webhook", sub: "POST ticket JSON", variant: "default" },
-          { label: "EventBridge", sub: "custom event bus", variant: "accent" },
-          { label: "SQS", sub: "dispatch-{env}-tickets-queue", variant: "accent" },
-          { label: "Classifier Lambda", sub: "Step Functions task", variant: "default" },
-        ]} T={T} />
-
-        <Card title="Idempotency" T={T}>
-          Each ticket ID is checked against a DynamoDB idempotency table before processing begins. Duplicate deliveries — Zendesk retries on 5xx — are silently dropped, guaranteeing exactly-once processing.
-        </Card>
-        <Card title="Sidebar telemetry" T={T}>
-          When an agent opens the sidebar, a {mono("sidebar_viewed")} event fires via ZAF's {mono("client.request()")} to the {mono("/telemetry")} endpoint. It is non-blocking — the catch swallows failures so telemetry never disrupts the UI.
-        </Card>
-        <Note T={T}>
-          <strong>DynamoDB key pattern:</strong> {mono("pk: TICKET#<ticketId>")} / {mono("sk: CLASSIFICATION#<ISO timestamp>")} — the sidebar API queries this access pattern to serve the Intelligence panel.
-        </Note>
 
         <SubHeading T={T}>Ops chat input</SubHeading>
         <p style={body}>
