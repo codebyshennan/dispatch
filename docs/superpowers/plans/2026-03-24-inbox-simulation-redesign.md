@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Redesign the Beacon demo app into a live inbox with pre-seeded tickets, auto-triage visualization, configurable flood simulation, and a New Ticket modal — using a two-column layout with an email thread + analysis split view.
+**Goal:** Redesign the Dispatch demo app into a live inbox with pre-seeded tickets, auto-triage visualization, configurable flood simulation, and a New Ticket modal — using a two-column layout with an email thread + analysis split view.
 
 **Architecture:** All ticket state lives in `DemoApp` as `InboxTicket[]`. A shared `analyzeTicket` helper fires `POST /analyze` and handles the tmp-ID-to-server-ID swap. A `useSimulation` hook calls `analyzeTicket` on a configurable interval. The demo-server gains one small response field (`classification`) to avoid polling just for routing data. `AnalysisView` is unchanged — it still polls `GET /context/:ticketId`.
 
@@ -695,7 +695,7 @@ export function TicketThread({ ticket, T }: TicketThreadProps) {
       {/* Status banner */}
       {ticket.status === 'sent' && (
         <div style={bannerStyle('#166534', 'rgba(34,197,94,0.08)')}>
-          Auto-sent by Beacon
+          Auto-sent by Dispatch
         </div>
       )}
       {ticket.status === 'escalated' && (
@@ -1025,7 +1025,7 @@ This is the final wiring task. All supporting files now exist. We replace the 3-
 
 - [ ] **Step 1: Replace `DemoApp.tsx` with the new implementation**
 
-Keep all the token/theme definitions (`DARK`, `LIGHT`, `Tokens`, `Theme`, `BeaconLogo`, `ThemeToggle`, `StatusDot`, `AnalysisProgress`, `EmptyState`) — they are unchanged. Replace everything from the `QueueView` function onward with the new layout.
+Keep all the token/theme definitions (`DARK`, `LIGHT`, `Tokens`, `Theme`, `DispatchLogo`, `ThemeToggle`, `StatusDot`, `AnalysisProgress`, `EmptyState`) — they are unchanged. Replace everything from the `QueueView` function onward with the new layout.
 
 The full updated `DemoApp.tsx`:
 
@@ -1064,8 +1064,8 @@ export const LIGHT: Tokens = {
   fontMono: "'Fira Code', monospace", fontBody: "'Fira Sans', system-ui, sans-serif",
 };
 
-// ── BeaconLogo (UNCHANGED) ──────────────────────────────────────────────────────
-function BeaconLogo({ accent }: { accent: string }) {
+// ── DispatchLogo (UNCHANGED) ──────────────────────────────────────────────────────
+function DispatchLogo({ accent }: { accent: string }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="3" fill={accent} />
@@ -1165,7 +1165,7 @@ function EmptyState({ T }: { T: Tokens }) {
       <div>
         <div style={{ fontFamily: T.fontMono, fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 6 }}>Awaiting selection</div>
         <div style={{ fontSize: 13, color: T.muted, maxWidth: 240, lineHeight: 1.6 }}>
-          Select a ticket from the inbox to see Beacon's analysis.
+          Select a ticket from the inbox to see Dispatch's analysis.
         </div>
       </div>
     </div>
@@ -1269,8 +1269,8 @@ export function DemoApp() {
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', height: 48, flexShrink: 0, borderBottom: `1px solid ${T.border}`, background: T.surface }}>
-          <BeaconLogo accent={T.accent} />
-          <span style={{ fontFamily: T.fontMono, fontWeight: 600, fontSize: 14, color: T.text, letterSpacing: '0.02em' }}>Beacon</span>
+          <DispatchLogo accent={T.accent} />
+          <span style={{ fontFamily: T.fontMono, fontWeight: 600, fontSize: 14, color: T.text, letterSpacing: '0.02em' }}>Dispatch</span>
           <span style={{ color: T.muted, fontSize: 12, marginLeft: 2 }}>/ demo</span>
 
           {/* Simulation controls — center */}
@@ -1452,7 +1452,7 @@ Open `http://localhost:5173`. Verify:
 - [ ] Inbox loads with ~12 processing tickets (shimmer visible)
 - [ ] Within ~30s, tickets resolve to badges (urgency, category, routing, sentiment dot)
 - [ ] Clicking a ticket shows the thread top-half + analysis/progress bottom-half
-- [ ] `sent` tickets show green "Auto-sent by Beacon" banner; `escalated` show red banner
+- [ ] `sent` tickets show green "Auto-sent by Dispatch" banner; `escalated` show red banner
 - [ ] Start Simulation → tickets stream in at selected speed
 - [ ] Speed toggle changes arrival rate
 - [ ] Stop Simulation → new tickets stop; in-flight ones resolve

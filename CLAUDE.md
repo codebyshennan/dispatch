@@ -93,3 +93,11 @@ The `dispatch-{env}-audit-log` table uses the following key patterns:
 ## Environment Variables
 
 All Lambdas read config from env vars injected by CDK. Key vars: `AUDIT_TABLE_NAME`, `IDEMPOTENCY_TABLE_NAME`, `AURORA_SECRET_ARN`, `ANTHROPIC_API_KEY_SECRET_ARN`, `ZENDESK_SUBDOMAIN`, `OPENROUTER_API_KEY`.
+
+<!-- convex-ai-start -->
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running `npx convex ai-files install`.
+<!-- convex-ai-end -->

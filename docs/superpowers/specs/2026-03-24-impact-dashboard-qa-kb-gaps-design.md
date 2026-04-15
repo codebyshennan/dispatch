@@ -8,7 +8,7 @@
 
 ## Problem
 
-Beacon has strong backend instrumentation (weekly reports, audit logs, VoC correlation, KB gap records) but nothing surfaces in real-time. An interviewer cannot see impact without reading an email. This spec adds three visible, demo-able features that map directly to the target JD ("measure impact", "QA", "AI-ready foundations").
+Dispatch has strong backend instrumentation (weekly reports, audit logs, VoC correlation, KB gap records) but nothing surfaces in real-time. An interviewer cannot see impact without reading an email. This spec adds three visible, demo-able features that map directly to the target JD ("measure impact", "QA", "AI-ready foundations").
 
 ---
 
@@ -65,7 +65,7 @@ interface KbGapEntry {
 **VoC themes:** Static seed of 3 items in the demo (mirrors the shape produced by `voc-processor`'s monthly correlation analysis in production). Not dynamically derived from session tickets.
 
 **Dashboard UI layout (Layout B — approved):**
-1. Header: Beacon logo + "/ dashboard" breadcrumb + "← Back to demo" link
+1. Header: Dispatch logo + "/ dashboard" breadcrumb + "← Back to demo" link
 2. Three hero KPI cards: Deflection Rate · Draft Acceptance · KB Gaps Detected
 3. Routing stacked bar: auto / assisted / escalate with percentages and counts
 4. KB Gaps table: category · ticket count · max similarity · suggested action ("Add KB article for this topic")

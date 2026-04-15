@@ -1,4 +1,4 @@
-# Beacon Demo — Inbox & Simulation Redesign
+# Dispatch Demo — Inbox & Simulation Redesign
 
 **Date:** 2026-03-24
 **Status:** Approved
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Redesign the Beacon demo app from a submit-and-inspect tool into a live inbox that aggregates tickets, auto-triages them visibly, and supports a flood simulation. The input form moves into a modal. The selected ticket shows a split view: email thread (top) + Beacon analysis sidebar (bottom).
+Redesign the Dispatch demo app from a submit-and-inspect tool into a live inbox that aggregates tickets, auto-triages them visibly, and supports a flood simulation. The input form moves into a modal. The selected ticket shows a split view: email thread (top) + Dispatch analysis sidebar (bottom).
 
 ---
 
@@ -16,9 +16,9 @@ Redesign the Beacon demo app from a submit-and-inspect tool into a live inbox th
 
 Two-column shell replacing the current three-column layout:
 
-- **Header** (48px, full-width): Beacon logo + "demo" label | center: simulation controls (speed preset selector + Start/Stop button + live counter "X tickets · Y processing") | right: "New Ticket" button + theme toggle + Dashboard link
+- **Header** (48px, full-width): Dispatch logo + "demo" label | center: simulation controls (speed preset selector + Start/Stop button + live counter "X tickets · Y processing") | right: "New Ticket" button + theme toggle + Dashboard link
 - **Left column** (280px, fixed): Full-height inbox list. Scrollable. `inbox` is stored newest-first (prepend on add). Each row shows subject, sender, time, and — once triaged — urgency badge, category, routing badge, sentiment dot. Processing rows show a shimmer animation on the badge area (use `shimmerFrom`/`shimmerTo` tokens + `@keyframes shimmer` gradient-shift, same pattern already in `DemoApp.tsx`) plus a spinner icon.
-- **Right column** (flex): Split vertically. Top ~45% = `TicketThread`. Bottom ~55% = `AnalysisView` or `AnalysisProgress` depending on ticket status. Both halves scroll independently. When no ticket is selected, right column shows `EmptyState` with updated copy: "Select a ticket from the inbox to see Beacon's analysis." All inbox tickets (including `sent` and `escalated`) are selectable and show their `AnalysisView`.
+- **Right column** (flex): Split vertically. Top ~45% = `TicketThread`. Bottom ~55% = `AnalysisView` or `AnalysisProgress` depending on ticket status. Both halves scroll independently. When no ticket is selected, right column shows `EmptyState` with updated copy: "Select a ticket from the inbox to see Dispatch's analysis." All inbox tickets (including `sent` and `escalated`) are selectable and show their `AnalysisView`.
 
 ---
 
@@ -236,7 +236,7 @@ interface TicketThreadProps {
   // → "24 Mar, 14:32"
   ```
 - **Status banner** (thin strip, conditional):
-  - `sent`: green background — "Auto-sent by Beacon"
+  - `sent`: green background — "Auto-sent by Dispatch"
   - `escalated`: red background — "Escalated to Tier 2"
   - `processing` / `triaged`: no banner
 - **Message bubble**: Light card, avatar initial circle (left), sender name above, ticket body in bubble

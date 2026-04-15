@@ -40,7 +40,7 @@
 **Unchanged (imported directly by `apps/demo`)**
 
 - `apps/sidebar/src/panels/IntelligencePanel.tsx`
-- `apps/sidebar/src/hooks/useBeaconData.ts`
+- `apps/sidebar/src/hooks/useDispatchData.ts`
 - `apps/sidebar/src/contexts/ClientProvider.tsx`
 
 ---
@@ -378,7 +378,7 @@ app.post('/analyze', async (c) => {
   return c.json({ ticketId });
 });
 
-// GET /context/:ticketId — polled by useBeaconData
+// GET /context/:ticketId — polled by useDispatchData
 app.get('/context/:ticketId', (c) => {
   const payload = results.get(c.req.param('ticketId'));
   if (!payload) return c.json({ ticketId: c.req.param('ticketId'), status: 'pending' });
@@ -543,7 +543,7 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Beacon AI Demo</title>
+    <title>Dispatch AI Demo</title>
   </head>
   <body>
     <div id="root"></div>
@@ -685,7 +685,7 @@ export function InputPanel({ onAnalyze, onSubmitStart, history, activeTicketId, 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '16px', gap: '12px' }}>
-      <Paragraph style={{ fontWeight: 600, fontSize: '16px', margin: 0 }}>Beacon AI Demo</Paragraph>
+      <Paragraph style={{ fontWeight: 600, fontSize: '16px', margin: 0 }}>Dispatch AI Demo</Paragraph>
 
       {/* Input form */}
       <Field>
@@ -754,7 +754,7 @@ git commit -m "feat(demo): InputPanel with submit form and query history"
 
 ## Task 8: Demo App + Entry Point (`DemoApp.tsx` + `main.tsx`)
 
-Wires everything together. Sets the ZAF global mock before `ClientProvider` renders. Uses `key={currentTicketId}` on `IntelligencePanel` to force a remount (re-running `useTicketId` and `useBeaconData`) on each new analysis.
+Wires everything together. Sets the ZAF global mock before `ClientProvider` renders. Uses `key={currentTicketId}` on `IntelligencePanel` to force a remount (re-running `useTicketId` and `useDispatchData`) on each new analysis.
 
 **Files:**
 - Create: `apps/demo/src/DemoApp.tsx`
@@ -887,7 +887,7 @@ Expected: Vite starts, prints `Local: http://localhost:5173`
 - [ ] **Step 3a: Verify layout renders**
 
 Open `http://localhost:5173`. Confirm:
-- Left panel shows "Beacon AI Demo" heading, textarea, and Analyze button
+- Left panel shows "Dispatch AI Demo" heading, textarea, and Analyze button
 - Right panel shows "Submit a ticket to see AI analysis" empty state
 
 - [ ] **Step 3b: Verify analysis pipeline**

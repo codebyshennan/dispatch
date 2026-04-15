@@ -813,7 +813,7 @@ export function DashboardPage() {
           <circle cx="12" cy="12" r="3" fill={T.accent} />
           <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke={T.accent} strokeWidth="2" strokeLinecap="round" opacity="0.6" />
         </svg>
-        <span style={{ fontFamily: "'Fira Code', monospace", fontWeight: 600, fontSize: 14 }}>Beacon</span>
+        <span style={{ fontFamily: "'Fira Code', monospace", fontWeight: 600, fontSize: 14 }}>Dispatch</span>
         <span style={{ color: T.muted, fontSize: 12 }}>/ dashboard</span>
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 16 }}>
@@ -1176,7 +1176,7 @@ function QAScorePill({ qaScore }: { qaScore: QAScore }) {
 
 - [ ] **Step 2: Read `qaScore` from payload and render pill**
 
-In `IntelligencePanel`, the payload is accessed via `useBeaconData()`. Find where `classification` is extracted:
+In `IntelligencePanel`, the payload is accessed via `useDispatchData()`. Find where `classification` is extracted:
 ```tsx
 const classification = data.classification as Classification | undefined;
 ```

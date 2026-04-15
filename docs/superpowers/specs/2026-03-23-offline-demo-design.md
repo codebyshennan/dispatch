@@ -5,7 +5,7 @@
 
 ## Overview
 
-A local offline demo of the Beacon AI support pipeline using the existing IntelligencePanel UI, a mock ZAF client, Vectra vector store, and the Reap help center KB articles — no AWS infrastructure required.
+A local offline demo of the Dispatch AI support pipeline using the existing IntelligencePanel UI, a mock ZAF client, Vectra vector store, and the Reap help center KB articles — no AWS infrastructure required.
 
 ## Goal
 
@@ -81,7 +81,7 @@ const mockClient: ZAFClientInstance = {
 };
 ```
 
-`currentTicketId` is React state in `DemoApp`. When the user submits a query, `InputPanel` calls `onAnalyze(ticketId)`, updating state — `DemoClientProvider` re-provides the new value, triggering `useBeaconData` to re-fetch.
+`currentTicketId` is React state in `DemoApp`. When the user submits a query, `InputPanel` calls `onAnalyze(ticketId)`, updating state — `DemoClientProvider` re-provides the new value, triggering `useDispatchData` to re-fetch.
 
 ## Components
 
@@ -91,7 +91,7 @@ const mockClient: ZAFClientInstance = {
 | `DemoClientProvider.tsx` | `apps/demo/src/` | New |
 | `InputPanel.tsx` | `apps/demo/src/` | New |
 | `IntelligencePanel.tsx` | `apps/sidebar/src/panels/` | **Unchanged** |
-| `useBeaconData.ts` | `apps/sidebar/src/hooks/` | **Unchanged** |
+| `useDispatchData.ts` | `apps/sidebar/src/hooks/` | **Unchanged** |
 | `index.ts` | `apps/demo-server/src/` | New |
 | `pipeline.ts` | `apps/demo-server/src/` | New |
 | `kb-index.ts` | `apps/demo-server/src/` | New |
