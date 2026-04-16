@@ -591,7 +591,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
 
         <SubHeading T={T}>Intent classification</SubHeading>
         <p style={body}>
-          {mono("processRequest")} sends the user message to {mono("gpt-5.4-mini")} via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only. The response is one of two discriminated shapes:
+          The request handler sends the user message to gpt-5.4-mini via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only. The response is one of two discriminated shapes:
         </p>
         <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
@@ -605,37 +605,37 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
   "notifyCardholders": true
 } }`}</CodeBlock>
         <p style={body}>
-          The raw response is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod ({mono("ProcessResultSchema")} — a discriminated union). An unsupported intent type surfaces an {mono('"unsupported"')} entry in the chat thread rather than throwing.
+          The raw response is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod against a discriminated union schema. An unsupported intent type surfaces as an error entry in the chat thread rather than throwing.
         </p>
 
         <SubHeading T={T}>Policy engine</SubHeading>
         <p style={body}>
-          Once intent is confirmed as {mono("bulk_op")}, {mono("createDraft")} runs {mono("checkPolicy")} synchronously inside the Convex mutation before writing any records:
+          Once intent is confirmed as a bulk operation, policy checks run synchronously inside the Convex mutation before writing any records:
         </p>
         <Table
           headers={["Rule", "Behaviour", "Threshold"]}
           rows={[
-            [mono("MAX_LIMIT_SGD"),           "Hard block — job not created",          "SGD 5,000"],
-            [mono("MAX_BULK_ITEMS"),           "Hard block — job not created",          "200 eligible cards"],
-            [mono("EXCLUDED_STATUSES"),        "Cards silently excluded from job",      "frozen, cancelled"],
-            [mono("APPROVAL_THRESHOLD_ITEMS"), "Job created but approval flagged",      "> 25 eligible cards"],
+            ["Max limit",           "Hard block — job not created",          "SGD 5,000"],
+            ["Max bulk items",      "Hard block — job not created",          "200 eligible cards"],
+            ["Excluded statuses",   "Cards silently excluded from job",      "frozen, cancelled"],
+            ["Approval threshold",  "Job created but approval flagged",      "> 25 eligible cards"],
           ]}
           T={T}
         />
         <p style={body}>
-          Hard blocks throw inside the mutation and surface as error bubbles in the chat. Soft gates (approval required) allow the job to proceed to draft status with {mono("approvalRequired: true")} — the UI renders an approval warning before the confirm button is enabled.
+          Hard blocks surface as error bubbles in the chat. Soft gates allow the job to proceed to draft status with an approval flag — the UI renders a warning before the confirm button is enabled.
         </p>
 
         <SubHeading T={T}>Draft → confirm → fan-out</SubHeading>
         <Flow steps={[
-          { label: "createDraft", sub: "status: draft", variant: "accent" },
+          { label: "Create draft", sub: "status: draft", variant: "accent" },
           { label: "User confirms", sub: "confirm button", variant: "default" },
-          { label: "confirmJob", sub: "Convex mutation", variant: "accent" },
-          { label: "job_items", sub: "one per eligible card", variant: "default" },
-          { label: "ctx.scheduler", sub: "staggered fan-out", variant: "accent" },
+          { label: "Confirm job", sub: "Convex mutation", variant: "accent" },
+          { label: "Job items", sub: "one per eligible card", variant: "default" },
+          { label: "Scheduler", sub: "staggered fan-out", variant: "accent" },
         ]} T={T} />
         <p style={body}>
-          {mono("confirmJob")} transitions the job to {mono('"in_progress"')}, inserts a {mono("job_items")} record for every card — excluded cards are inserted as {mono('"skipped"')} immediately — then calls {mono("ctx.scheduler.runAfter")} for each eligible item with a random stagger of 500–3500ms to simulate realistic async fan-out. The frontend subscribes via {mono("useQuery")} and re-renders as items complete.
+          Confirming the job transitions it to in-progress, inserts a job item record for every card — excluded cards are inserted as skipped immediately — then schedules each eligible item with a random stagger of 500–3,500 ms to simulate realistic async fan-out. The frontend subscribes via a live query and re-renders as items complete.
         </p>
       </section>
 
