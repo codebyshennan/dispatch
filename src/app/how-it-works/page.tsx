@@ -833,7 +833,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
           Hard blocks surface as error bubbles in the chat. Soft gates allow the job to proceed to draft status with an approval flag — the UI renders a warning before the confirm button is enabled.
         </p>
 
-        <SubHeading T={T}>Draft → confirm → fan-out</SubHeading>
+        <SubHeading id="draft-confirm-fanout" T={T}>Draft → confirm → fan-out</SubHeading>
         <Flow steps={[
           { label: "Create draft", sub: "status: draft", variant: "accent" },
           { label: "User confirms", sub: "confirm button", variant: "default" },
