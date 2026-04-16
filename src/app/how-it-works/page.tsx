@@ -549,7 +549,7 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
           </div>
           <CodeBlock lang="text" T={T}>{inputPrompt}</CodeBlock>
 
-          {/* trace */}
+          {/* trace — steps + KB articles + model response all under one heading */}
           <div style={{
             display: "flex", alignItems: "center", gap: 6,
             fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px",
@@ -565,21 +565,23 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
                 {i < steps.length - 1 && <ExampleConnector T={T} />}
               </React.Fragment>
             ))}
+            {retrieved && (
+              <>
+                <ExampleConnector T={T} />
+                <RetrievedArticles articles={retrieved} T={T} />
+              </>
+            )}
+            <ExampleConnector T={T} />
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 11, fontWeight: 700, color: T.muted, margin: "8px 0 6px",
+              fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+            }}>
+              <Icon name="arrow-left" size={11} color={T.muted} />
+              Model response
+            </div>
+            <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
           </div>
-
-          {/* retrieved articles */}
-          {retrieved && <RetrievedArticles articles={retrieved} T={T} />}
-
-          {/* output */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6,
-            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
-          }}>
-            <Icon name="arrow-left" size={11} color={T.muted} />
-            Model response
-          </div>
-          <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
         </div>
       )}
     </div>
