@@ -668,12 +668,12 @@ export default function HowItWorksPage() {
           ]}
           outputJson={`{
   "type": "question",
-  "answer": "The maximum card spending limit you can set is SGD 5,000 per card. Operations that would exceed this cap are hard-blocked and will not be created.",
+  "answer": "The daily spending limit is set by Reap for security reasons. The baseline is 100,000 USD per card per day for USD cards and 780,000 HKD per card per day for HKD cards. To request an increase, contact Reap support with your justification.",
   "sources": [
     {
-      "id": "card-limits-policy",
-      "title": "Card Spending Limits & Bulk Operations",
-      "snippet": "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval..."
+      "id": "13939502996879",
+      "title": "How can I increase my card's daily spending limit?",
+      "snippet": "Your card daily Spending Limit is the maximum card transaction ceiling set by Reap for security reasons..."
     }
   ]
 }`}
