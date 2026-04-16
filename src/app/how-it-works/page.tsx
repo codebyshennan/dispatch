@@ -150,12 +150,12 @@ function CodeBlock({ children, lang, T }: {
 
 // ── shared primitives ────────────────────────────────────────────────────────
 
-function SectionHeading({ num, title, sub, T }: {
-  num: number; title: string; sub: string;
+function SectionHeading({ id, num, title, sub, T }: {
+  id?: string; num: number; title: string; sub: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div id={id} style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
         <span style={{
           display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -172,9 +172,9 @@ function SectionHeading({ num, title, sub, T }: {
   );
 }
 
-function SubHeading({ children, T }: { children: React.ReactNode; T: ReturnType<typeof useTheme>["T"] }) {
+function SubHeading({ id, children, T }: { id?: string; children: React.ReactNode; T: ReturnType<typeof useTheme>["T"] }) {
   return (
-    <h3 style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: "28px 0 10px", fontFamily: T.fontMono }}>
+    <h3 id={id} style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: "28px 0 10px", fontFamily: T.fontMono }}>
       {children}
     </h3>
   );
