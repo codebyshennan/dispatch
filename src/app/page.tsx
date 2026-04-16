@@ -233,7 +233,7 @@ function UserBubble({
       <div style={{
         maxWidth: "80%", borderRadius: "12px 12px 4px 12px",
         padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
-        background: T.accent, color: "#0F172A",
+        background: T.accent, color: T.onAccent,
         whiteSpace: "pre-wrap",
       }}>
         {entry.text}
@@ -382,7 +382,7 @@ function BulkOpCard({
             onClick={onReview}
             style={{
               borderRadius: 8, border: "none",
-              background: T.accent, color: "#0F172A",
+              background: T.accent, color: T.onAccent,
               padding: "7px 14px", fontSize: 13, fontWeight: 600,
               fontFamily: T.fontBody, cursor: "pointer",
               transition: "opacity 0.15s ease",
