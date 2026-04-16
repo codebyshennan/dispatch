@@ -775,15 +775,22 @@ export default function OpsPage() {
     // Capture context before thread update (setThread is async)
     const { conversationHistory, recentJobId } = buildRequestContext(thread);
 
+    // Persist user message — create thread on first message, append on subsequent
+    let activeThreadId = threadId;
+    if (!activeThreadId) {
+      activeThreadId = await createThread({ firstMessage: userText });
+      setThreadId(activeThreadId);
+    } else if (!targetPairId) {
+      await appendMessage({ threadId: activeThreadId, role: "user", content: userText });
+    }
+
     if (targetPairId) {
-      // Replace existing response with loading
       setThread((prev) => prev.map((e) =>
         e.pairId === targetPairId && e.kind !== "user"
           ? { id: responseId, pairId, kind: "loading", userText }
           : e
       ));
     } else {
-      // Append new user + loading pair
       setThread((prev) => [
         ...prev,
         { id: uid(), pairId, kind: "user", text: userText },
@@ -801,6 +808,14 @@ export default function OpsPage() {
             ? { id: responseId, pairId, kind: "answer", text: result.answer, sources: result.sources, userText }
             : e
         ));
+        if (activeThreadId) {
+          await appendMessage({
+            threadId: activeThreadId,
+            role: "assistant",
+            content: result.answer,
+            kind: "answer",
+          });
+        }
       } else {
         const { intent } = result;
 
@@ -810,6 +825,14 @@ export default function OpsPage() {
               ? { id: responseId, pairId, kind: "unsupported", intent: intent.intent, userText }
               : e
           ));
+          if (activeThreadId) {
+            await appendMessage({
+              threadId: activeThreadId,
+              role: "assistant",
+              content: `Unsupported intent: ${intent.intent}`,
+              kind: "unsupported",
+            });
+          }
         } else {
           const idempotencyKey = `${intent.targetGroup}:${intent.intent}:${intent.newLimit.currency}${intent.newLimit.amount}:${Date.now()}`;
           const jobId = await createDraft({
@@ -833,10 +856,18 @@ export default function OpsPage() {
                 }
               : e
           ));
+          if (activeThreadId) {
+            await appendMessage({
+              threadId: activeThreadId,
+              role: "assistant",
+              content: `Planned bulk operation: ${intent.targetGroup} → ${intent.newLimit.currency} ${intent.newLimit.amount.toLocaleString()}`,
+              kind: "bulk_op",
+              jobId,
+            });
+          }
         }
       }
     } catch (err) {
-      // Remove the loading entry on error (don't leave ghost)
       setThread((prev) => prev.filter((e) => e.id !== responseId));
       toast.error("Something went wrong", {
         description: err instanceof Error ? err.message : "Please try again.",
