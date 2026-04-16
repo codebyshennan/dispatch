@@ -606,22 +606,8 @@ kb_articles: defineTable({
 
         <SubHeading T={T}>RAG pipeline</SubHeading>
         <p style={body}>
-          Retrieval is multi-stage. Each stage runs before the LLM is called so that the model receives grounded context rather than generating from memory alone.
+          Each query runs through four stages before the LLM is called: the operator's message is embedded (1,536-dim, text-embedding-3-small), the top-4 candidates are retrieved by cosine similarity, each article is truncated to a 200-char snippet and injected into the system prompt, and the LLM acts as a reranker by citing only the articles it actually used. See the guided examples above for a concrete trace of both paths.
         </p>
-
-        <Card title="1 · Chunking" T={T}>
-          Each article is treated as a single chunk. The title and body are concatenated and truncated to 8,000 chars for embedding; only the first 2,000 chars of the body are stored in the database, keeping document payloads lean without affecting embedding quality.
-        </Card>
-        <Card title="2 · Embedding" T={T}>
-          Each chunk is encoded into a 1,536-dimensional vector using text-embedding-3-small via OpenRouter. The same model and dimensionality are used at both ingestion and query time, keeping the embedding space consistent.
-        </Card>
-        <Card title="3 · Retrieval" T={T}>
-          The operator's message is embedded with the same model. Convex's vector search performs approximate nearest-neighbour search against the stored embeddings, returning the top-5 candidates by cosine similarity.
-        </Card>
-        <Card title="4 · Reranking" T={T}>
-          The top-5 candidates are passed to the LLM as a grounding block. The model acts as an implicit reranker — it selects which articles are actually relevant and cites only those in its response, filtering out low-signal hits before they surface in the UI.
-        </Card>
-
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — searchKB action
 const [embedding] = await embedTexts(client, [args.query]);
 const hits = await ctx.vectorSearch("kb_articles", "by_embedding", {
