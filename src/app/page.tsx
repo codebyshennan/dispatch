@@ -733,6 +733,10 @@ export default function OpsPage() {
   const [submitting, setSubmitting] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const [threadId, setThreadId] = useState<ThreadId | null>(null);
+  const createThread = useMutation(api.threads.createThread);
+  const appendMessage = useMutation(api.threads.appendMessage);
+
   const processRequest = useAction(api.interpreter.processRequest);
   const createDraft = useMutation(api.jobs.createDraft);
 
