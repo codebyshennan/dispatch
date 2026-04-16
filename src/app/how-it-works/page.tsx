@@ -1039,25 +1039,20 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         </p>
 
         <SubHeading id="draft-confirm-fanout" T={T}>Draft → confirm → fan-out</SubHeading>
-        <img
+        <Figure
           src="/diagrams/dispatch-job-state-machine.png"
           alt="Job State Machine diagram"
-          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+          caption="Job states — the dashed arc from completed_with_failures back to in-progress is operator-triggered via the retry failed items action."
+          T={T}
         />
-        <Flow steps={[
-          { label: "Create draft", sub: "status: draft", variant: "accent" },
-          { label: "User confirms", sub: "confirm button", variant: "default" },
-          { label: "Confirm job", sub: "Convex mutation", variant: "accent" },
-          { label: "Job items", sub: "one per eligible card", variant: "default" },
-          { label: "Scheduler", sub: "staggered fan-out", variant: "accent" },
-        ]} T={T} />
-        <img
+        <Figure
           src="/diagrams/dispatch-fanout-timing.png"
           alt="Fan-out timing diagram"
-          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+          caption="10 cards spread across a ~3,000ms window — Card 4 fails on first attempt and retries 2s later via exponential backoff."
+          T={T}
         />
         <p style={body}>
-          Confirming the job transitions it to in-progress, inserts a job item record for every card — frozen and cancelled cards are inserted as skipped immediately — then schedules each eligible item with a random stagger of 500–3,500 ms. This is a <em>fan-out</em>: one independent task triggered per eligible card. The random delay prevents all cards from executing simultaneously (thundering herd), and simulates realistic async timing. The frontend subscribes via a live query and re-renders as items complete.
+          Confirming the job transitions it to in-progress and inserts one item per card — frozen and cancelled cards are inserted as skipped immediately. The frontend subscribes via a live query and re-renders as items complete.
         </p>
         <p style={body}>
           Once items are in flight, failures become the primary concern. Section 3 covers how the executor retries individual items, how operators can re-queue permanent failures, and what happens when the LLM or a card operation goes wrong.
