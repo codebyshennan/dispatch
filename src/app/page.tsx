@@ -517,7 +517,7 @@ function JobPreviewCard({
           style={{
             flex: 1, borderRadius: 8, border: "none",
             background: isBlocked ? T.elevated : T.accent,
-            color: isBlocked ? T.muted : "#0F172A",
+            color: isBlocked ? T.muted : T.onAccent,
             padding: "8px 14px", fontSize: 13, fontWeight: 600,
             fontFamily: T.fontBody,
             cursor: isBlocked ? "not-allowed" : "pointer",
