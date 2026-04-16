@@ -773,7 +773,14 @@ kb_articles: defineTable({
 
         <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
         <p style={body}>
-          Each query runs through four stages before the LLM is called: the operator&apos;s message is embedded (1,536-dim, text-embedding-3-small), the top-4 candidates are retrieved by ANN (Approximate Nearest Neighbor) cosine similarity, each article body is truncated to a 200-char snippet from its stored 2,000-char body and injected into the system prompt, and the LLM acts as a <em>reranker</em> — it reads all four candidates but cites only the articles it actually used, filtering out low-relevance results. See the guided examples above for a concrete trace of both paths.
+          Each query runs through four stages before the LLM is called:
+          <ol style={{ margin: "8px 0 8px 0", paddingLeft: 20, lineHeight: 1.8 }}>
+            <li><strong>Embed</strong> — the operator&apos;s message is converted to a 1,536-dim vector via text-embedding-3-small.</li>
+            <li><strong>Retrieve</strong> — the top-4 candidates are fetched by ANN (Approximate Nearest Neighbor) cosine similarity.</li>
+            <li><strong>Inject</strong> — each article body is truncated to a 200-char snippet and formatted into a KB context block prepended to the system prompt.</li>
+            <li><strong>Rerank</strong> — the LLM reads all four candidates but cites only the articles it actually used, filtering out low-relevance results.</li>
+          </ol>
+          See the guided examples above for a concrete trace of both paths.
         </p>
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — searchKB action
 const [embedding] = await embedTexts(client, [args.query]);
