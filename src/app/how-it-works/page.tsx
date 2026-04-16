@@ -1029,6 +1029,11 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
           { label: "Job items", sub: "one per eligible card", variant: "default" },
           { label: "Scheduler", sub: "staggered fan-out", variant: "accent" },
         ]} T={T} />
+        <img
+          src="/diagrams/dispatch-fanout-timing.png"
+          alt="Fan-out timing diagram"
+          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+        />
         <p style={body}>
           Confirming the job transitions it to in-progress, inserts a job item record for every card — frozen and cancelled cards are inserted as skipped immediately — then schedules each eligible item with a random stagger of 500–3,500 ms. This is a <em>fan-out</em>: one independent task triggered per eligible card. The random delay prevents all cards from executing simultaneously (thundering herd), and simulates realistic async timing. The frontend subscribes via a live query and re-renders as items complete.
         </p>
