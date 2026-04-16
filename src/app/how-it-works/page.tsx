@@ -761,7 +761,7 @@ await ctx.runMutation(internal.kb_queries.insertArticles, {
   })),
 });`}</CodeBlock>
         <p style={body}>
-          The schema declares a vector index on the embedding field, which Convex uses for approximate nearest-neighbour search at query time:
+          The schema declares a vector index on the embedding field. Declaring a {mono("vectorIndex")} tells Convex to build an optimised ANN index over that field, enabling fast cosine-similarity lookups at query time without a full table scan:
         </p>
         <CodeBlock lang="typescript" T={T}>{`// convex/schema.ts
 kb_articles: defineTable({
