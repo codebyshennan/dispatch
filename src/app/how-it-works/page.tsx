@@ -627,10 +627,10 @@ export default function HowItWorksPage() {
             { icon: "check",    label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
           ]}
           retrieved={[
-            { title: "Card Spending Limits & Bulk Operations", score: 0.91, snippet: "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval before execution." },
-            { title: "Managing Team Card Permissions", score: 0.79, snippet: "Admins can view and update card limits from the Cards tab. Changes apply immediately and are logged for audit." },
-            { title: "Bulk Operations & Approval Workflows", score: 0.73, snippet: "Operations affecting more than 25 eligible cards are subject to an approval workflow. The requester must confirm before execution begins." },
-            { title: "Card Status Management", score: 0.58, snippet: "Cards in frozen or cancelled status are automatically excluded from bulk operations and counted as skipped." },
+            { title: "How to Update Reap Card Spend Limit?", score: 0.91, snippet: "To edit the spend limit of your Reap Card, go to the Reap dashboard, click on Reap Card, select the Cards tab, locate the Menu icon on the card you wish to update, and choose Edit Spend Limit." },
+            { title: "Team Permissions User Level Comparisons - Reap Card", score: 0.79, snippet: "Admins can view and manage all cards and spending limits. Group Owners can manage cards within their group. Team Members can view their own card details only." },
+            { title: "How to freeze and unfreeze a card?", score: 0.73, snippet: "To freeze your credit card, log into the Reap Card dashboard, select Cards from the drop-down menu, click the 3 vertical dots on the card you wish to freeze, and select Freeze Card." },
+            { title: "Reap Card Pricing and Fees", score: 0.58, snippet: "Reap Card is a secured corporate credit card with no annual or hidden fees. Monthly repayment is required. Multiple repayment options are available with no interest if paid on time." },
           ]}
           outputJson={`{
   "type": "bulk_op",
