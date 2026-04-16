@@ -1054,6 +1054,11 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         />
 
         <SubHeading id="per-item-retry" T={T}>Card executor — per-item retry</SubHeading>
+        <img
+          src="/diagrams/dispatch-retry-flow.png"
+          alt="Per-item retry flowchart"
+          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+        />
         <p style={body}>
           Each card item runs in its own Convex internal action. Each invocation simulates a card API call, determines the outcome, and either marks the item terminal or re-schedules itself with exponential backoff:
         </p>
