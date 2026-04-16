@@ -537,7 +537,7 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
       </button>
 
       {open && (
-        <div style={{ padding: "16px 16px 4px" }}>
+        <div id={`${id}-content`} style={{ padding: "16px 16px 4px" }}>
           {/* input */}
           <div style={{
             display: "flex", alignItems: "center", gap: 6,
