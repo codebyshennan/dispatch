@@ -922,14 +922,12 @@ export default function HowItWorksPage() {
         </p>
 
         <SubHeading id="kb-ingestion" T={T}>KB ingestion</SubHeading>
-        <img
+        <Figure
           src="/diagrams/dispatch-kb-ingestion.png"
           alt="KB Ingestion Pipeline diagram"
-          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+          caption="Seed action — 115 articles streamed from JSONL in batches of 20, embedded at full length (8,000 chars), then stored truncated (2,000 chars) alongside the float64[] vector."
+          T={T}
         />
-        <p style={body}>
-          The ops app seeds its own vector index from 115 Reap help-centre articles (cards, payments, onboarding, accounting integrations, team permissions) stored in a JSONL file. The seed action streams the file line-by-line and processes articles in batches of 20.
-        </p>
         <Note T={T} variant="warn">
           The KB is scraped from Reap's public help centre — articles written for cardholders, not for the ops team. For the question path this is the right source: the ops team is answering customer queries and needs the same reference material. For the bulk op path, KB retrieval provides policy context (fee structures, currency rules, MCC restrictions) rather than procedural guidance — the ops team already knows how to run the operation.
         </Note>
