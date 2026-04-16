@@ -754,7 +754,7 @@ export default function HowItWorksPage() {
           How Dispatch works
         </h1>
         <p style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>
-          Implementation details — data capture, inference pipeline, and exception handling.
+          Guided examples, data capture, inference pipeline, and exception handling.
         </p>
         <Note T={T}>
           <strong>Scope:</strong> This page documents the <strong>ops app</strong> — a Convex-backed chat interface used by Reap&apos;s CX operations team to bulk-update cards and look up policy. It is a separate system from the Zendesk ticket-classification pipeline.
