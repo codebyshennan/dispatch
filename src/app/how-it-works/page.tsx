@@ -757,7 +757,11 @@ kb_articles: defineTable({
   .index("by_article_id", ["articleId"])
   .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
 
-        <SubHeading T={T}>RAG pipeline</SubHeading>
+        <SubHeading id="kb-ingestion" T={T}>KB ingestion</SubHeading>
+        <p style={body}>
+          The ops app seeds its own vector index from 115 Reap help-centre articles (cards, payments, onboarding, accounting integrations, team permissions) stored in a JSONL file. The seed action streams the file line-by-line and processes articles in batches of 20.
+        </p>
+        <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
         <p style={body}>
           Each query runs through four stages before the LLM is called: the operator's message is embedded (1,536-dim, text-embedding-3-small), the top-4 candidates are retrieved by cosine similarity, each article is truncated to a 200-char snippet and injected into the system prompt, and the LLM acts as a reranker by citing only the articles it actually used. See the guided examples above for a concrete trace of both paths.
         </p>
