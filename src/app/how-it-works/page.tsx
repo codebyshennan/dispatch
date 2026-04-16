@@ -590,7 +590,8 @@ export default function HowItWorksPage() {
   const body = { fontSize: 13, color: T.textSub, lineHeight: 1.7, marginBottom: 12 } as const;
 
   return (
-    <main style={{ maxWidth: 700, margin: "0 auto", padding: "48px 24px 80px" }}>
+    <div style={{ maxWidth: 960, margin: "0 auto", padding: "48px 24px 80px", display: "flex", gap: 56, alignItems: "flex-start" }}>
+      <main style={{ flex: 1, minWidth: 0 }}>
       <div style={{ marginBottom: 40 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: T.text, margin: 0, fontFamily: T.fontMono }}>
           How Dispatch works
@@ -603,25 +604,27 @@ export default function HowItWorksPage() {
       {/* ── 0. Guided examples ── */}
       <section>
         <SectionHeading
+          id="guided-examples"
           num={0} title="Guided examples"
           sub="Two end-to-end traces showing how a single operator message becomes a card operation or a grounded answer."
           T={T}
         />
 
         <ExampleBlock
+          id="example-bulk"
           badge="bulk op"
           badgeColor={T.accent}
           title="Execute card orders"
           sub="Operator raises card limits for an entire team"
           inputPrompt={`Set Marketing team card limits to SGD 2,000`}
           steps={[
-            { icon: "🔤", label: "Embed query", sub: "\"Set Marketing team card limits to SGD 2,000\" → 1,536-dim vector via text-embedding-3-small" },
-            { icon: "🔍", label: "Vector search", sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
-            { icon: "✂️", label: "Trim & inject", sub: "Each article truncated to 200-char snippet · formatted as KB context block in system prompt" },
-            { icon: "🤖", label: "Classify intent", sub: "gpt-5.4-mini reads KB context · identifies bulk_op · extracts target group + limit" },
-            { icon: "🛡", label: "Policy check", sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled excluded" },
-            { icon: "📋", label: "Create draft", sub: "Job record written with status: draft · idempotency key checked before insert" },
-            { icon: "✅", label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
+            { icon: "type",     label: "Embed query",    sub: "\"Set Marketing team card limits to SGD 2,000\" → 1,536-dim vector via text-embedding-3-small" },
+            { icon: "search",   label: "Vector search",  sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
+            { icon: "funnel",   label: "Trim & inject",  sub: "Each article truncated to 200-char snippet · formatted as KB context block in system prompt" },
+            { icon: "cpu",      label: "Classify intent",sub: "gpt-5.4-mini reads KB context · identifies bulk_op · extracts target group + limit" },
+            { icon: "shield",   label: "Policy check",   sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled excluded" },
+            { icon: "file",     label: "Create draft",   sub: "Job record written with status: draft · idempotency key checked before insert" },
+            { icon: "check",    label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
           ]}
           retrieved={[
             { title: "Card Spending Limits & Bulk Operations", score: 0.91, snippet: "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval before execution." },
@@ -643,18 +646,19 @@ export default function HowItWorksPage() {
         />
 
         <ExampleBlock
+          id="example-question"
           badge="question"
           badgeColor="#10B981"
           title="Search for information"
           sub="Operator asks about policy limits — answered inline from the KB"
           inputPrompt={`What is the maximum spending limit I can set per card?`}
           steps={[
-            { icon: "🔤", label: "Embed query", sub: "\"What is the maximum spending limit...\" → 1,536-dim vector via text-embedding-3-small" },
-            { icon: "🔍", label: "Vector search", sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
-            { icon: "✂️", label: "Trim & inject", sub: "Snippets formatted as KB context block · injected at the top of the system prompt" },
-            { icon: "🤖", label: "Answer + rerank", sub: "gpt-5.4-mini reads all 4 candidates · selects only article 1 as relevant · cites its ID" },
-            { icon: "📎", label: "Map citations", sub: "Article ID in response mapped back to retrieved doc · rendered as inline source card" },
-            { icon: "💬", label: "Render inline", sub: "Answer + source card displayed in chat · no job created · feedback captured by response ID" },
+            { icon: "type",     label: "Embed query",    sub: "\"What is the maximum spending limit...\" → 1,536-dim vector via text-embedding-3-small" },
+            { icon: "search",   label: "Vector search",  sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
+            { icon: "funnel",   label: "Trim & inject",  sub: "Snippets formatted as KB context block · injected at the top of the system prompt" },
+            { icon: "cpu",      label: "Answer + rerank",sub: "gpt-5.4-mini reads all 4 candidates · selects only article 1 as relevant · cites its ID" },
+            { icon: "link",     label: "Map citations",  sub: "Article ID in response mapped back to retrieved doc · rendered as inline source card" },
+            { icon: "message",  label: "Render inline",  sub: "Answer + source card displayed in chat · no job created · feedback captured by response ID" },
           ]}
           retrieved={[
             { title: "Card Spending Limits & Bulk Operations", score: 0.93, snippet: "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval before execution.", cited: true },
@@ -686,12 +690,13 @@ export default function HowItWorksPage() {
       {/* ── 1. Data capture ── */}
       <section>
         <SectionHeading
+          id="data-capture"
           num={1} title="Data capture"
           sub="How ops requests are captured and how the KB is ingested."
           T={T}
         />
 
-        <SubHeading T={T}>Ops chat input</SubHeading>
+        <SubHeading id="ops-chat-input" T={T}>Ops chat input</SubHeading>
         <p style={body}>
           In the ops app, input arrives as a natural language string typed into the chat interface. The frontend invokes a Convex action, passing the raw string and the full conversation history for context.
         </p>
