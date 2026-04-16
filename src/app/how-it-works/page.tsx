@@ -845,10 +845,7 @@ export default function HowItWorksPage() {
         />
 
         <Note T={T}>
-          Both paths share the same request handler. The response is a discriminated union — a TypeScript pattern where the shape of the object differs based on a {mono("type")} field ({mono('"question"')} vs {mono('"bulk_op"')}). The frontend switches on that field to decide what to render; there are no separate routes or endpoints.
-        </Note>
-        <Note T={T} variant="warn">
-          The KB is scraped from Reap's public help centre — articles written for cardholders, not for the ops team. For the question path this is the right source: the ops team is answering customer queries and needs the same reference material. For the bulk op path, KB retrieval provides policy context (fee structures, currency rules, MCC restrictions) rather than procedural guidance — the ops team already knows how to run the operation.
+          Both paths share the same request handler. The response is a discriminated union — the shape of the object differs based on a {mono("type")} field ({mono('"question"')} vs {mono('"bulk_op"')}). The frontend switches on that field to decide what to render; there are no separate routes or endpoints. Section 1 shows the TypeScript types; Section 2 covers how the model produces them.
         </Note>
       </section>
 
