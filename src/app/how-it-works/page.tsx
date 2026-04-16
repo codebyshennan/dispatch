@@ -964,7 +964,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         <SectionHeading
           id="inference"
           num={2} title="Inference"
-          sub="How the LLM classifies intent and the policy engine validates it."
+          sub="Intent classification, policy validation, and the draft → confirm → fan-out job lifecycle."
           T={T}
         />
 
