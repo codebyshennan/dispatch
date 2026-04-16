@@ -790,12 +790,13 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
       {/* ── 2. Inference ── */}
       <section>
         <SectionHeading
+          id="inference"
           num={2} title="Inference"
           sub="How the LLM classifies intent and the policy engine validates it."
           T={T}
         />
 
-        <SubHeading T={T}>Intent classification</SubHeading>
+        <SubHeading id="intent-classification" T={T}>Intent classification</SubHeading>
         <p style={body}>
           The request handler sends the user message to gpt-5.4-mini via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only. The response is one of two discriminated shapes:
         </p>
