@@ -545,7 +545,7 @@ export default function HowItWorksPage() {
 
         <SubHeading T={T}>Ops chat input</SubHeading>
         <p style={body}>
-          In the ops app, input arrives as a natural language string typed into the chat interface. The frontend calls {mono("processRequest")} — a Convex action — passing the raw string and the full conversation history for context.
+          In the ops app, input arrives as a natural language string typed into the chat interface. The frontend invokes a Convex action, passing the raw string and the full conversation history for context.
         </p>
 
         <Flow steps={[
