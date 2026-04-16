@@ -1016,6 +1016,9 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         <p style={body}>
           Confirming the job transitions it to in-progress, inserts a job item record for every card — frozen and cancelled cards are inserted as skipped immediately — then schedules each eligible item with a random stagger of 500–3,500 ms. This is a <em>fan-out</em>: one independent task triggered per eligible card. The random delay prevents all cards from executing simultaneously (thundering herd), and simulates realistic async timing. The frontend subscribes via a live query and re-renders as items complete.
         </p>
+        <p style={body}>
+          Once items are in flight, failures become the primary concern. Section 3 covers how the executor retries individual items, how operators can re-queue permanent failures, and what happens when the LLM or a card operation goes wrong.
+        </p>
       </section>
 
       {divider}
