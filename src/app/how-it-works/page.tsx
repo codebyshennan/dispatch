@@ -318,9 +318,57 @@ function ExampleConnector({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
   );
 }
 
-function ExampleBlock({ badge, badgeColor, title, sub, steps, inputPrompt, outputJson, T }: {
+type RetrievedArticle = { title: string; score: number; snippet: string; cited?: boolean };
+
+function RetrievedArticles({ articles, T }: {
+  articles: RetrievedArticle[];
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  const scoreColor = (s: number) =>
+    s >= 0.85 ? "#10B981" : s >= 0.65 ? "#F59E0B" : T.muted;
+
+  return (
+    <div style={{ margin: "14px 0 16px" }}>
+      <div style={{
+        fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 8,
+        fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+      }}>
+        📚 KB articles retrieved
+      </div>
+      {articles.map((a, i) => (
+        <div key={i} style={{
+          display: "flex", alignItems: "flex-start", gap: 10,
+          padding: "8px 10px", borderRadius: 6, marginBottom: 5,
+          border: `1px solid ${a.cited ? T.accent + "50" : T.border}`,
+          background: a.cited ? T.accent + "0a" : T.surface,
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: a.cited ? T.accent : T.text }}>{a.title}</span>
+              {a.cited && (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, letterSpacing: "0.06em",
+                  color: T.accent, background: T.accent + "20",
+                  padding: "1px 5px", borderRadius: 3, fontFamily: T.fontMono,
+                }}>CITED</span>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.5 }}>{a.snippet}</div>
+          </div>
+          <div style={{ flexShrink: 0, textAlign: "right", paddingTop: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: scoreColor(a.score), fontFamily: T.fontMono }}>{a.score.toFixed(2)}</div>
+            <div style={{ fontSize: 10, color: T.muted }}>score</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ExampleBlock({ badge, badgeColor, title, sub, steps, retrieved, inputPrompt, outputJson, T }: {
   badge: string; badgeColor: string; title: string; sub: string;
   steps: { icon: string; label: string; sub: string }[];
+  retrieved?: RetrievedArticle[];
   inputPrompt: string; outputJson: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
@@ -361,7 +409,7 @@ function ExampleBlock({ badge, badgeColor, title, sub, steps, inputPrompt, outpu
         <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px", fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
           ⚙ What Dispatch does
         </div>
-        <div style={{ paddingLeft: 4, marginBottom: 16 }}>
+        <div style={{ paddingLeft: 4 }}>
           {steps.map((s, i) => (
             <React.Fragment key={i}>
               <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
@@ -369,6 +417,9 @@ function ExampleBlock({ badge, badgeColor, title, sub, steps, inputPrompt, outpu
             </React.Fragment>
           ))}
         </div>
+
+        {/* retrieved articles */}
+        {retrieved && <RetrievedArticles articles={retrieved} T={T} />}
 
         {/* output */}
         <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6, fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
