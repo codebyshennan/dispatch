@@ -898,6 +898,11 @@ export default function HowItWorksPage() {
         </p>
 
         <SubHeading id="kb-ingestion" T={T}>KB ingestion</SubHeading>
+        <img
+          src="/diagrams/dispatch-kb-ingestion.png"
+          alt="KB Ingestion Pipeline diagram"
+          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+        />
         <p style={body}>
           The ops app seeds its own vector index from 115 Reap help-centre articles (cards, payments, onboarding, accounting integrations, team permissions) stored in a JSONL file. The seed action streams the file line-by-line and processes articles in batches of 20.
         </p>
