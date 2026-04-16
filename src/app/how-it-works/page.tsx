@@ -502,13 +502,16 @@ function RetrievedArticles({ articles, T }: {
   );
 }
 
-function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inputPrompt, outputJson, T }: {
+function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, retrievedAfterStep, inputPrompt, outputJson, T }: {
   id: string; badge: string; badgeColor: string; title: string; sub: string;
   steps: { icon: string; label: string; sub: string }[];
   retrieved?: RetrievedArticle[];
+  retrievedAfterStep?: number;
   inputPrompt: string; outputJson: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
+  const insertAt = retrieved && retrievedAfterStep !== undefined ? retrievedAfterStep : -1;
+
   return (
     <div id={id} style={{ border: `1px solid ${T.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       {/* header */}
@@ -555,10 +558,18 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
           {steps.map((s, i) => (
             <React.Fragment key={i}>
               <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
-              {i < steps.length - 1 && <ExampleConnector T={T} />}
+              {i === insertAt ? (
+                <>
+                  <ExampleConnector T={T} />
+                  <RetrievedArticles articles={retrieved!} T={T} />
+                  {i < steps.length - 1 && <ExampleConnector T={T} />}
+                </>
+              ) : (
+                i < steps.length - 1 && <ExampleConnector T={T} />
+              )}
             </React.Fragment>
           ))}
-          {retrieved && (
+          {retrieved && insertAt === -1 && (
             <>
               <ExampleConnector T={T} />
               <RetrievedArticles articles={retrieved} T={T} />
