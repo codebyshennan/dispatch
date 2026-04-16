@@ -110,8 +110,8 @@ export function NavHeader() {
 
       {/* Nav links */}
       <div style={{ display: "flex", alignItems: "center", gap: 2, marginLeft: 12 }}>
-        <NavLink href="/" label="New job" icon={<PlusIcon />} />
-        <NavLink href="/jobs" label="Job history" icon={<ClockIcon />} />
+        <NavLink href="/" label="New thread" icon={<PlusIcon />} />
+        <NavLink href="/jobs" label="Thread history" icon={<ClockIcon />} />
         <NavLink href="/metrics" label="Metrics" icon={<BarChartIcon />} />
         <NavLink href="/how-it-works" label="How it works" icon={<InfoIcon />} />
       </div>
