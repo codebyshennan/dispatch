@@ -19,6 +19,7 @@ import type * as metrics from "../metrics.js";
 import type * as queries from "../queries.js";
 import type * as runbooks from "../runbooks.js";
 import type * as seed from "../seed.js";
+import type * as threads from "../threads.js";
 
 import type {
   ApiFromModules,
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   queries: typeof queries;
   runbooks: typeof runbooks;
   seed: typeof seed;
+  threads: typeof threads;
 }>;
 
 /**
