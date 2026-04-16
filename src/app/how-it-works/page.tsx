@@ -895,6 +895,9 @@ export default function HowItWorksPage() {
         <p style={body}>
           The ops app seeds its own vector index from 115 Reap help-centre articles (cards, payments, onboarding, accounting integrations, team permissions) stored in a JSONL file. The seed action streams the file line-by-line and processes articles in batches of 20.
         </p>
+        <Note T={T} variant="warn">
+          The KB is scraped from Reap's public help centre — articles written for cardholders, not for the ops team. For the question path this is the right source: the ops team is answering customer queries and needs the same reference material. For the bulk op path, KB retrieval provides policy context (fee structures, currency rules, MCC restrictions) rather than procedural guidance — the ops team already knows how to run the operation.
+        </Note>
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — seed pipeline (batched 20 articles at a time)
 const texts = batch.map(a => \`\${a.title}\\n\\n\${a.body}\`.slice(0, 8000));
 const embeddings = await embedTexts(client, texts);   // text-embedding-3-small, 1536-dim
