@@ -651,7 +651,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
 
         <SubHeading T={T}>Card executor — per-item retry</SubHeading>
         <p style={body}>
-          {mono("executeItem")} is a Convex internalAction. Each invocation simulates a card API call, determines the outcome, and either marks the item terminal or re-schedules itself with exponential backoff:
+          Each card item runs in its own Convex internal action. Each invocation simulates a card API call, determines the outcome, and either marks the item terminal or re-schedules itself with exponential backoff:
         </p>
         <CodeBlock lang="typescript" T={T}>{`// src/lib/executor-logic.ts
 export const MAX_RETRIES = 3;
