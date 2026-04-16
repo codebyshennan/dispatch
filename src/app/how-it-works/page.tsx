@@ -356,9 +356,9 @@ function NavRail({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
   const [active, setActive] = React.useState("");
 
   React.useEffect(() => {
-    const allIds = NAV_SECTIONS.flatMap(s => [s.id, ...s.children.map(c => c.id)]);
+    const reverseIds = NAV_SECTIONS.flatMap(s => [s.id, ...s.children.map(c => c.id)]).reverse();
     const handleScroll = () => {
-      for (const id of [...allIds].reverse()) {
+      for (const id of reverseIds) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top <= 100) {
           setActive(id);
