@@ -701,12 +701,12 @@ export function isRetryExhausted(retryCount: number): boolean {
 
         <SubHeading T={T}>Cancel</SubHeading>
         <p style={body}>
-          {mono("cancelJob")} finds all {mono('"queued"')} items and marks them {mono('"cancelled"')} before patching the job status. In-flight items ({mono('"in_progress"')}) finish naturally — they hit the terminal-status guard on entry and return early. There is no force-kill of running Convex scheduled functions.
+          Cancelling a job finds all queued items and marks them cancelled before patching the job status. In-flight items finish naturally — they hit the terminal-status guard on entry and return early. There is no force-kill of running scheduled functions.
         </p>
 
         <SubHeading T={T}>Graceful degradation</SubHeading>
         <Note T={T} variant="ok">
-          KB unavailability is caught silently inside {mono("processRequest")} — the LLM call proceeds without KB context. Policy failures throw and surface as user-readable error messages in the chat. Partial write failures are not possible here: Convex mutations are transactional.
+          KB unavailability is caught silently — the LLM call proceeds without KB context. Policy failures surface as user-readable error messages in the chat. Partial write failures are not possible: Convex mutations are transactional.
         </Note>
       </section>
     </main>
