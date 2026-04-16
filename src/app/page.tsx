@@ -210,7 +210,7 @@ function UserBubble({
             style={{
               borderRadius: 7, border: "none",
               background: draft.trim() ? T.accent : T.elevated,
-              color: draft.trim() ? "#0F172A" : T.muted,
+              color: draft.trim() ? T.onAccent : T.muted,
               padding: "4px 12px", fontSize: 12, fontWeight: 600,
               fontFamily: T.fontBody,
               cursor: draft.trim() ? "pointer" : "not-allowed",
