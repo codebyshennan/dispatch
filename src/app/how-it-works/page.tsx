@@ -829,6 +829,7 @@ export default function HowItWorksPage() {
             { title: "Understanding Reap Card Transaction Declines", score: 0.62, snippet: "If a Reap Card transaction fails, you can find the reason in your dashboard, mobile app, or email. This guide explains where to find decline details and what each decline code means." },
             { title: "How to use Spend restrictions on Reap Card?", score: 0.55, snippet: "To allow or block certain types of transactions on a Reap Card, go to the Cards tab after logging into the Reap dashboard, select the card, and configure Category or Time-based restrictions." },
           ]}
+          retrievedAfterStep={1}
           outputJson={`{
   "type": "question",
   "answer": "The daily spending limit is set by Reap for security reasons. The baseline is 100,000 USD per card per day for USD cards and 780,000 HKD per card per day for HKD cards. To request an increase, contact Reap support with your justification.",
