@@ -515,6 +515,8 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
       {/* header / toggle */}
       <button
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-controls={`${id}-content`}
         style={{
           width: "100%", background: T.elevated, border: "none", cursor: "pointer",
           padding: "12px 16px", display: "flex", alignItems: "center", gap: 10,
