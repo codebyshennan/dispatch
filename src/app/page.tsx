@@ -1080,7 +1080,7 @@ export default function OpsPage() {
             style={{
               borderRadius: 10, border: "none",
               background: submitting || !input.trim() ? T.elevated : T.accent,
-              color: submitting || !input.trim() ? T.muted : "#0F172A",
+              color: submitting || !input.trim() ? T.muted : T.onAccent,
               padding: "10px 20px", fontSize: 14, fontWeight: 600,
               fontFamily: T.fontBody,
               cursor: submitting || !input.trim() ? "not-allowed" : "pointer",
