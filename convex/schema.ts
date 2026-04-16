@@ -111,6 +111,19 @@ export default defineSchema({
   }).index("by_type", ["type"]),
 
   /**
+   * Conversation threads — one per session on the ops main page.
+   * Each message is either a user turn or an assistant response summary.
+   */
+  threads: defineTable({
+    messages: v.array(v.object({
+      role: v.union(v.literal("user"), v.literal("assistant")),
+      content: v.string(),
+      kind: v.optional(v.string()),
+      jobId: v.optional(v.id("jobs")),
+    })),
+  }),
+
+  /**
    * KB help-center articles with OpenAI embeddings for semantic search.
    */
   kb_articles: defineTable({
