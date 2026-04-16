@@ -762,6 +762,11 @@ export default function HowItWorksPage() {
           <br /><br />
           <strong>Audience:</strong> Engineers onboarding to the ops app codebase. <em>Operators</em> are members of Reap&apos;s CX ops team who use the app to manage customer support and card operations.
         </Note>
+        <img
+          src="/diagrams/dispatch-how-it-works.png"
+          alt="How Dispatch Works — full pipeline diagram"
+          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "8px 0 20px" }}
+        />
       </div>
 
       {/* ── 0. Guided examples ── */}
