@@ -291,6 +291,132 @@ function Flow({ steps, T }: {
   );
 }
 
+// ── icons ─────────────────────────────────────────────────────────────────────
+
+const ICONS: Record<string, string> = {
+  "search":        "M6 1a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM10 10L14 14",
+  "type":          "M4 4h8M8 4v8M5 12h6",
+  "funnel":        "M2.5 4h11L9 10v4.5l-2-1.5V10L2.5 4z",
+  "cpu":           "M5 4h6v8H5zM3 7h2M3 10h2M11 7h2M11 10h2M7 2v2M10 2v2M7 12v2M10 12v2M7 7h2v2H7z",
+  "shield":        "M8 2L2 5v4c0 3 2.5 5 6 6.5C11.5 14 14 12 14 9V5L8 2z",
+  "file":          "M4 2h5l5 5v9H4V2zM9 2v5h5M6 9h4M6 12h4",
+  "check":         "M3 8l4 4 6-8",
+  "link":          "M5.5 10.5l-2 2a2 2 0 1 0 2.83 2.83l2-2M10.5 5.5l2-2a2 2 0 0 0-2.83-2.83l-2 2M6 10l4-4",
+  "message":       "M2 3h12v8H7L2 14V3z",
+  "database":      "M2 6c0-1.66 2.69-3 6-3s6 1.34 6 3v4c0 1.66-2.69 3-6 3s-6-1.34-6-3V6zM2 8.5c0 1.66 2.69 3 6 3s6-1.34 6-3",
+  "arrow-left":    "M10 8H4M4 8l3-3M4 8l3 3",
+  "settings":      "M8 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.64 3.64l1.06 1.06M11.3 11.3l1.06 1.06M3.64 12.36l1.06-1.06M11.3 4.7l1.06-1.06",
+  "chevron-down":  "M4 6l4 4 4-4",
+  "chevron-right": "M6 4l4 4-4 4",
+  "layers":        "M8 2L2 5l6 3 6-3-6-3zM2 8l6 3 6-3M2 11l6 3 6-3",
+};
+
+function Icon({ name, size = 14, color = "currentColor" }: {
+  name: string; size?: number; color?: string;
+}) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 16 16"
+      fill="none" stroke={color} strokeWidth={1.5}
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ flexShrink: 0, display: "block" }}
+    >
+      <path d={ICONS[name] ?? ""} />
+    </svg>
+  );
+}
+
+// ── nav rail ──────────────────────────────────────────────────────────────────
+
+const NAV_SECTIONS = [
+  { id: "guided-examples", label: "Guided examples", children: [
+    { id: "example-bulk", label: "Execute card orders" },
+    { id: "example-question", label: "Search for information" },
+  ]},
+  { id: "data-capture", label: "Data capture", children: [
+    { id: "ops-chat-input", label: "Ops chat input" },
+    { id: "kb-ingestion", label: "KB ingestion" },
+    { id: "rag-pipeline", label: "RAG pipeline" },
+  ]},
+  { id: "inference", label: "Inference", children: [
+    { id: "intent-classification", label: "Intent classification" },
+    { id: "policy-engine", label: "Policy engine" },
+    { id: "draft-confirm-fanout", label: "Draft → confirm" },
+  ]},
+  { id: "exception-handling", label: "Exception handling", children: [
+    { id: "per-item-retry", label: "Per-item retry" },
+    { id: "retry-failed-items", label: "Retry failed items" },
+    { id: "llm-error-handling", label: "LLM error handling" },
+    { id: "cancel", label: "Cancel" },
+    { id: "graceful-degradation", label: "Graceful degradation" },
+  ]},
+];
+
+function NavRail({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
+  const [active, setActive] = React.useState("");
+
+  React.useEffect(() => {
+    const allIds = NAV_SECTIONS.flatMap(s => [s.id, ...s.children.map(c => c.id)]);
+    const handleScroll = () => {
+      for (const id of [...allIds].reverse()) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 100) {
+          setActive(id);
+          return;
+        }
+      }
+      setActive("");
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <nav style={{
+      width: 152, flexShrink: 0,
+      position: "sticky", top: 48, alignSelf: "flex-start",
+      maxHeight: "calc(100vh - 80px)", overflowY: "auto",
+      paddingBottom: 24,
+    }}>
+      {NAV_SECTIONS.map((section, si) => (
+        <div key={section.id} style={{ marginBottom: 18 }}>
+          <a
+            href={`#${section.id}`}
+            style={{
+              display: "block", textDecoration: "none",
+              fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+              textTransform: "uppercase", fontFamily: T.fontMono,
+              color: active === section.id ? T.accent : T.text,
+              marginBottom: 5,
+            }}
+          >
+            {section.label}
+          </a>
+          {section.children.map(child => (
+            <a
+              key={child.id}
+              href={`#${child.id}`}
+              style={{
+                display: "block", textDecoration: "none",
+                fontSize: 11, lineHeight: 1.5, marginBottom: 3,
+                paddingLeft: 8,
+                borderLeft: `2px solid ${active === child.id ? T.accent : "transparent"}`,
+                color: active === child.id ? T.accent : T.muted,
+              }}
+            >
+              {child.label}
+            </a>
+          ))}
+          {si < NAV_SECTIONS.length - 1 && (
+            <div style={{ height: 1, background: T.border, margin: "12px 0 0" }} />
+          )}
+        </div>
+      ))}
+    </nav>
+  );
+}
+
 // ── guided example ────────────────────────────────────────────────────────────
 
 function ExampleStep({ icon, label, sub, T }: {
@@ -299,10 +425,14 @@ function ExampleStep({ icon, label, sub, T }: {
 }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-      <span style={{
-        fontSize: 16, lineHeight: "22px", flexShrink: 0, width: 22, textAlign: "center",
-      }}>{icon}</span>
-      <div>
+      <div style={{
+        width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+        background: T.elevated, border: `1px solid ${T.border}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <Icon name={icon} size={12} color={T.muted} />
+      </div>
+      <div style={{ paddingTop: 3 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: T.text, lineHeight: 1.4 }}>{label}</div>
         <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.5 }}>{sub}</div>
       </div>
@@ -312,8 +442,8 @@ function ExampleStep({ icon, label, sub, T }: {
 
 function ExampleConnector({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
   return (
-    <div style={{ width: 22, display: "flex", justifyContent: "center", margin: "-4px 0 -4px 0", flexShrink: 0 }}>
-      <div style={{ width: 1, height: 16, background: T.border }} />
+    <div style={{ width: 22, display: "flex", justifyContent: "center", margin: "-4px 0", flexShrink: 0 }}>
+      <div style={{ width: 1, height: 14, background: T.border }} />
     </div>
   );
 }
@@ -330,10 +460,12 @@ function RetrievedArticles({ articles, T }: {
   return (
     <div style={{ margin: "14px 0 16px" }}>
       <div style={{
+        display: "flex", alignItems: "center", gap: 6,
         fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 8,
         fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
       }}>
-        📚 KB articles retrieved
+        <Icon name="database" size={11} color={T.muted} />
+        KB articles retrieved
       </div>
       {articles.map((a, i) => (
         <div key={i} style={{
@@ -365,68 +497,84 @@ function RetrievedArticles({ articles, T }: {
   );
 }
 
-function ExampleBlock({ badge, badgeColor, title, sub, steps, retrieved, inputPrompt, outputJson, T }: {
-  badge: string; badgeColor: string; title: string; sub: string;
+function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inputPrompt, outputJson, T }: {
+  id: string; badge: string; badgeColor: string; title: string; sub: string;
   steps: { icon: string; label: string; sub: string }[];
   retrieved?: RetrievedArticle[];
   inputPrompt: string; outputJson: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
+  const [open, setOpen] = React.useState(false);
   return (
-    <div style={{
-      border: `1px solid ${T.border}`,
-      borderRadius: 12,
-      overflow: "hidden",
-      marginBottom: 20,
-    }}>
-      {/* header */}
-      <div style={{
-        background: T.elevated,
-        borderBottom: `1px solid ${T.border}`,
-        padding: "12px 16px",
-        display: "flex", alignItems: "center", gap: 10,
-      }}>
+    <div id={id} style={{ border: `1px solid ${T.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+      {/* header / toggle */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", background: T.elevated, border: "none", cursor: "pointer",
+          padding: "12px 16px", display: "flex", alignItems: "center", gap: 10,
+          borderBottom: open ? `1px solid ${T.border}` : "none",
+        }}
+      >
         <span style={{
           fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
           padding: "2px 8px", borderRadius: 4,
           background: `${badgeColor}20`, color: badgeColor,
-          fontFamily: T.fontMono,
+          fontFamily: T.fontMono, flexShrink: 0,
         }}>{badge}</span>
-        <div>
+        <div style={{ flex: 1, textAlign: "left" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{title}</div>
           <div style={{ fontSize: 11, color: T.muted }}>{sub}</div>
         </div>
-      </div>
+        <Icon name={open ? "chevron-down" : "chevron-right"} size={12} color={T.muted} />
+      </button>
 
-      <div style={{ padding: "16px 16px 4px" }}>
-        {/* input */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6, fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          💬 Operator types
-        </div>
-        <CodeBlock lang="text" T={T}>{inputPrompt}</CodeBlock>
+      {open && (
+        <div style={{ padding: "16px 16px 4px" }}>
+          {/* input */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+            fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6,
+            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <Icon name="message" size={11} color={T.muted} />
+            Operator types
+          </div>
+          <CodeBlock lang="text" T={T}>{inputPrompt}</CodeBlock>
 
-        {/* trace */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px", fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          ⚙ What Dispatch does
-        </div>
-        <div style={{ paddingLeft: 4 }}>
-          {steps.map((s, i) => (
-            <React.Fragment key={i}>
-              <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
-              {i < steps.length - 1 && <ExampleConnector T={T} />}
-            </React.Fragment>
-          ))}
-        </div>
+          {/* trace */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+            fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px",
+            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <Icon name="settings" size={11} color={T.muted} />
+            What Dispatch does
+          </div>
+          <div style={{ paddingLeft: 4 }}>
+            {steps.map((s, i) => (
+              <React.Fragment key={i}>
+                <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
+                {i < steps.length - 1 && <ExampleConnector T={T} />}
+              </React.Fragment>
+            ))}
+          </div>
 
-        {/* retrieved articles */}
-        {retrieved && <RetrievedArticles articles={retrieved} T={T} />}
+          {/* retrieved articles */}
+          {retrieved && <RetrievedArticles articles={retrieved} T={T} />}
 
-        {/* output */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6, fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          ↩ Model response
+          {/* output */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+            fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6,
+            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <Icon name="arrow-left" size={11} color={T.muted} />
+            Model response
+          </div>
+          <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
         </div>
-        <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
-      </div>
+      )}
     </div>
   );
 }
