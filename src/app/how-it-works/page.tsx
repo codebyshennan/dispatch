@@ -583,25 +583,46 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
 // ── rag + inference pipeline diagram ─────────────────────────────────────────
 
 function PipelineDiagram({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
-  const stages: { icon: string; label: string; detail: string; accent?: boolean }[] = [
-    { icon: "message",  label: "Operator input",      detail: "raw natural language string typed into chat" },
-    { icon: "type",     label: "Embed query",          detail: "text-embedding-3-small → 1,536-dim vector" },
-    { icon: "search",   label: "ANN vector search",    detail: "top-4 candidates from kb_articles by cosine similarity" },
-    { icon: "funnel",   label: "Trim & inject",        detail: "each article → 200-char snippet → KB context block in system prompt" },
-    { icon: "cpu",      label: "LLM — gpt-5.4-mini",  detail: "temperature 0 · JSON only · via OpenRouter", accent: true },
-    { icon: "shield",   label: "Parse & validate",     detail: "strip fences → JSON.parse → Zod discriminated union" },
-  ];
-
-  const branches = [
+  const stages: { icon: string; label: string; detail: string; notes?: string[]; accent?: boolean }[] = [
     {
-      label: '"question"',
-      color: "#10B981",
-      items: ["Inline answer rendered in chat", "KB source cards shown", "Thumbs up/down feedback captured"],
+      icon: "message",
+      label: "Operator input",
+      detail: "raw natural language string typed into chat",
+      notes: ["full conversation history passed for context", "optional recent job ID for follow-up Q&A"],
     },
     {
-      label: '"bulk_op"',
-      color: T.accent,
-      items: ["Policy checks run (limits, thresholds)", "Draft job written to DB", "User confirms → fan-out per card"],
+      icon: "type",
+      label: "Embed query",
+      detail: "text-embedding-3-small → 1,536-dim float64[] vector",
+    },
+    {
+      icon: "search",
+      label: "ANN vector search",
+      detail: "cosine similarity over kb_articles vectorIndex",
+      notes: ["top-4 candidates retrieved", "115 Reap help-centre articles indexed"],
+    },
+    {
+      icon: "funnel",
+      label: "Trim & inject",
+      detail: "format KB context block → prepend to system prompt",
+      notes: ["each article body: 2,000-char stored → 200-char snippet", "format: [id] title\\nsnippet per article"],
+    },
+    {
+      icon: "cpu",
+      label: "LLM — gpt-5.4-mini",
+      detail: "temperature 0 · JSON only · via OpenRouter",
+      notes: ["reads all 4 KB candidates", "acts as reranker — cites only articles actually used", "must return discriminated union JSON"],
+      accent: true,
+    },
+    {
+      icon: "shield",
+      label: "Parse & validate",
+      detail: "strip markdown fences → JSON.parse → Zod schema",
+      notes: [
+        "empty/refused response → throws with finish reason",
+        "malformed JSON → throws with first 120 chars",
+        "schema mismatch → Zod error surfaces as toast",
+      ],
     },
   ];
 
@@ -611,12 +632,27 @@ function PipelineDiagram({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
     </div>
   );
 
+  const BranchStep = ({ label, sub, color }: { label: string; sub: string; color: string }) => (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.5 }}>{sub}</div>
+    </div>
+  );
+
+  const BranchDivider = ({ color }: { color: string }) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "6px 0" }}>
+      <div style={{ flex: 1, height: 1, background: color + "30" }} />
+      <div style={{ width: 4, height: 4, borderRadius: "50%", background: color + "60" }} />
+      <div style={{ flex: 1, height: 1, background: color + "30" }} />
+    </div>
+  );
+
   return (
     <div style={{ margin: "16px 0 24px" }}>
       {stages.map((s, i) => (
         <React.Fragment key={i}>
           <div style={{
-            display: "flex", alignItems: "center", gap: 12,
+            display: "flex", alignItems: "flex-start", gap: 12,
             padding: "10px 14px", borderRadius: 8,
             border: `1px solid ${s.accent ? T.accent + "60" : T.border}`,
             background: s.accent ? T.accent + "0d" : T.surface,
@@ -626,57 +662,64 @@ function PipelineDiagram({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               background: s.accent ? T.accent + "20" : T.elevated,
               border: `1px solid ${s.accent ? T.accent + "40" : T.border}`,
+              marginTop: 1,
             }}>
               <Icon name={s.icon} size={13} color={s.accent ? T.accent : T.muted} />
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: s.accent ? T.accent : T.text, fontFamily: T.fontMono }}>{s.label}</div>
               <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{s.detail}</div>
+              {s.notes && (
+                <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
+                  {s.notes.map((n, ni) => (
+                    <div key={ni} style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+                      <div style={{ width: 3, height: 3, borderRadius: "50%", background: s.accent ? T.accent : T.border, flexShrink: 0, marginTop: 5 }} />
+                      <span style={{ fontSize: 11, color: s.accent ? T.accent + "cc" : T.textSub, lineHeight: 1.5 }}>{n}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           {i < stages.length - 1 && connector}
         </React.Fragment>
       ))}
 
-      {/* fork line */}
+      {/* fork */}
       <div style={{ display: "flex", justifyContent: "center", height: 18, alignItems: "center" }}>
         <div style={{ width: 1.5, height: "100%", background: T.border }} />
       </div>
-
-      {/* branch label */}
       <div style={{
         textAlign: "center", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
         textTransform: "uppercase", color: T.muted, fontFamily: T.fontMono, marginBottom: 8,
       }}>
-        discriminated union
+        discriminated union on <code style={{ fontFamily: T.fontMono, color: T.textSub }}>type</code>
       </div>
 
-      {/* two branches */}
-      <div style={{ display: "flex", gap: 8 }}>
-        {branches.map((b, i) => (
-          <div key={i} style={{
-            flex: 1, borderRadius: 8,
-            border: `1.5px solid ${b.color}40`,
-            background: `${b.color}08`,
-            padding: "12px 14px",
-          }}>
-            <div style={{
-              fontSize: 12, fontWeight: 700, color: b.color,
-              marginBottom: 10, fontFamily: T.fontMono,
-            }}>
-              {b.label}
-            </div>
-            {b.items.map((item, j) => (
-              <div key={j} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 5 }}>
-                <div style={{
-                  width: 4, height: 4, borderRadius: "50%",
-                  background: b.color, flexShrink: 0, marginTop: 5,
-                }} />
-                <span style={{ fontSize: 11, color: T.textSub, lineHeight: 1.5 }}>{item}</span>
-              </div>
-            ))}
-          </div>
-        ))}
+      <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+        {/* question branch */}
+        <div style={{ flex: 1, borderRadius: 8, border: `1.5px solid #10B98140`, background: "#10B98108", padding: "12px 14px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981", marginBottom: 10, fontFamily: T.fontMono }}>&quot;question&quot;</div>
+          <BranchStep color="#10B981" label="Rerank" sub="LLM cites only the articles it used — low-relevance candidates silently dropped" />
+          <BranchDivider color="#10B981" />
+          <BranchStep color="#10B981" label="Map citations" sub="article IDs in response mapped back to retrieved docs → rendered as inline source cards" />
+          <BranchDivider color="#10B981" />
+          <BranchStep color="#10B981" label="Render inline" sub="answer + source cards displayed in chat thread — no job created" />
+          <BranchDivider color="#10B981" />
+          <BranchStep color="#10B981" label="Capture feedback" sub="thumbs up/down stored in feedback table, keyed by stable response ID" />
+        </div>
+
+        {/* bulk_op branch */}
+        <div style={{ flex: 1, borderRadius: 8, border: `1.5px solid ${T.accent}40`, background: `${T.accent}08`, padding: "12px 14px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 10, fontFamily: T.fontMono }}>&quot;bulk_op&quot;</div>
+          <BranchStep color={T.accent} label="Policy checks" sub="SGD 5,000 cap → hard block · 200 cards max → hard block · >25 eligible → approval flag · frozen/cancelled → skipped items" />
+          <BranchDivider color={T.accent} />
+          <BranchStep color={T.accent} label="Idempotency check" sub="key = actor + operation + group + limit — existing job returned rather than duplicated" />
+          <BranchDivider color={T.accent} />
+          <BranchStep color={T.accent} label="Create draft" sub="job record written with status: draft, capturing intent and excluded cards — no cards touched yet" />
+          <BranchDivider color={T.accent} />
+          <BranchStep color={T.accent} label="Confirm → fan-out" sub="job → in-progress · one item per eligible card · 500–3,500 ms random stagger · frontend live query re-renders as items complete" />
+        </div>
       </div>
     </div>
   );
