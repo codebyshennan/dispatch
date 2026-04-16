@@ -970,7 +970,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
 
         <SubHeading id="intent-classification" T={T}>Intent classification</SubHeading>
         <p style={body}>
-          The request handler sends the user message to gpt-5.4-mini via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only. The response is one of two discriminated shapes:
+          The request handler sends the user message to gpt-5.4-mini via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only — using the same two shapes introduced in the guided examples:
         </p>
         <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
