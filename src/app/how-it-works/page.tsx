@@ -618,7 +618,7 @@ export default function HowItWorksPage() {
         <SectionHeading
           id="guided-examples"
           num={0} title="Guided examples"
-          sub="Two end-to-end traces showing how a single operator message becomes a card operation or a grounded answer."
+          sub="Two end-to-end traces showing how a single operator message becomes a card operation or a grounded answer. Both traces show the happy path; failure behaviour is covered in Section 3."
           T={T}
         />
 
