@@ -11,6 +11,7 @@ export interface Tokens {
   border: string;
   accent: string;
   accentHover: string;
+  onAccent: string;
   text: string;
   textSub: string;
   muted: string;
