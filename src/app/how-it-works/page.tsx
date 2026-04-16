@@ -509,81 +509,73 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
   inputPrompt: string; outputJson: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
-  const [open, setOpen] = React.useState(false);
   return (
     <div id={id} style={{ border: `1px solid ${T.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
-      {/* header / toggle */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        aria-controls={`${id}-content`}
-        style={{
-          width: "100%", background: T.elevated, border: "none", cursor: "pointer",
-          padding: "12px 16px", display: "flex", alignItems: "center", gap: 10,
-          borderBottom: open ? `1px solid ${T.border}` : "none",
-        }}
-      >
+      {/* header */}
+      <div style={{
+        background: T.elevated, padding: "12px 16px",
+        display: "flex", alignItems: "center", gap: 10,
+        borderBottom: `1px solid ${T.border}`,
+      }}>
         <span style={{
           fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
           padding: "2px 8px", borderRadius: 4,
           background: `${badgeColor}20`, color: badgeColor,
           fontFamily: T.fontMono, flexShrink: 0,
         }}>{badge}</span>
-        <div style={{ flex: 1, textAlign: "left" }}>
+        <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{title}</div>
           <div style={{ fontSize: 11, color: T.muted }}>{sub}</div>
         </div>
-        <Icon name={open ? "chevron-down" : "chevron-right"} size={12} color={T.muted} />
-      </button>
+      </div>
 
-      {open && (
-        <div id={`${id}-content`} style={{ padding: "16px 16px 4px" }}>
-          {/* input */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6,
-            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
-          }}>
-            <Icon name="message" size={11} color={T.muted} />
-            Operator types
-          </div>
-          <CodeBlock lang="text" T={T}>{inputPrompt}</CodeBlock>
-
-          {/* trace — steps + KB articles + model response all under one heading */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px",
-            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
-          }}>
-            <Icon name="settings" size={11} color={T.muted} />
-            What Dispatch does
-          </div>
-          <div style={{ paddingLeft: 4 }}>
-            {steps.map((s, i) => (
-              <React.Fragment key={i}>
-                <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
-                {i < steps.length - 1 && <ExampleConnector T={T} />}
-              </React.Fragment>
-            ))}
-            {retrieved && (
-              <>
-                <ExampleConnector T={T} />
-                <RetrievedArticles articles={retrieved} T={T} />
-              </>
-            )}
-            <ExampleConnector T={T} />
-            <div style={{
-              display: "flex", alignItems: "center", gap: 6,
-              fontSize: 11, fontWeight: 700, color: T.muted, margin: "8px 0 6px",
-              fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
-            }}>
-              <Icon name="arrow-left" size={11} color={T.muted} />
-              Model response
-            </div>
-            <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
-          </div>
+      {/* content — always visible */}
+      <div style={{ padding: "16px 16px 4px" }}>
+        {/* input */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6,
+          fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+        }}>
+          <Icon name="message" size={11} color={T.muted} />
+          Operator types
         </div>
-      )}
+        <CodeBlock lang="text" T={T}>{inputPrompt}</CodeBlock>
+
+        {/* trace */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px",
+          fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+        }}>
+          <Icon name="settings" size={11} color={T.muted} />
+          What Dispatch does
+        </div>
+        <div style={{ paddingLeft: 4 }}>
+          {steps.map((s, i) => (
+            <React.Fragment key={i}>
+              <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
+              {i < steps.length - 1 && <ExampleConnector T={T} />}
+            </React.Fragment>
+          ))}
+          {retrieved && (
+            <>
+              <ExampleConnector T={T} />
+              <RetrievedArticles articles={retrieved} T={T} />
+            </>
+          )}
+          <ExampleConnector T={T} />
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+            fontSize: 11, fontWeight: 700, color: T.muted, margin: "8px 0 6px",
+            fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <Icon name="arrow-left" size={11} color={T.muted} />
+            Model response
+          </div>
+          <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
+        </div>
+      </div>
     </div>
   );
 }
