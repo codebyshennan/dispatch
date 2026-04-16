@@ -734,18 +734,12 @@ export default function HowItWorksPage() {
 // or
 { type: "bulk_op", intent: BulkJobIntent }`}</CodeBlock>
 
-        <Card title="question path" T={T}>
-          The answer and KB sources render inline in the chat thread. No job is created. Thumbs up/down feedback is captured in the feedback table, keyed by a stable response ID.
-        </Card>
-        <Card title="bulk_op path" T={T}>
-          The extracted intent (target group, new limit, notify flag) is used to create a draft job record, capturing policy output and excluded cards. No cards are touched yet.
-        </Card>
-        <Card title="Idempotency" T={T}>
-          Before inserting, we check the idempotency index. If a matching job already exists, we return that ID rather than creating a duplicate. The key is derived from actor + operation + target group + limit.
-        </Card>
-        <Card title="Conversation context" T={T}>
-          The request handler accepts conversation history (prior turns) and an optional recent job ID. When a job ID is supplied, its result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like "how did that job go?".
-        </Card>
+        <p style={body}>
+          On the {mono('"question"')} path, the answer and KB sources render inline in the chat thread — no job is created. Thumbs up/down feedback is captured in the feedback table, keyed by a stable response ID. On the {mono('"bulk_op"')} path, the extracted intent (target group, new limit, notify flag) is used to create a draft job record capturing policy output and excluded cards; no cards are touched yet.
+        </p>
+        <p style={body}>
+          Before inserting, we check the idempotency index. If a matching job already exists, we return that ID rather than creating a duplicate — the key is derived from actor + operation + target group + limit. The request handler also accepts conversation history (prior turns) and an optional recent job ID; when supplied, the job&apos;s result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like &quot;how did that job go?&quot;.
+        </p>
 
         <SubHeading id="kb-ingestion" T={T}>KB ingestion</SubHeading>
         <p style={body}>
