@@ -851,12 +851,13 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
       {/* ── 3. Exception handling ── */}
       <section>
         <SectionHeading
+          id="exception-handling"
           num={3} title="Exception handling"
           sub="Retries, permanent failures, and graceful degradation across all layers."
           T={T}
         />
 
-        <SubHeading T={T}>Card executor — per-item retry</SubHeading>
+        <SubHeading id="per-item-retry" T={T}>Card executor — per-item retry</SubHeading>
         <p style={body}>
           Each card item runs in its own Convex internal action. Each invocation simulates a card API call, determines the outcome, and either marks the item terminal or re-schedules itself with exponential backoff:
         </p>
