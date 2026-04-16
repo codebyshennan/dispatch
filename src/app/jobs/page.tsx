@@ -163,7 +163,7 @@ function ThreadRow({ thread, T }: {
                     : "12px 12px 12px 4px",
                   padding: "8px 12px", fontSize: 12, lineHeight: 1.6,
                   background: msg.role === "user" ? T.accent : T.elevated,
-                  color: msg.role === "user" ? "#0F172A" : T.textSub,
+                  color: msg.role === "user" ? T.onAccent : T.textSub,
                   border: msg.role === "user" ? "none" : `1px solid ${T.border}`,
                 }}>
                   {msg.content}
