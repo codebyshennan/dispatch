@@ -665,33 +665,33 @@ export function isRetryExhausted(retryCount: number): boolean {
 }`}</CodeBlock>
 
         <Card title="Retryable failure" T={T}>
-          Outcome {mono('"failed_retryable"')} (e.g. {mono("UPSTREAM_TIMEOUT")}). The item is re-scheduled via {mono("ctx.scheduler.runAfter(backoffMs(retryCount), ...)")}. After {mono("MAX_RETRIES")} attempts it is promoted to permanent and no further scheduling occurs.
+          The item is re-scheduled with exponential backoff (2 s → 4 s → 8 s). After 3 attempts it is promoted to permanent failure and no further scheduling occurs.
         </Card>
         <Card title="Permanent failure" T={T}>
-          Outcome {mono('"failed_permanent"')} — either the mock API returns {mono("CARD_LOCKED")} (compliance-locked card IDs containing 019, 033, or 047) or retry count is exhausted. The item is written terminal immediately.
+          Either the card API returns a locked status (compliance-locked card IDs) or the retry count is exhausted. The item is written terminal immediately.
         </Card>
         <Card title="Idempotent re-entry" T={T}>
-          {mono("executeItem")} checks the item status on entry. If it is already terminal ({mono("succeeded")}, {mono("failed_permanent")}, {mono("cancelled")}), it returns immediately. This makes Convex's at-least-once delivery safe.
+          The executor checks item status on entry. If it is already terminal (succeeded, permanently failed, or cancelled), it returns immediately. This makes Convex's at-least-once delivery safe.
         </Card>
         <Card title="Job count sync" T={T}>
-          After each terminal outcome, {mono("updateJobCounts")} (internalMutation) atomically patches the parent job's {mono("succeededCount")} / {mono("failedCount")} / {mono("skippedCount")}. Once all eligible items are resolved, the job transitions to {mono('"completed"')} or {mono('"completed_with_failures"')}.
+          After each terminal outcome, a count mutation atomically patches the parent job's succeeded / failed / skipped tallies. Once all eligible items are resolved, the job transitions to completed or completed with failures.
         </Card>
 
         <SubHeading T={T}>Retry failed items</SubHeading>
         <p style={body}>
-          {mono("retryFailed")} lets operators re-queue all {mono('"failed_retryable"')} items on a completed-with-failures job. It resets status to {mono('"queued"')}, clears {mono("failureCode")} and {mono("failureDetail")}, re-opens the job to {mono('"in_progress"')}, and schedules fresh {mono("executeItem")} calls with a new stagger. Items marked {mono('"failed_permanent"')} are intentionally excluded and cannot be retried.
+          Operators can re-queue all retryable failed items on a completed-with-failures job. This resets their status, clears failure codes, re-opens the job to in-progress, and schedules fresh execution with a new stagger. Permanently failed items are intentionally excluded and cannot be retried.
         </p>
 
         <SubHeading T={T}>LLM error handling</SubHeading>
         <p style={body}>
-          {mono("processRequest")} handles three distinct failure modes before surfacing an error to the UI:
+          The request handler covers three distinct failure modes before surfacing an error to the UI:
         </p>
         <Table
           headers={["Failure", "Detection", "Behaviour"]}
           rows={[
-            ["Empty / refused response", mono("choice?.message?.content") + " is falsy",   "Throws with finish_reason or refusal text"],
-            ["Malformed JSON",           mono("JSON.parse") + " throws",                   "Throws with first 120 chars of raw content"],
-            ["Schema mismatch",          mono("ProcessResultSchema.parse") + " throws",    "Zod error propagates to the frontend"],
+            ["Empty / refused response", "Response content is falsy",    "Throws with finish reason or refusal text"],
+            ["Malformed JSON",           "JSON parse throws",             "Throws with first 120 chars of raw content"],
+            ["Schema mismatch",          "Zod validation throws",         "Zod error propagates to the frontend"],
           ]}
           T={T}
         />
