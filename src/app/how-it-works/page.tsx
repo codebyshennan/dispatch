@@ -373,16 +373,20 @@ function NavRail({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
   }, []);
 
   return (
-    <nav style={{
-      width: 152, flexShrink: 0,
-      position: "sticky", top: 48, alignSelf: "flex-start",
-      maxHeight: "calc(100vh - 80px)", overflowY: "auto",
-      paddingBottom: 24,
-    }}>
+    <nav
+      aria-label="Page sections"
+      style={{
+        width: 152, flexShrink: 0,
+        position: "sticky", top: 48, alignSelf: "flex-start",
+        maxHeight: "calc(100vh - 80px)", overflowY: "auto",
+        paddingBottom: 24,
+      }}
+    >
       {NAV_SECTIONS.map((section, si) => (
         <div key={section.id} style={{ marginBottom: 18 }}>
           <a
             href={`#${section.id}`}
+            aria-current={active === section.id ? "true" : undefined}
             style={{
               display: "block", textDecoration: "none",
               fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
@@ -397,6 +401,7 @@ function NavRail({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
             <a
               key={child.id}
               href={`#${child.id}`}
+              aria-current={active === child.id ? "true" : undefined}
               style={{
                 display: "block", textDecoration: "none",
                 fontSize: 11, lineHeight: 1.5, marginBottom: 3,
