@@ -148,6 +148,29 @@ const CodeBlock = React.memo(function CodeBlock({ children, lang, T }: {
   );
 });
 
+// ── figure + caption ─────────────────────────────────────────────────────────
+
+function Figure({ src, alt, caption, T }: {
+  src: string; alt: string; caption: string;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  return (
+    <figure style={{ margin: "8px 0 20px" }}>
+      <img
+        src={src}
+        alt={alt}
+        style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, display: "block" }}
+      />
+      <figcaption style={{
+        fontSize: 11, color: T.muted, textAlign: "center",
+        marginTop: 6, fontStyle: "italic", lineHeight: 1.5,
+      }}>
+        {caption}
+      </figcaption>
+    </figure>
+  );
+}
+
 // ── shared primitives ────────────────────────────────────────────────────────
 
 function SectionHeading({ id, num, title, sub, T }: {
