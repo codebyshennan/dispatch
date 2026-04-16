@@ -874,6 +874,7 @@ kb_articles: defineTable({
   .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
 
         <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
+        <PipelineDiagram T={T} />
         <p style={body}>
           Each query runs through four stages before the LLM is called:
           <ol style={{ margin: "8px 0 8px 0", paddingLeft: 20, lineHeight: 1.8 }}>
