@@ -894,7 +894,7 @@ export function isRetryExhausted(retryCount: number): boolean {
           Either the card API returns a locked status (compliance-locked card IDs) or the retry count is exhausted. The item is written terminal immediately.
         </Card>
         <Card title="Idempotent re-entry" T={T}>
-          The executor checks item status on entry. If it is already terminal (succeeded, permanently failed, or cancelled), it returns immediately. This makes Convex's at-least-once delivery safe.
+          The executor checks item status on entry. If it is already terminal (succeeded, permanently failed, or cancelled), it returns immediately. <em>Idempotent</em> means running the same operation twice has the same effect as running it once — this makes Convex&apos;s at-least-once delivery safe: a duplicate invocation is a no-op.
         </Card>
         <Card title="Job count sync" T={T}>
           After each terminal outcome, a count mutation atomically patches the parent job's succeeded / failed / skipped tallies. Once all eligible items are resolved, the job transitions to completed or completed with failures.
