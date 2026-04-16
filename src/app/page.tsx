@@ -1063,14 +1063,14 @@ export default function OpsPage() {
           {!isEmpty && (
             <button
               type="button"
-              onClick={() => setThread([])}
+              onClick={() => { setThread([]); setThreadId(null); }}
               style={{
                 background: "transparent", border: "none",
                 fontSize: 12, color: T.muted, cursor: "pointer",
                 padding: 0, fontFamily: T.fontBody,
               }}
             >
-              Clear thread
+              New thread
             </button>
           )}
           <div style={{ flex: 1 }} />
