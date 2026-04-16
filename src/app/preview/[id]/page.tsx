@@ -222,7 +222,7 @@ export default function PreviewPage() {
             borderRadius: 10,
             border: "none",
             background: confirming || (summary.approvalRequired && !acknowledged) ? T.elevated : T.accent,
-            color: confirming || (summary.approvalRequired && !acknowledged) ? T.muted : "#0F172A",
+            color: confirming || (summary.approvalRequired && !acknowledged) ? T.muted : T.onAccent,
             padding: "11px 16px",
             fontSize: 14,
             fontWeight: 600,
