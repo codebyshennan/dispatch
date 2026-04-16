@@ -235,7 +235,7 @@ function Table({ headers, rows, T }: {
         <thead>
           <tr>
             {headers.map((h, i) => (
-              <th key={i} style={{
+              <th key={i} scope="col" style={{
                 background: T.elevated, border: `1px solid ${T.border}`,
                 padding: "7px 12px", textAlign: "left",
                 fontWeight: 700, color: T.textSub,
