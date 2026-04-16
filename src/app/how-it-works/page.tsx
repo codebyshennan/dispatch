@@ -774,7 +774,7 @@ kb_articles: defineTable({
 
         <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
         <p style={body}>
-          Each query runs through four stages before the LLM is called: the operator's message is embedded (1,536-dim, text-embedding-3-small), the top-4 candidates are retrieved by cosine similarity, each article is truncated to a 200-char snippet and injected into the system prompt, and the LLM acts as a reranker by citing only the articles it actually used. See the guided examples above for a concrete trace of both paths.
+          Each query runs through four stages before the LLM is called: the operator&apos;s message is embedded (1,536-dim, text-embedding-3-small), the top-4 candidates are retrieved by ANN (Approximate Nearest Neighbor) cosine similarity, each article body is truncated to a 200-char snippet from its stored 2,000-char body and injected into the system prompt, and the LLM acts as a <em>reranker</em> — it reads all four candidates but cites only the articles it actually used, filtering out low-relevance results. See the guided examples above for a concrete trace of both paths.
         </p>
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — searchKB action
 const [embedding] = await embedTexts(client, [args.query]);
