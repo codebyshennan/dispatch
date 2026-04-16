@@ -1017,6 +1017,11 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         </p>
 
         <SubHeading id="draft-confirm-fanout" T={T}>Draft → confirm → fan-out</SubHeading>
+        <img
+          src="/diagrams/dispatch-job-state-machine.png"
+          alt="Job State Machine diagram"
+          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+        />
         <Flow steps={[
           { label: "Create draft", sub: "status: draft", variant: "accent" },
           { label: "User confirms", sub: "confirm button", variant: "default" },
