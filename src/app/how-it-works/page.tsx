@@ -875,7 +875,7 @@ kb_articles: defineTable({
 
         <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
         <PipelineDiagram T={T} />
-        <p style={body}>
+        <div style={body}>
           Each query runs through four stages before the LLM is called:
           <ol style={{ margin: "8px 0 8px 0", paddingLeft: 20, lineHeight: 1.8 }}>
             <li><strong>Embed</strong> — the operator&apos;s message is converted to a 1,536-dim vector via text-embedding-3-small.</li>
@@ -884,7 +884,7 @@ kb_articles: defineTable({
             <li><strong>Rerank</strong> — the LLM reads all four candidates but cites only the articles it actually used, filtering out low-relevance results.</li>
           </ol>
           See the guided examples above for a concrete trace of both paths.
-        </p>
+        </div>
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — searchKB action
 const [embedding] = await embedTexts(client, [args.query]);
 const hits = await ctx.vectorSearch("kb_articles", "by_embedding", {
