@@ -627,10 +627,10 @@ export default function HowItWorksPage() {
             { icon: "check",    label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
           ]}
           retrieved={[
-            { title: "How to Update Reap Card Spend Limit?", score: 0.91, snippet: "To edit the spend limit of your Reap Card, go to the Reap dashboard, click on Reap Card, select the Cards tab, locate the Menu icon on the card you wish to update, and choose Edit Spend Limit." },
-            { title: "Team Permissions User Level Comparisons - Reap Card", score: 0.79, snippet: "Admins can view and manage all cards and spending limits. Group Owners can manage cards within their group. Team Members can view their own card details only." },
-            { title: "How to freeze and unfreeze a card?", score: 0.73, snippet: "To freeze your credit card, log into the Reap Card dashboard, select Cards from the drop-down menu, click the 3 vertical dots on the card you wish to freeze, and select Freeze Card." },
-            { title: "Reap Card Pricing and Fees", score: 0.58, snippet: "Reap Card is a secured corporate credit card with no annual or hidden fees. Monthly repayment is required. Multiple repayment options are available with no interest if paid on time." },
+            { title: "Reap Card Pricing and Fees", score: 0.88, snippet: "Reap Card is a secured corporate credit card with no annual or hidden fees. This article outlines what fees to expect, how repayments work, and important terms related to card usage." },
+            { title: "Differences Between USD and HKD Reap Cards", score: 0.79, snippet: "When you apply for a Reap Card, you can choose to settle your account in either HKD or USD. This settlement currency determines how your card repayments are made." },
+            { title: "Restricted MCC Codes for Reap Cards", score: 0.71, snippet: "Certain merchant categories are blocked from Reap Card usage due to security and compliance requirements. MCCs are four-digit codes assigned by credit card networks to classify merchants." },
+            { title: "Team Permissions User Level Comparisons - Reap Card", score: 0.60, snippet: "Admins can view all transactions, manage cards and spend limits across all groups. Group Owners manage within their group. Team Members view their own transactions only." },
           ]}
           outputJson={`{
   "type": "bulk_op",
