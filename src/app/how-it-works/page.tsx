@@ -883,18 +883,12 @@ export function isRetryExhausted(retryCount: number): boolean {
   return retryCount >= MAX_RETRIES;
 }`}</CodeBlock>
 
-        <Card title="Retryable failure" T={T}>
-          The item is re-scheduled with exponential backoff (2 s → 4 s → 8 s). After 3 attempts it is promoted to permanent failure and no further scheduling occurs.
-        </Card>
-        <Card title="Permanent failure" T={T}>
-          Either the card API returns a locked status (compliance-locked card IDs) or the retry count is exhausted. The item is written terminal immediately.
-        </Card>
-        <Card title="Idempotent re-entry" T={T}>
-          The executor checks item status on entry. If it is already terminal (succeeded, permanently failed, or cancelled), it returns immediately. <em>Idempotent</em> means running the same operation twice has the same effect as running it once — this makes Convex&apos;s at-least-once delivery safe: a duplicate invocation is a no-op.
-        </Card>
-        <Card title="Job count sync" T={T}>
-          After each terminal outcome, a count mutation atomically patches the parent job's succeeded / failed / skipped tallies. Once all eligible items are resolved, the job transitions to completed or completed with failures.
-        </Card>
+        <p style={body}>
+          On a retryable failure the item is re-scheduled with exponential backoff (2 s → 4 s → 8 s); after 3 attempts it is promoted to permanent failure and no further scheduling occurs. A permanent failure is written immediately when the card API returns a locked status (compliance-locked card IDs) or the retry count is exhausted.
+        </p>
+        <p style={body}>
+          The executor checks item status on entry — if it is already terminal (succeeded, permanently failed, or cancelled), it returns immediately. <em>Idempotent</em> means running the same operation twice has the same effect as running it once; this makes Convex&apos;s at-least-once delivery safe since a duplicate invocation is a no-op. After each terminal outcome a count mutation atomically patches the parent job&apos;s succeeded / failed / skipped tallies; once all eligible items are resolved, the job transitions to completed or completed with failures.
+        </p>
 
         <SubHeading id="retry-failed-items" T={T}>Retry failed items</SubHeading>
         <p style={body}>
