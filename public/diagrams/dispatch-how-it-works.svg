@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1020" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8"/></marker>
+    <marker id="arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#10b981"/></marker>
+    <marker id="arr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#6366f1"/></marker>
+    <marker id="arr-y" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#f59e0b"/></marker>
+  </defs>
+  <text x="480" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">How Dispatch Works</text>
+  <text x="480" y="52" text-anchor="middle" font-size="11" fill="#64748b">RAG pipeline · intent classification · fan-out execution</text>
+  <rect x="360" y="70" width="240" height="62" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="480" y="94" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Operator Input</text>
+  <text x="480" y="113" text-anchor="middle" font-size="10" fill="#64748b">raw natural language · chat interface</text>
+  <line x1="480" y1="132" x2="480" y2="155" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="360" y="158" width="240" height="62" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="480" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Embed Query</text>
+  <text x="480" y="201" text-anchor="middle" font-size="10" fill="#64748b">text-embedding-3-small · 1,536-dim vector</text>
+  <line x1="480" y1="220" x2="480" y2="243" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="360" y="246" width="240" height="62" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="480" y="270" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">ANN Vector Search</text>
+  <text x="480" y="289" text-anchor="middle" font-size="10" fill="#64748b">cosine similarity · top-4 candidates</text>
+  <line x1="480" y1="308" x2="480" y2="331" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="360" y="334" width="240" height="62" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="480" y="358" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Trim &amp; Inject</text>
+  <text x="480" y="377" text-anchor="middle" font-size="10" fill="#64748b">200-char snippets → system prompt KB block</text>
+  <line x1="480" y1="396" x2="480" y2="419" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="360" y="422" width="240" height="62" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="480" y="446" text-anchor="middle" font-size="12" font-weight="700" fill="#5b21b6" font-family="ui-monospace,monospace">LLM — gpt-5.4-mini</text>
+  <text x="480" y="465" text-anchor="middle" font-size="10" fill="#6d28d9">temperature 0 · JSON only · via OpenRouter</text>
+  <line x1="480" y1="484" x2="480" y2="507" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="360" y="510" width="240" height="62" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="480" y="534" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">Parse &amp; Validate</text>
+  <text x="480" y="553" text-anchor="middle" font-size="10" fill="#64748b">strip fences · JSON.parse · Zod schema</text>
+  <rect x="630" y="246" width="190" height="62" rx="10" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.5"/>
+  <text x="725" y="270" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">KB Articles</text>
+  <text x="725" y="289" text-anchor="middle" font-size="10" fill="#b45309">115 help-centre articles · Convex</text>
+  <line x1="603" y1="277" x2="627" y2="277" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-y)"/>
+  <line x1="480" y1="572" x2="480" y2="598" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="374" y="582" width="212" height="20" rx="4" fill="#f1f5f9"/>
+  <text x="480" y="596" text-anchor="middle" font-size="10" font-weight="700" fill="#64748b" font-family="ui-monospace,monospace">discriminated union on type</text>
+  <line x1="480" y1="614" x2="200" y2="614" stroke="#10b981" stroke-width="1.5"/>
+  <line x1="480" y1="614" x2="760" y2="614" stroke="#6366f1" stroke-width="1.5"/>
+  <line x1="200" y1="614" x2="200" y2="626" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <line x1="760" y1="614" x2="760" y2="626" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <rect x="95" y="626" width="210" height="52" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="200" y="648" text-anchor="middle" font-size="12" font-weight="700" fill="#065f46" font-family="ui-monospace,monospace">"question"</text>
+  <text x="200" y="666" text-anchor="middle" font-size="10" fill="#047857">Q&amp;A · no job created</text>
+  <rect x="655" y="626" width="210" height="52" rx="10" fill="#e0e7ff" stroke="#a5b4fc" stroke-width="1.5"/>
+  <text x="760" y="648" text-anchor="middle" font-size="12" font-weight="700" fill="#3730a3" font-family="ui-monospace,monospace">"bulk_op"</text>
+  <text x="760" y="666" text-anchor="middle" font-size="10" fill="#4338ca">card operations · fan-out</text>
+  <line x1="200" y1="678" x2="200" y2="693" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <rect x="95" y="696" width="210" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="200" y="716" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">Rerank</text>
+  <text x="200" y="732" text-anchor="middle" font-size="10" fill="#15803d">LLM cites only articles it used</text>
+  <line x1="200" y1="746" x2="200" y2="761" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <rect x="95" y="764" width="210" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="200" y="784" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">Map Citations</text>
+  <text x="200" y="800" text-anchor="middle" font-size="10" fill="#15803d">article IDs → inline source cards</text>
+  <line x1="200" y1="814" x2="200" y2="829" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <rect x="95" y="832" width="210" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="200" y="852" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">Render Inline</text>
+  <text x="200" y="868" text-anchor="middle" font-size="10" fill="#15803d">answer + sources in chat thread</text>
+  <line x1="200" y1="882" x2="200" y2="897" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <rect x="95" y="900" width="210" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="200" y="920" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">Capture Feedback</text>
+  <text x="200" y="936" text-anchor="middle" font-size="10" fill="#15803d">thumbs up/down · keyed by response ID</text>
+  <line x1="760" y1="678" x2="760" y2="693" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <rect x="655" y="696" width="210" height="50" rx="10" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1.5"/>
+  <text x="760" y="716" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">Policy Checks</text>
+  <text x="760" y="732" text-anchor="middle" font-size="10" fill="#4338ca">SGD 5k cap · 200 card limit · >25 flag</text>
+  <line x1="760" y1="746" x2="760" y2="761" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <rect x="655" y="764" width="210" height="50" rx="10" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1.5"/>
+  <text x="760" y="784" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">Idempotency Check</text>
+  <text x="760" y="800" text-anchor="middle" font-size="10" fill="#4338ca">key: actor + op + group + limit</text>
+  <line x1="760" y1="814" x2="760" y2="829" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <rect x="655" y="832" width="210" height="50" rx="10" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1.5"/>
+  <text x="760" y="852" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">Create Draft</text>
+  <text x="760" y="868" text-anchor="middle" font-size="10" fill="#4338ca">job record · status: draft · no cards touched</text>
+  <line x1="760" y1="882" x2="760" y2="897" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <rect x="655" y="900" width="210" height="50" rx="10" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1.5"/>
+  <text x="760" y="920" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">Confirm → Fan-out</text>
+  <text x="760" y="936" text-anchor="middle" font-size="10" fill="#4338ca">500–3,500ms stagger · one item per card</text>
+  <rect x="280" y="974" width="400" height="34" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="295" y1="991" x2="310" y2="991" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="314" y="995" font-size="10" fill="#64748b">pipeline</text>
+  <line x1="365" y1="991" x2="380" y2="991" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="384" y="995" font-size="10" fill="#64748b">KB lookup</text>
+  <line x1="443" y1="991" x2="458" y2="991" stroke="#10b981" stroke-width="1.5"/>
+  <text x="462" y="995" font-size="10" fill="#64748b">question</text>
+  <line x1="516" y1="991" x2="531" y2="991" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="535" y="995" font-size="10" fill="#64748b">bulk_op</text>
+</svg>
