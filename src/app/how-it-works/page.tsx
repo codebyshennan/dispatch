@@ -512,7 +512,7 @@ export default function HowItWorksPage() {
 
         <SubHeading T={T}>KB ingestion</SubHeading>
         <p style={body}>
-          The ops app seeds its own vector index from {mono("datasets/reap-help-center.jsonl")} — 115 Reap help-centre articles covering cards, payments, onboarding, accounting integrations, and team permissions. The {mono("kb:seed")} action streams the JSONL line-by-line, batches articles 20 at a time, and embeds each {mono("title + body")} string (truncated to 8 000 chars) via OpenRouter's {mono("text-embedding-3-small")} endpoint (1 536 dimensions). Each batch is written to {mono("kb_articles")} in a single Convex mutation; the body is stored at 2 000 chars to keep document payloads lean.
+          The ops app seeds its own vector index from 115 Reap help-centre articles (cards, payments, onboarding, accounting integrations, team permissions) stored in a JSONL file. The seed action streams the file line-by-line and processes articles in batches of 20.
         </p>
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — seed pipeline (batched 20 articles at a time)
 const texts = batch.map(a => \`\${a.title}\\n\\n\${a.body}\`.slice(0, 8000));
@@ -526,7 +526,7 @@ await ctx.runMutation(internal.kb_queries.insertArticles, {
   })),
 });`}</CodeBlock>
         <p style={body}>
-          The Convex schema declares a vector index on the {mono("embedding")} field, which Convex uses to power approximate nearest-neighbour search at query time:
+          The schema declares a vector index on the embedding field, which Convex uses for approximate nearest-neighbour search at query time:
         </p>
         <CodeBlock lang="typescript" T={T}>{`// convex/schema.ts
 kb_articles: defineTable({
@@ -537,10 +537,24 @@ kb_articles: defineTable({
   .index("by_article_id", ["articleId"])
   .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
 
-        <SubHeading T={T}>RAG retrieval</SubHeading>
+        <SubHeading T={T}>RAG pipeline</SubHeading>
         <p style={body}>
-          At inference time, {mono("processRequest")} calls {mono("searchKB")} before the LLM. The raw user query is embedded with the same {mono("text-embedding-3-small")} model (same dimension, same provider), then Convex's {mono("ctx.vectorSearch")} performs approximate nearest-neighbour search:
+          Retrieval is multi-stage. Each stage runs before the LLM is called so that the model receives grounded context rather than generating from memory alone.
         </p>
+
+        <Card title="1 · Chunking" T={T}>
+          Each article is treated as a single chunk. The title and body are concatenated and truncated to 8,000 chars for embedding; only the first 2,000 chars of the body are stored in the database, keeping document payloads lean without affecting embedding quality.
+        </Card>
+        <Card title="2 · Embedding" T={T}>
+          Each chunk is encoded into a 1,536-dimensional vector using text-embedding-3-small via OpenRouter. The same model and dimensionality are used at both ingestion and query time, keeping the embedding space consistent.
+        </Card>
+        <Card title="3 · Retrieval" T={T}>
+          The operator's message is embedded with the same model. Convex's vector search performs approximate nearest-neighbour search against the stored embeddings, returning the top-5 candidates by cosine similarity.
+        </Card>
+        <Card title="4 · Reranking" T={T}>
+          The top-5 candidates are passed to the LLM as a grounding block. The model acts as an implicit reranker — it selects which articles are actually relevant and cites only those in its response, filtering out low-signal hits before they surface in the UI.
+        </Card>
+
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — searchKB action
 const [embedding] = await embedTexts(client, [args.query]);
 const hits = await ctx.vectorSearch("kb_articles", "by_embedding", {
@@ -553,10 +567,7 @@ return docs.map(doc => ({
   title:   doc.title,
   snippet: doc.body.slice(0, 200),   // first 200 chars surfaced as snippet
 }));`}</CodeBlock>
-        <p style={body}>
-          The top-5 hits are formatted and injected into the system prompt as a grounding block. The model is instructed to cite article IDs in its JSON response — these are mapped back to retrieved hits by the frontend to render inline source cards:
-        </p>
-        <CodeBlock lang="typescript" T={T}>{`// convex/interpreter.ts — KB context block
+        <CodeBlock lang="typescript" T={T}>{`// convex/interpreter.ts — KB context block injected into system prompt
 kbContext =
   "\\n\\nKNOWLEDGE BASE ARTICLES (cite these as sources when relevant):\\n" +
   kbResults.map(r => \`[\${r.id}] \${r.title}\\n\${r.snippet}\`).join("\\n\\n");
@@ -564,7 +575,7 @@ kbContext =
 const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
 
         <Note T={T}>
-          If the KB hasn't been seeded yet or the embedding API is down, {mono("searchKB")} throws and the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
+          If the KB hasn't been seeded yet or the embedding API is down, the error is silently caught — the LLM call proceeds without KB context rather than failing the whole request.
         </Note>
       </section>
 
