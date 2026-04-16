@@ -606,6 +606,11 @@ export default function HowItWorksPage() {
         <p style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>
           Implementation details — data capture, inference pipeline, and exception handling.
         </p>
+        <Note T={T}>
+          <strong>Scope:</strong> This page documents the <strong>ops app</strong> — a Convex-backed chat interface used by Reap&apos;s CX operations team to bulk-update cards and look up policy. It is a separate system from the Zendesk ticket-classification pipeline.
+          <br /><br />
+          <strong>Audience:</strong> Engineers onboarding to the ops app codebase. <em>Operators</em> are members of Reap&apos;s CX ops team who use the app to manage customer support and card operations.
+        </Note>
       </div>
 
       {/* ── 0. Guided examples ── */}
