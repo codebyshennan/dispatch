@@ -1071,14 +1071,12 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         />
 
         <SubHeading id="per-item-retry" T={T}>Card executor — per-item retry</SubHeading>
-        <img
+        <Figure
           src="/diagrams/dispatch-retry-flow.png"
           alt="Per-item retry flowchart"
-          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, margin: "0 0 16px" }}
+          caption="Each item runs in its own Convex action. The terminal-status guard at entry makes duplicate invocations a no-op — safe under Convex's at-least-once delivery."
+          T={T}
         />
-        <p style={body}>
-          Each card item runs in its own Convex internal action. Each invocation simulates a card API call, determines the outcome, and either marks the item terminal or re-schedules itself with exponential backoff:
-        </p>
         <CodeBlock lang="typescript" T={T}>{`// src/lib/executor-logic.ts
 export const MAX_RETRIES = 3;
 
@@ -1089,12 +1087,8 @@ export function backoffMs(retryCount: number): number {
 export function isRetryExhausted(retryCount: number): boolean {
   return retryCount >= MAX_RETRIES;
 }`}</CodeBlock>
-
         <p style={body}>
-          On a retryable failure the item is re-scheduled with exponential backoff (2 s → 4 s → 8 s); after 3 attempts it is promoted to permanent failure and no further scheduling occurs. A permanent failure is written immediately when the card API returns a locked status (compliance-locked card IDs) or the retry count is exhausted.
-        </p>
-        <p style={body}>
-          The executor checks item status on entry — if it is already terminal (succeeded, permanently failed, or cancelled), it returns immediately. <em>Idempotent</em> means running the same operation twice has the same effect as running it once; this makes Convex&apos;s at-least-once delivery safe since a duplicate invocation is a no-op. After each terminal outcome a count mutation atomically patches the parent job&apos;s succeeded / failed / skipped tallies; once all eligible items are resolved, the job transitions to completed or completed with failures.
+          After each terminal outcome a count mutation atomically patches the parent job&apos;s succeeded / failed / skipped tallies; once all eligible items are resolved, the job transitions to completed or completed with failures.
         </p>
 
         <SubHeading id="retry-failed-items" T={T}>Retry failed items</SubHeading>
