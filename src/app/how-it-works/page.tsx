@@ -148,26 +148,95 @@ const CodeBlock = React.memo(function CodeBlock({ children, lang, T }: {
   );
 });
 
+// ── image modal ───────────────────────────────────────────────────────────────
+
+function ImageModal({ src, alt, caption, T, onClose }: {
+  src: string; alt: string; caption: string;
+  T: ReturnType<typeof useTheme>["T"];
+  onClose: () => void;
+}) {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(0,0,0,0.82)",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        padding: 24,
+        backdropFilter: "blur(4px)",
+      }}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close image"
+        style={{
+          position: "absolute", top: 16, right: 16,
+          background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8,
+          color: "#fff", cursor: "pointer", fontSize: 18, lineHeight: 1,
+          padding: "6px 10px",
+        }}
+      >
+        ✕
+      </button>
+      <img
+        src={src}
+        alt={alt}
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxWidth: "90vw", maxHeight: "80vh",
+          borderRadius: 12, boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+          objectFit: "contain", display: "block",
+        }}
+      />
+      {caption && (
+        <p style={{
+          marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.6)",
+          fontStyle: "italic", textAlign: "center", maxWidth: 600, lineHeight: 1.5,
+        }}>
+          {caption}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── figure + caption ─────────────────────────────────────────────────────────
 
 function Figure({ src, alt, caption, T }: {
   src: string; alt: string; caption: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <figure style={{ margin: "8px 0 20px" }}>
-      <img
-        src={src}
-        alt={alt}
-        style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, display: "block" }}
-      />
-      <figcaption style={{
-        fontSize: 11, color: T.muted, textAlign: "center",
-        marginTop: 6, fontStyle: "italic", lineHeight: 1.5,
-      }}>
-        {caption}
-      </figcaption>
-    </figure>
+    <>
+      <figure style={{ margin: "8px 0 20px", cursor: "zoom-in" }} onClick={() => setOpen(true)}>
+        <img
+          src={src}
+          alt={alt}
+          style={{ width: "100%", borderRadius: 10, border: `1px solid ${T.border}`, display: "block" }}
+        />
+        <figcaption style={{
+          fontSize: 11, color: T.muted, textAlign: "center",
+          marginTop: 6, fontStyle: "italic", lineHeight: 1.5,
+        }}>
+          {caption}
+        </figcaption>
+      </figure>
+      {open && (
+        <ImageModal src={src} alt={alt} caption={caption} T={T} onClose={() => setOpen(false)} />
+      )}
+    </>
   );
 }
 
