@@ -890,7 +890,7 @@ export function isRetryExhausted(retryCount: number): boolean {
           Operators can re-queue all retryable failed items on a completed-with-failures job. This resets their status, clears failure codes, re-opens the job to in-progress, and schedules fresh execution with a new stagger. Permanently failed items are intentionally excluded and cannot be retried.
         </p>
 
-        <SubHeading T={T}>LLM error handling</SubHeading>
+        <SubHeading id="llm-error-handling" T={T}>LLM error handling</SubHeading>
         <p style={body}>
           The request handler covers three distinct failure modes before surfacing an error to the UI:
         </p>
