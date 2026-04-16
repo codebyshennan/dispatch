@@ -467,11 +467,19 @@ export default function HowItWorksPage() {
           sub="Operator raises card limits for an entire team"
           inputPrompt={`Set Marketing team card limits to SGD 2,000`}
           steps={[
-            { icon: "🔍", label: "KB search", sub: "Query embedded → top-4 articles retrieved via vector search" },
-            { icon: "🤖", label: "gpt-5.4-mini (OpenRouter, temp 0)", sub: "Intent classified as bulk_op · target group + limit extracted" },
-            { icon: "🛡", label: "Policy engine", sub: "Checks P4 (>25 cards → approval flag) · P5 (≤200 cap) · P6 (frozen/cancelled excluded)" },
-            { icon: "📋", label: "createDraft mutation", sub: "Job row written with status: draft · idempotency key checked before insert" },
-            { icon: "✅", label: "Operator confirms", sub: "confirmJob transitions to in_progress · job_items fan-out with 500–3500 ms stagger" },
+            { icon: "🔤", label: "Embed query", sub: "\"Set Marketing team card limits to SGD 2,000\" → 1,536-dim vector via text-embedding-3-small" },
+            { icon: "🔍", label: "Vector search", sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
+            { icon: "✂️", label: "Trim & inject", sub: "Each article truncated to 200-char snippet · formatted as KB context block in system prompt" },
+            { icon: "🤖", label: "Classify intent", sub: "gpt-5.4-mini reads KB context · identifies bulk_op · extracts target group + limit" },
+            { icon: "🛡", label: "Policy check", sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled excluded" },
+            { icon: "📋", label: "Create draft", sub: "Job record written with status: draft · idempotency key checked before insert" },
+            { icon: "✅", label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
+          ]}
+          retrieved={[
+            { title: "Card Spending Limits & Bulk Operations", score: 0.91, snippet: "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval before execution." },
+            { title: "Managing Team Card Permissions", score: 0.79, snippet: "Admins can view and update card limits from the Cards tab. Changes apply immediately and are logged for audit." },
+            { title: "Bulk Operations & Approval Workflows", score: 0.73, snippet: "Operations affecting more than 25 eligible cards are subject to an approval workflow. The requester must confirm before execution begins." },
+            { title: "Card Status Management", score: 0.58, snippet: "Cards in frozen or cancelled status are automatically excluded from bulk operations and counted as skipped." },
           ]}
           outputJson={`{
   "type": "bulk_op",
@@ -493,10 +501,18 @@ export default function HowItWorksPage() {
           sub="Operator asks about policy limits — answered inline from the KB"
           inputPrompt={`What is the maximum spending limit I can set per card?`}
           steps={[
-            { icon: "🔍", label: "KB search", sub: "Query embedded → top-4 articles retrieved; card limit policy article ranked #1" },
-            { icon: "🤖", label: "gpt-5.4-mini (OpenRouter, temp 0)", sub: "Intent classified as question · KB context block injected into system prompt" },
-            { icon: "📎", label: "Source citation", sub: "Model cites article IDs used · frontend maps IDs to retrieved hits and renders source cards" },
-            { icon: "💬", label: "Inline answer rendered", sub: "No job created · thumbs up/down feedback captured in feedback table by responseId" },
+            { icon: "🔤", label: "Embed query", sub: "\"What is the maximum spending limit...\" → 1,536-dim vector via text-embedding-3-small" },
+            { icon: "🔍", label: "Vector search", sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
+            { icon: "✂️", label: "Trim & inject", sub: "Snippets formatted as KB context block · injected at the top of the system prompt" },
+            { icon: "🤖", label: "Answer + rerank", sub: "gpt-5.4-mini reads all 4 candidates · selects only article 1 as relevant · cites its ID" },
+            { icon: "📎", label: "Map citations", sub: "Article ID in response mapped back to retrieved doc · rendered as inline source card" },
+            { icon: "💬", label: "Render inline", sub: "Answer + source card displayed in chat · no job created · feedback captured by response ID" },
+          ]}
+          retrieved={[
+            { title: "Card Spending Limits & Bulk Operations", score: 0.93, snippet: "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval before execution.", cited: true },
+            { title: "Managing Team Card Permissions", score: 0.74, snippet: "Admins can view and update card limits from the Cards tab. Changes apply immediately and are logged for audit." },
+            { title: "Payment Processing & Settlement", score: 0.62, snippet: "Reap processes card payments in real-time against the card's configured spending limit. Declined transactions are returned with a reason code." },
+            { title: "Understanding Card Statuses", score: 0.55, snippet: "Cards can be active, frozen, or cancelled. Only active cards participate in spending limit checks and bulk operations." },
           ]}
           outputJson={`{
   "type": "question",
@@ -505,7 +521,7 @@ export default function HowItWorksPage() {
     {
       "id": "card-limits-policy",
       "title": "Card Spending Limits & Bulk Operations",
-      "snippet": "The hard cap for any individual card limit is SGD 5,000. Bulk operations targeting more than 25 eligible cards require manager approval before execution."
+      "snippet": "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval..."
     }
   ]
 }`}
@@ -513,7 +529,7 @@ export default function HowItWorksPage() {
         />
 
         <Note T={T}>
-          Both paths share the same {mono("processRequest")} action. The discriminated union return type ({mono('"question"')} vs {mono('"bulk_op"')}) determines what the frontend renders — no separate routes or endpoints.
+          Both paths share the same request handler. The discriminated union return type (question vs bulk_op) determines what the frontend renders — no separate routes or endpoints.
         </Note>
       </section>
 
