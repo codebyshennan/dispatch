@@ -794,6 +794,7 @@ export default function HowItWorksPage() {
             { title: "Restricted MCC Codes for Reap Cards", score: 0.71, snippet: "Certain merchant categories are blocked from Reap Card usage due to security and compliance requirements. MCCs are four-digit codes assigned by credit card networks to classify merchants." },
             { title: "Team Permissions User Level Comparisons - Reap Card", score: 0.60, snippet: "Admins can view all transactions, manage cards and spend limits across all groups. Group Owners manage within their group. Team Members view their own transactions only." },
           ]}
+          retrievedAfterStep={1}
           outputJson={`{
   "type": "bulk_op",
   "intent": {
