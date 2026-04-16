@@ -85,12 +85,15 @@ function tokenizeLine(line: string): Token[] {
   return tokens;
 }
 
-function CodeBlock({ children, lang, T }: {
+const CodeBlock = React.memo(function CodeBlock({ children, lang, T }: {
   children: string;
   lang?: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
-  const lines = children.trimEnd().split("\n");
+  const lines = React.useMemo(
+    () => children.trimEnd().split("\n").map(line => ({ raw: line, tokens: tokenizeLine(line) })),
+    [children],
+  );
 
   const colorFor = (t: Token["t"]): string => {
     if (t === "keyword") return SYN.keyword;
