@@ -76,8 +76,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const T = theme === "dark" ? DARK : LIGHT;
 
+  const value = useMemo(() => ({ theme, T, toggle }), [theme, T]);
+
   return (
-    <ThemeContext.Provider value={{ theme, T, toggle }}>
+    <ThemeContext.Provider value={value}>
       <div
         style={{
           minHeight: "100dvh",
