@@ -134,22 +134,19 @@ const CodeBlock = React.memo(function CodeBlock({ children, lang, T }: {
         overflowX: "auto",
       }}>
         <code>
-          {lines.map((line, li) => {
-            const tokens = tokenizeLine(line);
-            return (
-              <React.Fragment key={li}>
+          {lines.map(({ raw, tokens }, li) => (
+              <React.Fragment key={raw + li}>
                 {tokens.map((tok, ti) => (
                   <span key={ti} style={{ color: colorFor(tok.t) }}>{tok.v}</span>
                 ))}
                 {li < lines.length - 1 && "\n"}
               </React.Fragment>
-            );
-          })}
+            ))}
         </code>
       </pre>
     </div>
   );
-}
+});
 
 // ── shared primitives ────────────────────────────────────────────────────────
 
