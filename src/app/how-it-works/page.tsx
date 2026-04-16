@@ -291,6 +291,95 @@ function Flow({ steps, T }: {
   );
 }
 
+// ── guided example ────────────────────────────────────────────────────────────
+
+function ExampleStep({ icon, label, sub, T }: {
+  icon: string; label: string; sub: string;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+      <span style={{
+        fontSize: 16, lineHeight: "22px", flexShrink: 0, width: 22, textAlign: "center",
+      }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: T.text, lineHeight: 1.4 }}>{label}</div>
+        <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.5 }}>{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+function ExampleConnector({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
+  return (
+    <div style={{ width: 22, display: "flex", justifyContent: "center", margin: "-4px 0 -4px 0", flexShrink: 0 }}>
+      <div style={{ width: 1, height: 16, background: T.border }} />
+    </div>
+  );
+}
+
+function ExampleBlock({ badge, badgeColor, title, sub, steps, inputPrompt, outputJson, T }: {
+  badge: string; badgeColor: string; title: string; sub: string;
+  steps: { icon: string; label: string; sub: string }[];
+  inputPrompt: string; outputJson: string;
+  T: ReturnType<typeof useTheme>["T"];
+}) {
+  return (
+    <div style={{
+      border: `1px solid ${T.border}`,
+      borderRadius: 12,
+      overflow: "hidden",
+      marginBottom: 20,
+    }}>
+      {/* header */}
+      <div style={{
+        background: T.elevated,
+        borderBottom: `1px solid ${T.border}`,
+        padding: "12px 16px",
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+          padding: "2px 8px", borderRadius: 4,
+          background: `${badgeColor}20`, color: badgeColor,
+          fontFamily: T.fontMono,
+        }}>{badge}</span>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{title}</div>
+          <div style={{ fontSize: 11, color: T.muted }}>{sub}</div>
+        </div>
+      </div>
+
+      <div style={{ padding: "16px 16px 4px" }}>
+        {/* input */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6, fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          💬 Operator types
+        </div>
+        <CodeBlock lang="text" T={T}>{inputPrompt}</CodeBlock>
+
+        {/* trace */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, margin: "16px 0 10px", fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          ⚙ What Dispatch does
+        </div>
+        <div style={{ paddingLeft: 4, marginBottom: 16 }}>
+          {steps.map((s, i) => (
+            <React.Fragment key={i}>
+              <ExampleStep icon={s.icon} label={s.label} sub={s.sub} T={T} />
+              {i < steps.length - 1 && <ExampleConnector T={T} />}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* output */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.muted, marginBottom: 6, fontFamily: T.fontMono, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          ↩ Model response
+        </div>
+        <CodeBlock lang="json" T={T}>{outputJson}</CodeBlock>
+      </div>
+    </div>
+  );
+}
+
 // ── page ─────────────────────────────────────────────────────────────────────
 
 export default function HowItWorksPage() {
@@ -311,6 +400,73 @@ export default function HowItWorksPage() {
           Implementation details — data capture, inference pipeline, and exception handling.
         </p>
       </div>
+
+      {/* ── 0. Guided examples ── */}
+      <section>
+        <SectionHeading
+          num={0} title="Guided examples"
+          sub="Two end-to-end traces showing how a single operator message becomes a card operation or a grounded answer."
+          T={T}
+        />
+
+        <ExampleBlock
+          badge="bulk op"
+          badgeColor={T.accent}
+          title="Execute card orders"
+          sub="Operator raises card limits for an entire team"
+          inputPrompt={`Set Marketing team card limits to SGD 2,000`}
+          steps={[
+            { icon: "🔍", label: "KB search", sub: "Query embedded → top-4 articles retrieved via vector search" },
+            { icon: "🤖", label: "gpt-5.4-mini (OpenRouter, temp 0)", sub: "Intent classified as bulk_op · target group + limit extracted" },
+            { icon: "🛡", label: "Policy engine", sub: "Checks P4 (>25 cards → approval flag) · P5 (≤200 cap) · P6 (frozen/cancelled excluded)" },
+            { icon: "📋", label: "createDraft mutation", sub: "Job row written with status: draft · idempotency key checked before insert" },
+            { icon: "✅", label: "Operator confirms", sub: "confirmJob transitions to in_progress · job_items fan-out with 500–3500 ms stagger" },
+          ]}
+          outputJson={`{
+  "type": "bulk_op",
+  "intent": {
+    "intent": "bulk_update_card_limit",
+    "targetGroup": "Marketing",
+    "targetCountEstimate": 12,
+    "newLimit": { "currency": "SGD", "amount": 2000 },
+    "notifyCardholders": false
+  }
+}`}
+          T={T}
+        />
+
+        <ExampleBlock
+          badge="question"
+          badgeColor="#10B981"
+          title="Search for information"
+          sub="Operator asks about policy limits — answered inline from the KB"
+          inputPrompt={`What is the maximum spending limit I can set per card?`}
+          steps={[
+            { icon: "🔍", label: "KB search", sub: "Query embedded → top-4 articles retrieved; card limit policy article ranked #1" },
+            { icon: "🤖", label: "gpt-5.4-mini (OpenRouter, temp 0)", sub: "Intent classified as question · KB context block injected into system prompt" },
+            { icon: "📎", label: "Source citation", sub: "Model cites article IDs used · frontend maps IDs to retrieved hits and renders source cards" },
+            { icon: "💬", label: "Inline answer rendered", sub: "No job created · thumbs up/down feedback captured in feedback table by responseId" },
+          ]}
+          outputJson={`{
+  "type": "question",
+  "answer": "The maximum card spending limit you can set is SGD 5,000 per card. Operations that would exceed this cap are hard-blocked and will not be created.",
+  "sources": [
+    {
+      "id": "card-limits-policy",
+      "title": "Card Spending Limits & Bulk Operations",
+      "snippet": "The hard cap for any individual card limit is SGD 5,000. Bulk operations targeting more than 25 eligible cards require manager approval before execution."
+    }
+  ]
+}`}
+          T={T}
+        />
+
+        <Note T={T}>
+          Both paths share the same {mono("processRequest")} action. The discriminated union return type ({mono('"question"')} vs {mono('"bulk_op"')}) determines what the frontend renders — no separate routes or endpoints.
+        </Note>
+      </section>
+
+      {divider}
 
       {/* ── 1. Data capture ── */}
       <section>
