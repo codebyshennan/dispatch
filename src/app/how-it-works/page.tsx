@@ -738,7 +738,10 @@ export default function HowItWorksPage() {
           On the {mono('"question"')} path, the answer and KB sources render inline in the chat thread — no job is created. Thumbs up/down feedback is captured in the feedback table, keyed by a stable response ID. On the {mono('"bulk_op"')} path, the extracted intent (target group, new limit, notify flag) is used to create a draft job record capturing policy output and excluded cards; no cards are touched yet.
         </p>
         <p style={body}>
-          Before inserting, we check the idempotency index. If a matching job already exists, we return that ID rather than creating a duplicate — the key is derived from actor + operation + target group + limit. The request handler also accepts conversation history (prior turns) and an optional recent job ID; when supplied, the job&apos;s result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like &quot;how did that job go?&quot;.
+          Before inserting, we check the idempotency index. If a matching job already exists, we return that ID rather than creating a duplicate — the key is derived from actor + operation + target group + limit.
+        </p>
+        <p style={body}>
+          The request handler also accepts conversation history (prior turns) and an optional recent job ID. When supplied, the job&apos;s result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like &quot;how did that job go?&quot;.
         </p>
 
         <SubHeading id="kb-ingestion" T={T}>KB ingestion</SubHeading>
