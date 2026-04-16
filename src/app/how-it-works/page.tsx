@@ -839,7 +839,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
           rows={[
             ["Max limit",           "Hard block — job not created",          "SGD 5,000"],
             ["Max bulk items",      "Hard block — job not created",          "200 eligible cards"],
-            ["Excluded statuses",   "Cards silently excluded from job",      "frozen, cancelled"],
+            ["Excluded statuses",   "Cards inserted as skipped items — not executed", "frozen, cancelled"],
             ["Approval threshold",  "Job created but approval flagged",      "> 25 eligible cards"],
           ]}
           T={T}
