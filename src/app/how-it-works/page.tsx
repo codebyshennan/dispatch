@@ -631,10 +631,10 @@ export default function HowItWorksPage() {
           inputPrompt={`Set Marketing team card limits to SGD 2,000`}
           steps={[
             { icon: "type",     label: "Embed query",    sub: "\"Set Marketing team card limits to SGD 2,000\" → 1,536-dim vector via text-embedding-3-small" },
-            { icon: "search",   label: "Vector search",  sub: "ANN search over kb_articles · top-4 candidates returned by cosine similarity" },
+            { icon: "search",   label: "Vector search",  sub: "ANN (Approximate Nearest Neighbor) search over kb_articles · top-4 candidates by cosine similarity" },
             { icon: "funnel",   label: "Trim & inject",  sub: "Each article truncated to 200-char snippet · formatted as KB context block in system prompt" },
             { icon: "cpu",      label: "Classify intent",sub: "gpt-5.4-mini reads KB context · identifies bulk_op · extracts target group + limit" },
-            { icon: "shield",   label: "Policy check",   sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled excluded" },
+            { icon: "shield",   label: "Policy check",   sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled cards marked skipped" },
             { icon: "file",     label: "Create draft",   sub: "Job record written with status: draft · idempotency key checked before insert" },
             { icon: "check",    label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
           ]}
