@@ -50,7 +50,7 @@ type ThreadMsg = {
 };
 
 function JobRow({ jobId, T }: { jobId: string; T: ReturnType<typeof useTheme>["T"] }) {
-  const job = useQuery(api.queries.getJob, { jobId: jobId as Parameters<typeof useQuery<typeof api.queries.getJob>>[1]["jobId"] });
+  const job = useQuery(api.queries.getJob, { jobId: jobId as Id<"jobs"> });
   if (!job) return null;
   return (
     <Link href={`/jobs/${jobId}`} style={{ textDecoration: "none", display: "block" }}>
