@@ -588,6 +588,108 @@ function ExampleBlock({ id, badge, badgeColor, title, sub, steps, retrieved, inp
   );
 }
 
+// ── rag + inference pipeline diagram ─────────────────────────────────────────
+
+function PipelineDiagram({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
+  const stages: { icon: string; label: string; detail: string; accent?: boolean }[] = [
+    { icon: "message",  label: "Operator input",      detail: "raw natural language string typed into chat" },
+    { icon: "type",     label: "Embed query",          detail: "text-embedding-3-small → 1,536-dim vector" },
+    { icon: "search",   label: "ANN vector search",    detail: "top-4 candidates from kb_articles by cosine similarity" },
+    { icon: "funnel",   label: "Trim & inject",        detail: "each article → 200-char snippet → KB context block in system prompt" },
+    { icon: "cpu",      label: "LLM — gpt-5.4-mini",  detail: "temperature 0 · JSON only · via OpenRouter", accent: true },
+    { icon: "shield",   label: "Parse & validate",     detail: "strip fences → JSON.parse → Zod discriminated union" },
+  ];
+
+  const branches = [
+    {
+      label: '"question"',
+      color: "#10B981",
+      items: ["Inline answer rendered in chat", "KB source cards shown", "Thumbs up/down feedback captured"],
+    },
+    {
+      label: '"bulk_op"',
+      color: T.accent,
+      items: ["Policy checks run (limits, thresholds)", "Draft job written to DB", "User confirms → fan-out per card"],
+    },
+  ];
+
+  const connector = (
+    <div style={{ display: "flex", justifyContent: "center", height: 18, alignItems: "center" }}>
+      <div style={{ width: 1.5, height: "100%", background: T.border }} />
+    </div>
+  );
+
+  return (
+    <div style={{ margin: "16px 0 24px" }}>
+      {stages.map((s, i) => (
+        <React.Fragment key={i}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "10px 14px", borderRadius: 8,
+            border: `1px solid ${s.accent ? T.accent + "60" : T.border}`,
+            background: s.accent ? T.accent + "0d" : T.surface,
+          }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: s.accent ? T.accent + "20" : T.elevated,
+              border: `1px solid ${s.accent ? T.accent + "40" : T.border}`,
+            }}>
+              <Icon name={s.icon} size={13} color={s.accent ? T.accent : T.muted} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: s.accent ? T.accent : T.text, fontFamily: T.fontMono }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{s.detail}</div>
+            </div>
+          </div>
+          {i < stages.length - 1 && connector}
+        </React.Fragment>
+      ))}
+
+      {/* fork line */}
+      <div style={{ display: "flex", justifyContent: "center", height: 18, alignItems: "center" }}>
+        <div style={{ width: 1.5, height: "100%", background: T.border }} />
+      </div>
+
+      {/* branch label */}
+      <div style={{
+        textAlign: "center", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+        textTransform: "uppercase", color: T.muted, fontFamily: T.fontMono, marginBottom: 8,
+      }}>
+        discriminated union
+      </div>
+
+      {/* two branches */}
+      <div style={{ display: "flex", gap: 8 }}>
+        {branches.map((b, i) => (
+          <div key={i} style={{
+            flex: 1, borderRadius: 8,
+            border: `1.5px solid ${b.color}40`,
+            background: `${b.color}08`,
+            padding: "12px 14px",
+          }}>
+            <div style={{
+              fontSize: 12, fontWeight: 700, color: b.color,
+              marginBottom: 10, fontFamily: T.fontMono,
+            }}>
+              {b.label}
+            </div>
+            {b.items.map((item, j) => (
+              <div key={j} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 5 }}>
+                <div style={{
+                  width: 4, height: 4, borderRadius: "50%",
+                  background: b.color, flexShrink: 0, marginTop: 5,
+                }} />
+                <span style={{ fontSize: 11, color: T.textSub, lineHeight: 1.5 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── page ─────────────────────────────────────────────────────────────────────
 
 export default function HowItWorksPage() {
