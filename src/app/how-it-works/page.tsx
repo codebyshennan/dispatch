@@ -917,6 +917,8 @@ export function isRetryExhausted(retryCount: number): boolean {
           KB unavailability is caught silently — the LLM call proceeds without KB context. Policy failures surface as user-readable error messages in the chat. Partial write failures are not possible: Convex mutations are transactional.
         </Note>
       </section>
-    </main>
+      </main>
+      <NavRail T={T} />
+    </div>
   );
 }
