@@ -661,10 +661,10 @@ export default function HowItWorksPage() {
             { icon: "message",  label: "Render inline",  sub: "Answer + source card displayed in chat · no job created · feedback captured by response ID" },
           ]}
           retrieved={[
-            { title: "Card Spending Limits & Bulk Operations", score: 0.93, snippet: "Individual card limits are capped at SGD 5,000. Bulk operations affecting more than 25 eligible cards require manager approval before execution.", cited: true },
-            { title: "Managing Team Card Permissions", score: 0.74, snippet: "Admins can view and update card limits from the Cards tab. Changes apply immediately and are logged for audit." },
-            { title: "Payment Processing & Settlement", score: 0.62, snippet: "Reap processes card payments in real-time against the card's configured spending limit. Declined transactions are returned with a reason code." },
-            { title: "Understanding Card Statuses", score: 0.55, snippet: "Cards can be active, frozen, or cancelled. Only active cards participate in spending limit checks and bulk operations." },
+            { title: "How can I increase my card's daily spending limit?", score: 0.93, snippet: "Your card daily Spending Limit is the maximum card transaction ceiling set by Reap for security reasons. The baseline is 100,000 USD per card per day for USD cards and 780,000 HKD per card per day for HKD cards.", cited: true },
+            { title: "Why is My Card Showing as \"Capped\"?", score: 0.74, snippet: "If you see the term \"capped\" associated with your card, it means the spending limit on your card is currently lower than the amount stated, typically because your company's remaining balance is insufficient." },
+            { title: "Understanding Reap Card Transaction Declines", score: 0.62, snippet: "If a Reap Card transaction fails, you can find the reason in your dashboard, mobile app, or email. This guide explains where to find decline details and what each decline code means." },
+            { title: "How to use Spend restrictions on Reap Card?", score: 0.55, snippet: "To allow or block certain types of transactions on a Reap Card, go to the Cards tab after logging into the Reap dashboard, select the card, and configure Category or Time-based restrictions." },
           ]}
           outputJson={`{
   "type": "question",
