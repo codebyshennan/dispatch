@@ -188,16 +188,24 @@ function ImageModal({ src, alt, caption, T, onClose }: {
       >
         ✕
       </button>
-      <img
-        src={src}
-        alt={alt}
+      <div
         onClick={e => e.stopPropagation()}
         style={{
-          maxWidth: "90vw", maxHeight: "80vh",
-          borderRadius: 12, boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
-          objectFit: "contain", display: "block",
+          background: "#fff", borderRadius: 14,
+          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+          padding: 16, display: "flex",
         }}
-      />
+      >
+        <img
+          src={src}
+          alt={alt}
+          style={{
+            maxWidth: "88vw", maxHeight: "84vh",
+            borderRadius: 6,
+            objectFit: "contain", display: "block",
+          }}
+        />
+      </div>
       {caption && (
         <p style={{
           marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.6)",
