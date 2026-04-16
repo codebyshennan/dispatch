@@ -490,7 +490,7 @@ export default function HowItWorksPage() {
         ]} T={T} />
 
         <p style={body}>
-          {mono("processRequest")} returns one of two discriminated types which the frontend renders differently:
+          The request handler returns one of two discriminated types which the frontend renders differently:
         </p>
         <CodeBlock lang="typescript" T={T}>{`// Discriminated union returned by processRequest
 { type: "question", answer: string, sources: PolicySource[] }
@@ -498,16 +498,16 @@ export default function HowItWorksPage() {
 { type: "bulk_op", intent: BulkJobIntent }`}</CodeBlock>
 
         <Card title="question path" T={T}>
-          The answer and KB sources render inline in the chat thread. No job is created. Thumbs up/down feedback is captured in the {mono("feedback")} table keyed by a stable {mono("responseId")}.
+          The answer and KB sources render inline in the chat thread. No job is created. Thumbs up/down feedback is captured in the feedback table, keyed by a stable response ID.
         </Card>
         <Card title="bulk_op path" T={T}>
-          The {mono("intent")} (targetGroup, newLimit, notifyCardholders) is passed to {mono("createDraft")}. A job record is written with status {mono('"draft"')}, policy output, and excluded cards. No cards are touched yet.
+          The extracted intent (target group, new limit, notify flag) is used to create a draft job record, capturing policy output and excluded cards. No cards are touched yet.
         </Card>
         <Card title="Idempotency" T={T}>
-          Before inserting, {mono("createDraft")} queries the {mono("by_idempotency_key")} index. If a matching job already exists, it returns that ID rather than creating a duplicate. The key is derived from actor + operation + target group + limit.
+          Before inserting, we check the idempotency index. If a matching job already exists, we return that ID rather than creating a duplicate. The key is derived from actor + operation + target group + limit.
         </Card>
         <Card title="Conversation context" T={T}>
-          {mono("processRequest")} accepts {mono("conversationHistory")} (prior turns) and an optional {mono("recentJobId")}. When a job ID is supplied, its result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like "how did that job go?".
+          The request handler accepts conversation history (prior turns) and an optional recent job ID. When a job ID is supplied, its result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like "how did that job go?".
         </Card>
 
         <SubHeading T={T}>KB ingestion</SubHeading>
