@@ -429,22 +429,22 @@ function Icon({ name, size = 14, color = "currentColor" }: {
 // ── nav rail ──────────────────────────────────────────────────────────────────
 
 const NAV_SECTIONS = [
-  { id: "guided-examples", label: "Guided examples", children: [
+  { id: "guided-examples", icon: "layers", label: "Guided examples", children: [
     { id: "example-bulk", label: "Execute card orders" },
     { id: "example-question", label: "Search for information" },
   ]},
-  { id: "data-capture", label: "Data capture", children: [
+  { id: "data-capture", icon: "database", label: "Data capture", children: [
     { id: "ops-chat-input", label: "Ops chat input" },
     { id: "kb-ingestion", label: "KB ingestion" },
     { id: "rag-pipeline", label: "RAG pipeline" },
   ]},
-  { id: "inference", label: "Inference", children: [
+  { id: "inference", icon: "cpu", label: "Inference", children: [
     { id: "router", label: "Pre-classifier router" },
     { id: "intent-classification", label: "Intent classification" },
     { id: "policy-engine", label: "Policy engine" },
     { id: "draft-confirm-fanout", label: "Draft → confirm" },
   ]},
-  { id: "exception-handling", label: "Exception handling", children: [
+  { id: "exception-handling", icon: "shield", label: "Exception handling", children: [
     { id: "per-item-retry", label: "Per-item retry" },
     { id: "retry-failed-items", label: "Retry failed items" },
     { id: "llm-error-handling", label: "LLM error handling" },
