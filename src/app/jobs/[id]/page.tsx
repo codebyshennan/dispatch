@@ -170,7 +170,7 @@ export default function JobPage() {
 
     if (prev === undefined || prev === status) return;
 
-    const verb = normalizedPlan.intent === "bulk_freeze_cards" ? "frozen" : "updated";
+    const verb = data.job.operationType === "bulk_freeze_cards" ? "frozen" : "updated";
     if (status === "completed") {
       toast.success(`All ${succeededCount} cards ${verb} successfully.`);
     } else if (status === "completed_with_failures") {
