@@ -1187,7 +1187,7 @@ export const UNIFIED_SYSTEM_PROMPT = \`...full discriminated union (fallback)...
           The raw response is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod against a discriminated union schema. An unsupported intent type surfaces as an error entry in the chat thread rather than throwing.
         </p>
 
-        <SubHeading id="policy-engine" T={T}>Policy engine</SubHeading>
+        <SubHeading id="policy-engine" icon="shield" T={T}>Policy engine</SubHeading>
         <p style={body}>
           Once intent is confirmed as a bulk operation, policy checks run synchronously inside the Convex mutation before writing any records:
         </p>
