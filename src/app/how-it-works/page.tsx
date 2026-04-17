@@ -281,9 +281,14 @@ function SectionHeading({ id, num, icon, title, sub, T }: {
   );
 }
 
-function SubHeading({ id, children, T }: { id?: string; children: React.ReactNode; T: ReturnType<typeof useTheme>["T"] }) {
+function SubHeading({ id, icon, children, T }: { id?: string; icon?: string; children: React.ReactNode; T: ReturnType<typeof useTheme>["T"] }) {
   return (
-    <h3 id={id} style={{ fontSize: 14, fontWeight: 700, color: T.text, margin: "28px 0 10px", fontFamily: T.fontMono }}>
+    <h3 id={id} style={{
+      fontSize: 14, fontWeight: 700, color: T.text,
+      margin: "28px 0 10px", fontFamily: T.fontMono,
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      {icon && <Icon name={icon} size={13} color={T.accent} />}
       {children}
     </h3>
   );
