@@ -6,36 +6,13 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { BulkJobIntentSchema } from "../src/lib/schemas";
 import type { RouterResult } from "./router";
+import { READ_SYSTEM_PROMPT, WRITE_SYSTEM_PROMPT, UNIFIED_SYSTEM_PROMPT } from "./prompts";
 
-// Trust the router's lane decision (and skip KB on `write`) only when it is
-// at least this confident. Below the threshold we fall back to the unified
-// pipeline so accuracy never regresses.
+// Trust the router's lane decision (and switch to the per-lane prompt) only
+// when it is at least this confident. Below the threshold we fall back to the
+// unified prompt so accuracy never regresses.
 const ROUTER_CONFIDENCE_THRESHOLD = 0.8;
-
-const BASE_SYSTEM_PROMPT = `You are a CX operations assistant for Reap's card management team.
-
-Determine whether the user's message is a QUESTION or a BULK OPERATION REQUEST, then respond with JSON only.
-
-CORE POLICY RULES (always apply):
-[P4] Operations affecting more than 25 eligible cards require manager approval
-[P5] Maximum cards per bulk operation: 200
-[P6] Frozen and cancelled cards are automatically excluded from all bulk ops
-[P7] Supported bulk operations: bulk_update_card_limit (fully automated), bulk_freeze_cards, bulk_notify_cardholders
-
-RESPONSE FORMAT — return valid JSON only, no markdown:
-
-If the user is asking a question about policies, limits, approvals, or supported operations:
-{ "type": "question", "answer": "<concise direct answer>", "sources": [{ "id": "<article id>", "title": "<article title>", "snippet": "<relevant excerpt from the article>" }] }
-Only include sources that directly support the answer.
-
-If the user is requesting a bulk operation:
-{ "type": "bulk_op", "intent": {
-  "intent": "bulk_update_card_limit" | "bulk_freeze_cards" | "bulk_notify_cardholders",
-  "targetGroup": "<team name>",
-  "targetCountEstimate": <number or null>,
-  "newLimit": { "currency": "SGD" | "USD" | "EUR" | "GBP", "amount": <positive number> } | null,
-  "notifyCardholders": <boolean>
-} }`;
+const MODEL = "openai/gpt-5.4-mini";
 
 const SourceSchema = z.object({
   id: z.string(),
@@ -43,14 +20,20 @@ const SourceSchema = z.object({
   snippet: z.string(),
 });
 
-const ProcessResultSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("question"),
-    answer: z.string(),
-    sources: z.array(SourceSchema).default([]),
-  }),
-  z.object({ type: z.literal("bulk_op"), intent: BulkJobIntentSchema }),
-]);
+const QuestionShape = z.object({
+  type: z.literal("question"),
+  answer: z.string(),
+  sources: z.array(SourceSchema).default([]),
+});
+
+const BulkOpShape = z.object({
+  type: z.literal("bulk_op"),
+  intent: BulkJobIntentSchema,
+});
+
+const UnifiedShape = z.discriminatedUnion("type", [QuestionShape, BulkOpShape]);
+
+export type ProcessResult = z.infer<typeof UnifiedShape>;
 
 export const processRequest = action({
   args: {
@@ -61,7 +44,7 @@ export const processRequest = action({
     }))),
     recentJobId: v.optional(v.id("jobs")),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<ProcessResult> => {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
 
@@ -70,9 +53,8 @@ export const processRequest = action({
       apiKey,
     });
 
-    // Cheap upfront router classifies intent so we can short-circuit retrieval
-    // for pure write operations. Best-effort — failures fall through to the
-    // unified pipeline.
+    // Cheap upfront router classifies intent. Best-effort — failures fall
+    // through to the unified prompt below.
     let routerResult: RouterResult | null = null;
     try {
       routerResult = await ctx.runAction(api.router.route, {
@@ -85,13 +67,19 @@ export const processRequest = action({
 
     const trustRouter =
       routerResult !== null && routerResult.confidence >= ROUTER_CONFIDENCE_THRESHOLD;
-    const skipKB = trustRouter && routerResult!.lane === "write";
 
-    // Search KB for relevant articles to ground the response.
-    // Skipped when the router is confident the request is a pure write op —
-    // bulk_op intent extraction does not benefit from KB context.
+    // Lane resolves to one of: "read", "write", or "unified" (fallback).
+    // "clarify" intentionally routes to unified — the unified prompt handles
+    // ambiguity better than either single-shape prompt.
+    const lane: "read" | "write" | "unified" =
+      trustRouter && routerResult!.lane === "read"  ? "read"  :
+      trustRouter && routerResult!.lane === "write" ? "write" :
+      "unified";
+
+    // KB retrieval. Skipped on the write lane — bulk_op intent extraction
+    // does not benefit from KB context.
     let kbContext = "";
-    if (!skipKB) {
+    if (lane !== "write") {
       try {
         const kbResults = await ctx.runAction(api.kb.searchKB, { query: args.rawRequest, limit: 4 });
         if (kbResults.length > 0) {
@@ -103,7 +91,7 @@ export const processRequest = action({
       }
     }
 
-    // Include most recent job result if available
+    // Recent job result, when supplied.
     let jobContext = "";
     if (args.recentJobId) {
       try {
@@ -121,18 +109,15 @@ Results: ${job.succeededCount} cards updated, ${job.failedCount} failed, ${job.s
       }
     }
 
-    // Pass the router's classification as a soft hint when we trust it.
-    // The shape rules in BASE_SYSTEM_PROMPT are still authoritative — the
-    // model can override the hint if the user message contradicts it.
-    let routingHint = "";
-    if (trustRouter) {
-      routingHint = `\n\nROUTING HINT (advisory): Pre-classifier flagged this as "${routerResult!.lane}" with ${routerResult!.confidence.toFixed(2)} confidence. The response shape rules above remain authoritative.`;
-    }
+    const basePrompt =
+      lane === "read"  ? READ_SYSTEM_PROMPT  :
+      lane === "write" ? WRITE_SYSTEM_PROMPT :
+      UNIFIED_SYSTEM_PROMPT;
 
-    const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext + routingHint;
+    const systemPrompt = basePrompt + kbContext + jobContext;
 
     const response = await client.chat.completions.create({
-      model: "openai/gpt-5.4-mini",
+      model: MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         ...(args.conversationHistory ?? []),
@@ -161,6 +146,13 @@ Results: ${job.succeededCount} cards updated, ${job.failedCount} failed, ${job.s
     } catch {
       throw new Error(`LLM returned malformed JSON: ${cleaned.slice(0, 120)}`);
     }
-    return ProcessResultSchema.parse(raw);
+
+    // Validate against the lane-specific schema. The single-shape lanes can
+    // only produce one valid type — unified accepts either.
+    const schema =
+      lane === "read"  ? QuestionShape :
+      lane === "write" ? BulkOpShape   :
+      UnifiedShape;
+    return schema.parse(raw) as ProcessResult;
   },
 });
