@@ -1285,7 +1285,7 @@ export function isRetryExhausted(retryCount: number): boolean {
           Cancelling a job finds all queued items and marks them cancelled before patching the job status. In-flight items finish naturally — they hit the terminal-status guard on entry and return early. There is no force-kill of running scheduled functions.
         </p>
 
-        <SubHeading id="graceful-degradation" T={T}>Graceful degradation</SubHeading>
+        <SubHeading id="graceful-degradation" icon="check" T={T}>Graceful degradation</SubHeading>
         <Note T={T} variant="ok">
           KB unavailability is caught silently — the LLM call proceeds without KB context. Policy failures surface as user-readable error messages in the chat. Partial write failures are not possible: Convex mutations are transactional.
         </Note>
