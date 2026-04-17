@@ -1139,7 +1139,17 @@ const lane =
 
         <SubHeading id="intent-classification" T={T}>Intent classification</SubHeading>
         <p style={body}>
-          When the router&apos;s lane is trusted, it&apos;s passed to gpt-5.4-mini as an <em>advisory</em> hint — the JSON shape rules in the system prompt remain authoritative, so the model can still override the hint if the user message contradicts it. The KB context block (when retrieved) is prepended as before. The model returns JSON only — using the same two shapes introduced in the guided examples:
+          The lane decided above selects which prompt is sent to gpt-5.4-mini. The READ and WRITE prompts each emit a single JSON shape; the UNIFIED prompt (used for {mono('"clarify"')}, low confidence, or router failure) preserves the original discriminated-union behavior.
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// convex/prompts.ts — three named prompts, all share POLICY_RULES
+export const READ_SYSTEM_PROMPT    = \`...answer-only, expects KB context...\`;
+export const WRITE_SYSTEM_PROMPT   = \`...intent extraction only, no KB...\`;
+export const UNIFIED_SYSTEM_PROMPT = \`...full discriminated union (fallback)...\`;`}</CodeBlock>
+        <p style={body}>
+          The model&apos;s output is parsed against a lane-specific Zod schema — {mono("QuestionShape")}, {mono("BulkOpShape")}, or the full {mono("UnifiedShape")}. Single-shape lanes can only emit one valid type, so a wrong-shape response surfaces as a Zod error rather than a silent mismatch.
+        </p>
+        <p style={body}>
+          The model produces one of these two shapes (depending on lane):
         </p>
         <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
