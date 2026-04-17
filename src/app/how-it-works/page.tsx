@@ -1237,7 +1237,7 @@ export const UNIFIED_SYSTEM_PROMPT = \`...full discriminated union (fallback)...
           T={T}
         />
 
-        <SubHeading id="per-item-retry" T={T}>Card executor — per-item retry</SubHeading>
+        <SubHeading id="per-item-retry" icon="settings" T={T}>Card executor — per-item retry</SubHeading>
         <Figure
           src="/diagrams/dispatch-retry-flow.png"
           alt="Per-item retry flowchart"
