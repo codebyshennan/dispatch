@@ -837,8 +837,10 @@ export default function OpsPage() {
         }
       } else {
         const { intent } = result;
+        const isLimitUpdate = intent.intent === "bulk_update_card_limit" && Boolean(intent.newLimit);
+        const isFreeze = intent.intent === "bulk_freeze_cards";
 
-        if (intent.intent !== "bulk_update_card_limit" || !intent.newLimit) {
+        if (!isLimitUpdate && !isFreeze) {
           setThread((prev) => prev.map((e) =>
             e.id === responseId
               ? { id: responseId, pairId, kind: "unsupported", intent: intent.intent, userText }
@@ -853,14 +855,27 @@ export default function OpsPage() {
             });
           }
         } else {
-          const idempotencyKey = `${intent.targetGroup}:${intent.intent}:${intent.newLimit.currency}${intent.newLimit.amount}:${Date.now()}`;
+          const limitSeg =
+            isLimitUpdate && intent.newLimit
+              ? `${intent.newLimit.currency}${intent.newLimit.amount}`
+              : "freeze";
+          const idempotencyKey = `${intent.targetGroup}:${intent.intent}:${limitSeg}:${Date.now()}`;
+          const draftIntent =
+            isLimitUpdate && intent.newLimit
+              ? {
+                  intent: "bulk_update_card_limit" as const,
+                  targetGroup: intent.targetGroup,
+                  newLimit: intent.newLimit,
+                  notifyCardholders: intent.notifyCardholders,
+                }
+              : {
+                  intent: "bulk_freeze_cards" as const,
+                  targetGroup: intent.targetGroup,
+                  notifyCardholders: intent.notifyCardholders,
+                };
           const jobId = await createDraft({
             rawRequest: userText,
-            intent: {
-              targetGroup: intent.targetGroup,
-              newLimit: intent.newLimit,
-              notifyCardholders: intent.notifyCardholders,
-            },
+            intent: draftIntent,
             idempotencyKey,
           });
 
@@ -868,18 +883,23 @@ export default function OpsPage() {
             e.id === responseId
               ? {
                   id: responseId, pairId, kind: "bulk_op",
-                  jobId, targetGroup: intent.targetGroup,
-                  newLimit: intent.newLimit!,
+                  jobId,
+                  intent: isLimitUpdate ? "bulk_update_card_limit" : "bulk_freeze_cards",
+                  targetGroup: intent.targetGroup,
+                  newLimit: isLimitUpdate ? intent.newLimit : undefined,
                   notifyCardholders: intent.notifyCardholders,
                   userText,
                 }
               : e
           ));
           if (activeThreadId) {
+            const summary = isLimitUpdate && intent.newLimit
+              ? `${intent.targetGroup} → ${intent.newLimit.currency} ${intent.newLimit.amount.toLocaleString()}`
+              : `${intent.targetGroup} → freeze cards`;
             await appendMessage({
               threadId: activeThreadId,
               role: "assistant",
-              content: `Planned bulk operation: ${intent.targetGroup} → ${intent.newLimit.currency} ${intent.newLimit.amount.toLocaleString()}`,
+              content: `Planned bulk operation: ${summary}`,
               kind: "bulk_op",
               jobId,
             });
