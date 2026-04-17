@@ -439,6 +439,7 @@ const NAV_SECTIONS = [
     { id: "rag-pipeline", label: "RAG pipeline" },
   ]},
   { id: "inference", label: "Inference", children: [
+    { id: "router", label: "Pre-classifier router" },
     { id: "intent-classification", label: "Intent classification" },
     { id: "policy-engine", label: "Policy engine" },
     { id: "draft-confirm-fanout", label: "Draft → confirm" },
