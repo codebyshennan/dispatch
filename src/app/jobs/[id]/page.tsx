@@ -475,7 +475,7 @@ export default function JobPage() {
         >
           <strong style={{ color: job.status === "completed" ? "#4ADE80" : "#FB923C" }}>
             {job.status === "completed"
-              ? `All ${job.succeededCount} cards ${job.normalizedPlan.intent === "bulk_freeze_cards" ? "frozen" : "updated"} successfully.`
+              ? `All ${job.succeededCount} cards ${job.operationType === "bulk_freeze_cards" ? "frozen" : "updated"} successfully.`
               : `Completed: ${job.succeededCount} succeeded, ${job.failedCount} failed, ${job.skippedCount} skipped.`}
           </strong>
           {job.failedCount > 0 && (
