@@ -66,7 +66,10 @@ function JobRow({ jobId, T }: { jobId: string; T: ReturnType<typeof useTheme>["T
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <span style={{ fontSize: 13, color: T.text, fontWeight: 500 }}>
-            {job.normalizedPlan.targetGroup} — {job.normalizedPlan.newLimit.currency} {job.normalizedPlan.newLimit.amount.toLocaleString()}
+            {job.normalizedPlan.targetGroup} —{" "}
+            {job.normalizedPlan.intent === "bulk_update_card_limit"
+              ? `${job.normalizedPlan.newLimit.currency} ${job.normalizedPlan.newLimit.amount.toLocaleString()}`
+              : "freeze cards"}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             <span style={{ fontSize: 12, color: T.muted, fontFamily: T.fontMono }}>
