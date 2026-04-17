@@ -5,6 +5,12 @@ import { api } from "./_generated/api";
 import OpenAI from "openai";
 import { z } from "zod";
 import { BulkJobIntentSchema } from "../src/lib/schemas";
+import type { RouterResult } from "./router";
+
+// Trust the router's lane decision (and skip KB on `write`) only when it is
+// at least this confident. Below the threshold we fall back to the unified
+// pipeline so accuracy never regresses.
+const ROUTER_CONFIDENCE_THRESHOLD = 0.8;
 
 const BASE_SYSTEM_PROMPT = `You are a CX operations assistant for Reap's card management team.
 
