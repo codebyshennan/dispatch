@@ -1227,7 +1227,7 @@ export const UNIFIED_SYSTEM_PROMPT = \`...full discriminated union (fallback)...
       <section>
         <SectionHeading
           id="exception-handling"
-          num={3} title="Exception handling"
+          num={3} icon="shield" title="Exception handling"
           sub="Retries, permanent failures, and graceful degradation across all layers."
           T={T}
         />
