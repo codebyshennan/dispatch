@@ -22,10 +22,10 @@ export type PolicyCheckResult = {
 
 export function checkPolicy(
   cards: CardInput[],
-  newLimit: { currency: string; amount: number }
+  newLimit?: { currency: string; amount: number }
 ): PolicyCheckResult {
-  // Hard block: limit exceeds maximum
-  if (newLimit.amount > POLICY.MAX_LIMIT_SGD) {
+  // Hard block: limit exceeds maximum (only relevant for limit-update operations)
+  if (newLimit && newLimit.amount > POLICY.MAX_LIMIT_SGD) {
     return {
       allowed: false,
       approvalRequired: false,
