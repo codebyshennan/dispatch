@@ -1062,7 +1062,7 @@ kb_articles: defineTable({
 const [embedding] = await embedTexts(client, [args.query]);
 const hits = await ctx.vectorSearch("kb_articles", "by_embedding", {
   vector: embedding,
-  limit: args.limit ?? 5,    // top-5 candidates by cosine similarity
+  limit: args.limit ?? 5,    // interpreter passes 4 → top-4 candidates by cosine similarity
 });
 
 return docs.map(doc => ({
