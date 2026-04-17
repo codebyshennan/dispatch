@@ -1205,7 +1205,7 @@ export const UNIFIED_SYSTEM_PROMPT = \`...full discriminated union (fallback)...
           Hard blocks surface as error bubbles in the chat. Soft gates allow the job to proceed to draft status with an approval flag — the UI renders a warning before the confirm button is enabled.
         </p>
 
-        <SubHeading id="draft-confirm-fanout" T={T}>Draft → confirm → fan-out</SubHeading>
+        <SubHeading id="draft-confirm-fanout" icon="file" T={T}>Draft → confirm → fan-out</SubHeading>
         <Figure
           src="/diagrams/dispatch-job-state-machine.png"
           alt="Job State Machine diagram"
