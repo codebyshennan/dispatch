@@ -1258,7 +1258,7 @@ export function isRetryExhausted(retryCount: number): boolean {
           After each terminal outcome a count mutation atomically patches the parent job&apos;s succeeded / failed / skipped tallies; once all eligible items are resolved, the job transitions to completed or completed with failures.
         </p>
 
-        <SubHeading id="retry-failed-items" T={T}>Retry failed items</SubHeading>
+        <SubHeading id="retry-failed-items" icon="link" T={T}>Retry failed items</SubHeading>
         <p style={body}>
           Operators can re-queue all retryable failed items on a completed-with-failures job. This resets their status, clears failure codes, re-opens the job to in-progress, and schedules fresh execution with a new stagger. Permanently failed items are intentionally excluded and cannot be retried.
         </p>
