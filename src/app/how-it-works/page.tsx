@@ -1057,7 +1057,7 @@ kb_articles: defineTable({
   .index("by_article_id", ["articleId"])
   .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
 
-        <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
+        <SubHeading id="rag-pipeline" icon="search" T={T}>RAG pipeline</SubHeading>
         <p style={body}>
           The diagram below traces the full request pipeline end-to-end — retrieval, classification, and the final fork into a question answer or a bulk job. The four RAG stages run before and around the LLM call; Section 2 drills into everything after the LLM.
         </p>
