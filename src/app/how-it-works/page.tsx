@@ -984,7 +984,15 @@ export default function HowItWorksPage() {
 
         <SubHeading id="ops-chat-input" T={T}>Ops chat input</SubHeading>
         <p style={body}>
-          In the ops app, input arrives as a natural language string typed into the chat interface. The frontend invokes a Convex action, passing the raw string and the full conversation history for context.
+          In the ops app, input arrives as a natural language string typed into the chat interface. The frontend invokes a Convex action, passing the raw string and the full conversation history for context. The handler returns one of two discriminated types which the frontend renders differently:
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// Discriminated union returned by processRequest
+{ type: "question", answer: string, sources: PolicySource[] }
+// or
+{ type: "bulk_op", intent: BulkJobIntent }`}</CodeBlock>
+
+        <p style={body}>
+          On the {mono('"question"')} path, the answer and KB sources render inline in the chat thread — no job is created. Thumbs up/down feedback is captured in the feedback table, keyed by a stable response ID. On the {mono('"bulk_op"')} path, the extracted intent (target group, new limit, notify flag) is used to create a draft job record capturing policy output and excluded cards; no cards are touched yet. The diagram below traces that bulk-op path end to end.
         </p>
 
         <Flow steps={[
@@ -994,18 +1002,6 @@ export default function HowItWorksPage() {
           { label: "createDraft", sub: "Convex mutation", variant: "accent" },
           { label: "jobs table", sub: "status: draft", variant: "default" },
         ]} T={T} />
-
-        <p style={body}>
-          The request handler returns one of two discriminated types which the frontend renders differently:
-        </p>
-        <CodeBlock lang="typescript" T={T}>{`// Discriminated union returned by processRequest
-{ type: "question", answer: string, sources: PolicySource[] }
-// or
-{ type: "bulk_op", intent: BulkJobIntent }`}</CodeBlock>
-
-        <p style={body}>
-          On the {mono('"question"')} path, the answer and KB sources render inline in the chat thread — no job is created. Thumbs up/down feedback is captured in the feedback table, keyed by a stable response ID. On the {mono('"bulk_op"')} path, the extracted intent (target group, new limit, notify flag) is used to create a draft job record capturing policy output and excluded cards; no cards are touched yet.
-        </p>
         <p style={body}>
           Before inserting, we check the idempotency index. If a matching job already exists, we return that ID rather than creating a duplicate — the key is derived from actor + operation + target group + limit.
         </p>
