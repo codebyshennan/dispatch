@@ -121,7 +121,15 @@ Results: ${job.succeededCount} cards updated, ${job.failedCount} failed, ${job.s
       }
     }
 
-    const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;
+    // Pass the router's classification as a soft hint when we trust it.
+    // The shape rules in BASE_SYSTEM_PROMPT are still authoritative — the
+    // model can override the hint if the user message contradicts it.
+    let routingHint = "";
+    if (trustRouter) {
+      routingHint = `\n\nROUTING HINT (advisory): Pre-classifier flagged this as "${routerResult!.lane}" with ${routerResult!.confidence.toFixed(2)} confidence. The response shape rules above remain authoritative.`;
+    }
+
+    const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext + routingHint;
 
     const response = await client.chat.completions.create({
       model: "openai/gpt-5.4-mini",
