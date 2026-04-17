@@ -1280,7 +1280,7 @@ export function isRetryExhausted(retryCount: number): boolean {
           All three surface as error toasts via Sonner. The conversation history is not poisoned — the failed turn is discarded and the user can retry.
         </p>
 
-        <SubHeading id="cancel" T={T}>Cancel</SubHeading>
+        <SubHeading id="cancel" icon="arrow-left" T={T}>Cancel</SubHeading>
         <p style={body}>
           Cancelling a job finds all queued items and marks them cancelled before patching the job status. In-flight items finish naturally — they hit the terminal-status guard on entry and return early. There is no force-kill of running scheduled functions.
         </p>
