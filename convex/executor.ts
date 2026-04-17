@@ -30,6 +30,16 @@ export const executeItem = internalAction({
     const result = simulateMockCardApi(item.cardId, item.retryCount);
 
     if (result.success) {
+      // Freeze ops actually mutate mock_cards.status so subsequent ops see the change.
+      // Limit updates remain simulated for demo purposes.
+      const intent = await ctx.runQuery(internal.executorState.getJobIntent, {
+        jobId: args.jobId,
+      });
+      if (intent === "bulk_freeze_cards") {
+        await ctx.runMutation(internal.executorState.freezeMockCard, {
+          cardId: item.cardId,
+        });
+      }
       await ctx.runMutation(internal.executorState.setItemSucceeded, {
         itemId: args.itemId,
         jobId: args.jobId,
