@@ -1024,7 +1024,7 @@ export default function HowItWorksPage() {
           T={T}
         />
         <Note T={T} variant="warn">
-          The KB is scraped from Reap's public help centre — articles written for cardholders, not for the ops team. For the question path this is the right source: the ops team is answering customer queries and needs the same reference material. For the bulk op path, KB retrieval provides policy context (fee structures, currency rules, MCC restrictions) rather than procedural guidance — the ops team already knows how to run the operation.
+          The KB is scraped from Reap's public help centre — articles written for cardholders, not for the ops team. For the question path this is the right source: the ops team is answering customer queries and needs the same reference material. On the bulk-op path the router skips KB retrieval entirely at high confidence — intent extraction doesn't benefit from article context, and policy rules live in {mono("src/lib/policy.ts")} rather than the KB. KB only re-enters the bulk-op path when the router falls back to the unified lane.
         </Note>
         <CodeBlock lang="typescript" T={T}>{`// convex/kb.ts — seed pipeline (batched 20 articles at a time)
 const texts = batch.map(a => \`\${a.title}\\n\\n\${a.body}\`.slice(0, 8000));
