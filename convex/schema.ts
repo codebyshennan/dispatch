@@ -73,7 +73,7 @@ export default defineSchema({
     cardId: v.string(),
     cardholderName: v.string(),
     currentLimit: limitV,
-    requestedLimit: limitV,
+    requestedLimit: v.optional(limitV),
     status: itemStatusV,
     retryCount: v.number(),
     failureCode: v.optional(v.string()),
