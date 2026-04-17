@@ -1089,9 +1089,48 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
           T={T}
         />
 
+        <SubHeading id="router" T={T}>Pre-classifier router</SubHeading>
+        <p style={body}>
+          A cheap haiku-4-5 router runs <em>before</em> retrieval and classifies the request into one of three lanes: {mono('"read"')} (a question), {mono('"write"')} (a bulk operation), or {mono('"clarify"')} (ambiguous, missing info). When the router returns ≥0.80 confidence on {mono('"write"')}, the embed + vector-search round-trip is skipped — bulk-op intent extraction does not benefit from KB context. Below the threshold (or on router failure) the unified pipeline runs unchanged, so accuracy never regresses.
+        </p>
+        <CodeBlock lang="typescript" T={T}>{`// convex/router.ts
+{ "lane": "read" | "write" | "clarify", "confidence": <0.0-1.0> }
+
+// convex/interpreter.ts — fallback semantics
+const trustRouter = routerResult && routerResult.confidence >= 0.80;
+const skipKB     = trustRouter && routerResult.lane === "write";
+// → write lane: skip embed + ANN search
+// → read / clarify / low-confidence: full RAG pipeline as before`}</CodeBlock>
+
+        <SubHeading id="router-tradeoffs" T={T}>Why split routing from retrieval?</SubHeading>
+        <p style={body}>
+          The original design fused intent classification, KB reranking, and answer/extraction into a single LLM call. That kept the system simple at low volume but made every request pay for embedding and vector search even when the answer was a pure write. As the operation catalog grows (today: limit updates; tomorrow: freezes, refunds, group changes, transaction lookups), separating the routing decision from execution lets each lane evolve independently.
+        </p>
+        <Table
+          headers={["Dimension", "Unified call (original)", "Router-first (current)"]}
+          rows={[
+            ["Latency — write",   "embed + search + LLM ≈ 800–1500ms",     "router + LLM ≈ 500–800ms"],
+            ["Latency — read",    "embed + search + LLM ≈ 800–1500ms",     "router + embed + search + LLM ≈ 900–1600ms"],
+            ["Cost / request",    "1 LLM call",                            "1 router call + 1 LLM call"],
+            ["KB on bulk_op",     "always retrieved (policy grounding)",    "skipped at high confidence"],
+            ["Quality",           "single pass — best for ambiguous text", "router commits early; fallback preserves the unified path"],
+            ["Extensibility",     "every new op edits the central prompt", "router is the only seam — handlers can be swapped per lane"],
+          ]}
+          T={T}
+        />
+        <Note T={T}>
+          <strong>Why router-first wins long-term:</strong> the router is cheap and stays cheap as volume grows (could later be a fine-tuned classifier, not even an LLM). Each lane gets its own prompt, eval suite, and model tier. New operations are added by registering a tool in the write lane rather than editing a monolithic prompt. The unified call remains as a fallback, so the migration is incremental — not a rewrite.
+        </Note>
+        <Note T={T} variant="warn">
+          <strong>What we trade:</strong> on the read lane, we pay one extra LLM call (the router) per request. At low volume this is invisible; at high volume it&apos;s amortized by router prompt caching. We also commit to a lane earlier — if the router mis-classifies, the downstream call may produce the wrong shape. The 0.80 confidence threshold and unified-pipeline fallback exist to bound this risk.
+        </Note>
+        <Note T={T} variant="ok">
+          <strong>Migration path:</strong> (1) router in front, current pipeline as fallback ✓ done. (2) split the unified system prompt into two — answer-only vs intent-extraction — each with its own eval set. (3) introduce a tool registry so adding a new bulk operation is a registration, not a prompt edit. (4) optimize per-lane: caching, model tiering, hybrid retrieval. Steps 2–4 are justified when the second operation type ships, not before.
+        </Note>
+
         <SubHeading id="intent-classification" T={T}>Intent classification</SubHeading>
         <p style={body}>
-          The request handler sends the user message to gpt-5.4-mini via OpenRouter at temperature 0, with the KB context block prepended to the system prompt. The model must return JSON only — using the same two shapes introduced in the guided examples:
+          When the router&apos;s lane is trusted, it&apos;s passed to gpt-5.4-mini as an <em>advisory</em> hint — the JSON shape rules in the system prompt remain authoritative, so the model can still override the hint if the user message contradicts it. The KB context block (when retrieved) is prepended as before. The model returns JSON only — using the same two shapes introduced in the guided examples:
         </p>
         <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
