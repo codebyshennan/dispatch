@@ -76,7 +76,7 @@ type PolicySource = { id: string; title: string; snippet: string };
 type Entry =
   | { id: string; pairId: string; kind: "user"; text: string }
   | { id: string; pairId: string; kind: "answer"; text: string; sources: PolicySource[]; userText: string }
-  | { id: string; pairId: string; kind: "bulk_op"; jobId: Id<"jobs">; targetGroup: string; newLimit: { currency: string; amount: number }; notifyCardholders: boolean; userText: string }
+  | { id: string; pairId: string; kind: "bulk_op"; jobId: Id<"jobs">; intent: "bulk_update_card_limit" | "bulk_freeze_cards"; targetGroup: string; newLimit?: { currency: string; amount: number }; reason?: string; notifyCardholders: boolean; userText: string }
   | { id: string; pairId: string; kind: "job_preview"; jobId: Id<"jobs"> }
   | { id: string; pairId: string; kind: "job_progress"; jobId: Id<"jobs"> }
   | { id: string; pairId: string; kind: "loading"; userText: string }
