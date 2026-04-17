@@ -489,13 +489,14 @@ function NavRail({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
             href={`#${section.id}`}
             aria-current={active === section.id ? "true" : undefined}
             style={{
-              display: "block", textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6, textDecoration: "none",
               fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
               textTransform: "uppercase", fontFamily: T.fontMono,
               color: active === section.id ? T.accent : T.text,
               marginBottom: 5,
             }}
           >
+            <Icon name={section.icon} size={12} color={active === section.id ? T.accent : T.muted} />
             {section.label}
           </a>
           {section.children.map(child => (
