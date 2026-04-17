@@ -1097,7 +1097,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
       <section>
         <SectionHeading
           id="inference"
-          num={2} title="Inference"
+          num={2} icon="cpu" title="Inference"
           sub="Intent classification, policy validation, and the draft → confirm → fan-out job lifecycle."
           T={T}
         />
