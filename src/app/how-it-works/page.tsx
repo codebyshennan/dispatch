@@ -1024,7 +1024,7 @@ export default function HowItWorksPage() {
           The request handler also accepts conversation history (prior turns) and an optional recent job ID. When supplied, the job&apos;s result summary (team, status, counts) is appended to the system prompt so the model can answer follow-ups like &quot;how did that job go?&quot;.
         </p>
 
-        <SubHeading id="kb-ingestion" T={T}>KB ingestion</SubHeading>
+        <SubHeading id="kb-ingestion" icon="database" T={T}>KB ingestion</SubHeading>
         <Figure
           src="/diagrams/dispatch-kb-ingestion.png"
           alt="KB Ingestion Pipeline diagram"
