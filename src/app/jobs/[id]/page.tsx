@@ -266,16 +266,16 @@ export default function JobPage() {
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: T.text, fontFamily: T.fontMono, margin: 0 }}>
-            {job.normalizedPlan.intent === "bulk_update_card_limit"
+            {job.operationType === "bulk_update_card_limit"
               ? "Bulk limit update"
               : "Bulk freeze cards"}{" "}
             — {job.normalizedPlan.targetGroup}
           </h1>
           <p style={{ fontSize: 13, color: T.muted, marginTop: 4 }}>
-            {job.normalizedPlan.intent === "bulk_update_card_limit"
-              ? `${job.normalizedPlan.newLimit.currency} ${job.normalizedPlan.newLimit.amount.toLocaleString()} new limit`
-              : job.normalizedPlan.reason
-                ? `Reason: ${job.normalizedPlan.reason}`
+            {job.operationType === "bulk_update_card_limit"
+              ? `${(job.normalizedPlan as { newLimit?: { currency: string; amount: number } }).newLimit?.currency} ${(job.normalizedPlan as { newLimit?: { currency: string; amount: number } }).newLimit?.amount.toLocaleString()} new limit`
+              : (job.normalizedPlan as { reason?: string }).reason
+                ? `Reason: ${(job.normalizedPlan as { reason?: string }).reason}`
                 : "Cards will be set to frozen"}
           </p>
         </div>
