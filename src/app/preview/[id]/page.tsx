@@ -98,17 +98,32 @@ export default function PreviewPage() {
           marginBottom: 16,
         }}
       >
-        <Row label="Operation" value="Bulk card spending-limit update" T={T} />
+        <Row
+          label="Operation"
+          value={
+            summary.operationType === "bulk_update_card_limit"
+              ? "Bulk card spending-limit update"
+              : "Bulk freeze cards"
+          }
+          T={T}
+        />
         <div style={{ borderTop: `1px solid ${T.border}`, marginTop: 12, paddingTop: 12 }}>
           <Row label="Target group" value={summary.targetGroup} T={T} />
         </div>
-        <div style={{ borderTop: `1px solid ${T.border}`, marginTop: 12, paddingTop: 12 }}>
-          <Row
-            label="New limit"
-            value={`${summary.newLimit.currency} ${summary.newLimit.amount.toLocaleString()}`}
-            T={T}
-          />
-        </div>
+        {summary.operationType === "bulk_update_card_limit" && summary.newLimit && (
+          <div style={{ borderTop: `1px solid ${T.border}`, marginTop: 12, paddingTop: 12 }}>
+            <Row
+              label="New limit"
+              value={`${summary.newLimit.currency} ${summary.newLimit.amount.toLocaleString()}`}
+              T={T}
+            />
+          </div>
+        )}
+        {summary.operationType === "bulk_freeze_cards" && summary.reason && (
+          <div style={{ borderTop: `1px solid ${T.border}`, marginTop: 12, paddingTop: 12 }}>
+            <Row label="Reason" value={summary.reason} T={T} />
+          </div>
+        )}
         <div
           style={{
             borderTop: `1px solid ${T.border}`,
