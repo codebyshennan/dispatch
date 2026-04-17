@@ -1154,13 +1154,20 @@ export const UNIFIED_SYSTEM_PROMPT = \`...full discriminated union (fallback)...
         <CodeBlock lang="json" T={T}>{`// Question (policy Q&A)
 { "type": "question", "answer": "...", "sources": [{ "id": "42", "title": "...", "snippet": "..." }] }
 
-// Bulk operation request
+// Bulk operation request — limit update
 { "type": "bulk_op", "intent": {
   "intent": "bulk_update_card_limit",
   "targetGroup": "Marketing",
   "targetCountEstimate": 12,
   "newLimit": { "currency": "SGD", "amount": 2000 },
   "notifyCardholders": true
+} }
+
+// Bulk operation request — freeze
+{ "type": "bulk_op", "intent": {
+  "intent": "bulk_freeze_cards",
+  "targetGroup": "Operations",
+  "notifyCardholders": false
 } }`}</CodeBlock>
         <p style={body}>
           The raw response is cleaned (markdown fences stripped), JSON-parsed, then validated with Zod against a discriminated union schema. An unsupported intent type surfaces as an error entry in the chat thread rather than throwing.
