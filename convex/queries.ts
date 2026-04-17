@@ -62,12 +62,12 @@ export const getJobStatusSummary = query({
       operationType: job.operationType,
       targetGroup: job.normalizedPlan.targetGroup,
       newLimit:
-        job.normalizedPlan.intent === "bulk_update_card_limit"
-          ? job.normalizedPlan.newLimit
+        job.operationType === "bulk_update_card_limit"
+          ? (job.normalizedPlan as { newLimit?: { currency: string; amount: number } }).newLimit ?? null
           : null,
       reason:
-        job.normalizedPlan.intent === "bulk_freeze_cards"
-          ? job.normalizedPlan.reason ?? null
+        job.operationType === "bulk_freeze_cards"
+          ? (job.normalizedPlan as { reason?: string }).reason ?? null
           : null,
       notifyCardholders: job.normalizedPlan.notifyCardholders,
       totalItems: job.totalItems,
