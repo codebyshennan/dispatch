@@ -770,9 +770,13 @@ export default function OpsPage() {
       } else if (e.kind === "answer") {
         history.push({ role: "assistant", content: e.text });
       } else if (e.kind === "bulk_op") {
+        const opDesc =
+          e.intent === "bulk_update_card_limit" && e.newLimit
+            ? `Update ${e.targetGroup} card limits to ${e.newLimit.currency} ${e.newLimit.amount.toLocaleString()}`
+            : `Freeze all ${e.targetGroup} cards`;
         history.push({
           role: "assistant",
-          content: `Planned bulk operation: Update ${e.targetGroup} card limits to ${e.newLimit.currency} ${e.newLimit.amount.toLocaleString()}`,
+          content: `Planned bulk operation: ${opDesc}`,
         });
       } else if (e.kind === "job_progress") {
         recentJobId = e.jobId;
