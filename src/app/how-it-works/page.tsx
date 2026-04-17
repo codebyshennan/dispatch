@@ -997,7 +997,7 @@ export default function HowItWorksPage() {
           T={T}
         />
 
-        <SubHeading id="ops-chat-input" T={T}>Ops chat input</SubHeading>
+        <SubHeading id="ops-chat-input" icon="message" T={T}>Ops chat input</SubHeading>
         <p style={body}>
           In the ops app, input arrives as a natural language string typed into the chat interface. The frontend invokes a Convex action, passing the raw string and the full conversation history for context. The handler returns one of two discriminated types which the frontend renders differently:
         </p>
