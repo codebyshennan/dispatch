@@ -250,8 +250,8 @@ function Figure({ src, alt, caption, T }: {
 
 // ── shared primitives ────────────────────────────────────────────────────────
 
-function SectionHeading({ id, num, title, sub, T }: {
-  id?: string; num: number; title: string; sub: string;
+function SectionHeading({ id, num, icon, title, sub, T }: {
+  id?: string; num: number; icon?: string; title: string; sub: string;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   return (
@@ -265,6 +265,15 @@ function SectionHeading({ id, num, title, sub, T }: {
         }}>
           {num}
         </span>
+        {icon && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 26, height: 26, borderRadius: 6,
+            background: T.elevated, border: `1px solid ${T.border}`, flexShrink: 0,
+          }}>
+            <Icon name={icon} size={14} color={T.accent} />
+          </span>
+        )}
         <h2 style={{ fontSize: 18, fontWeight: 700, color: T.text, margin: 0 }}>{title}</h2>
       </div>
       <p style={{ fontSize: 13, color: T.muted, margin: 0, paddingLeft: 36 }}>{sub}</p>
