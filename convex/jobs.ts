@@ -127,8 +127,8 @@ export const confirmJob = mutation({
 
     const excludedIds = new Set(job.excludedCards.map((e) => e.cardId));
     const requestedLimit =
-      job.normalizedPlan.intent === "bulk_update_card_limit"
-        ? job.normalizedPlan.newLimit
+      job.operationType === "bulk_update_card_limit"
+        ? (job.normalizedPlan as { newLimit?: { currency: string; amount: number } }).newLimit
         : undefined;
 
     for (const card of cards) {
