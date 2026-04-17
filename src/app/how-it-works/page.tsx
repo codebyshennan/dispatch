@@ -1151,7 +1151,7 @@ const lane =
           <strong>Migration path:</strong> (1) router in front, unified pipeline as fallback ✓ done. (2) split the unified system prompt into READ + WRITE, each with its own eval set ({mono("datasets/eval/read.jsonl")}, {mono("datasets/eval/write.jsonl")}, suite at {mono("src/lib/__tests__/prompts-eval.test.ts")}) ✓ done. (3) ship a second bulk operation through the existing seam ({mono("bulk_freeze_cards")} ✓ done) — confirms the schema, executor, and UI extend cleanly via discriminated unions before adding indirection. (4) introduce a tool registry once a third operation arrives, so adding new ops becomes a registration rather than a prompt + executor branch edit. (5) optimize per-lane: caching, model tiering, hybrid retrieval.
         </Note>
 
-        <SubHeading id="intent-classification" T={T}>Intent classification</SubHeading>
+        <SubHeading id="intent-classification" icon="type" T={T}>Intent classification</SubHeading>
         <p style={body}>
           The lane decided above selects which prompt is sent to gpt-5.4-mini. The READ and WRITE prompts each emit a single JSON shape; the UNIFIED prompt (used for {mono('"clarify"')}, low confidence, or router failure) preserves the original discriminated-union behavior.
         </p>
