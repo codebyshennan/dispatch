@@ -457,7 +457,14 @@ function JobPreviewCard({
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {[
           { label: "Team", value: summary.targetGroup },
-          { label: "New limit", value: `${summary.newLimit.currency} ${summary.newLimit.amount.toLocaleString()}` },
+          {
+            label: "Operation",
+            value:
+              summary.operationType === "bulk_update_card_limit" && summary.newLimit
+                ? `Set limit → ${summary.newLimit.currency} ${summary.newLimit.amount.toLocaleString()}`
+                : "Freeze cards",
+          },
+          ...(summary.reason ? [{ label: "Reason", value: summary.reason }] : []),
         ].map(({ label, value }) => (
           <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
             <span style={{ color: T.muted }}>{label}</span>
