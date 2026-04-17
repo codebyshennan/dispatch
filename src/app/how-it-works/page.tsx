@@ -1043,14 +1043,17 @@ kb_articles: defineTable({
   .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536 })`}</CodeBlock>
 
         <SubHeading id="rag-pipeline" T={T}>RAG pipeline</SubHeading>
+        <p style={body}>
+          The diagram below traces the full request pipeline end-to-end — retrieval, classification, and the final fork into a question answer or a bulk job. The four RAG stages run before and around the LLM call; Section 2 drills into everything after the LLM.
+        </p>
         <PipelineDiagram T={T} />
         <div style={body}>
-          Each query runs through four stages before the LLM is called:
+          The retrieval path has four stages that wrap the LLM call:
           <ol style={{ margin: "8px 0 8px 0", paddingLeft: 20, lineHeight: 1.8 }}>
             <li><strong>Embed</strong> — the operator&apos;s message is converted to a 1,536-dim vector via text-embedding-3-small.</li>
             <li><strong>Retrieve</strong> — the top-4 candidates are fetched by ANN (Approximate Nearest Neighbor) cosine similarity.</li>
             <li><strong>Inject</strong> — each article body is truncated to a 200-char snippet and formatted into a KB context block prepended to the system prompt.</li>
-            <li><strong>Rerank</strong> — the LLM reads all four candidates but cites only the articles it actually used, filtering out low-relevance results.</li>
+            <li><strong>Rerank</strong> — at generation time, the LLM reads all four candidates but cites only the articles it actually used, filtering out low-relevance results.</li>
           </ol>
           See the guided examples above for a concrete trace of both paths.
         </div>
