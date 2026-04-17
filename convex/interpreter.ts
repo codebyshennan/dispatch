@@ -70,16 +70,37 @@ export const processRequest = action({
       apiKey,
     });
 
-    // Search KB for relevant articles to ground the response
-    let kbContext = "";
+    // Cheap upfront router classifies intent so we can short-circuit retrieval
+    // for pure write operations. Best-effort — failures fall through to the
+    // unified pipeline.
+    let routerResult: RouterResult | null = null;
     try {
-      const kbResults = await ctx.runAction(api.kb.searchKB, { query: args.rawRequest, limit: 4 });
-      if (kbResults.length > 0) {
-        kbContext = "\n\nKNOWLEDGE BASE ARTICLES (cite these as sources when relevant):\n" +
-          kbResults.map((r) => `[${r.id}] ${r.title}\n${r.snippet}`).join("\n\n");
-      }
+      routerResult = await ctx.runAction(api.router.route, {
+        rawRequest: args.rawRequest,
+        conversationHistory: args.conversationHistory,
+      });
     } catch {
-      // KB unavailable (not seeded yet) — fall back gracefully
+      // Router unavailable — proceed with unified pipeline
+    }
+
+    const trustRouter =
+      routerResult !== null && routerResult.confidence >= ROUTER_CONFIDENCE_THRESHOLD;
+    const skipKB = trustRouter && routerResult!.lane === "write";
+
+    // Search KB for relevant articles to ground the response.
+    // Skipped when the router is confident the request is a pure write op —
+    // bulk_op intent extraction does not benefit from KB context.
+    let kbContext = "";
+    if (!skipKB) {
+      try {
+        const kbResults = await ctx.runAction(api.kb.searchKB, { query: args.rawRequest, limit: 4 });
+        if (kbResults.length > 0) {
+          kbContext = "\n\nKNOWLEDGE BASE ARTICLES (cite these as sources when relevant):\n" +
+            kbResults.map((r) => `[${r.id}] ${r.title}\n${r.snippet}`).join("\n\n");
+        }
+      } catch {
+        // KB unavailable (not seeded yet) — fall back gracefully
+      }
     }
 
     // Include most recent job result if available
