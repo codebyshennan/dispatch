@@ -11,7 +11,7 @@ export const getJobIntent = internalQuery({
   args: { jobId: v.id("jobs") },
   handler: async (ctx, args) => {
     const job = await ctx.db.get(args.jobId);
-    return job?.normalizedPlan.intent ?? null;
+    return job?.operationType ?? null;
   },
 });
 
