@@ -46,6 +46,13 @@ export default defineSchema({
         targetGroup: v.string(),
         reason: v.optional(v.string()),
         notifyCardholders: v.boolean(),
+      }),
+      // Legacy: documents written before intent field was added — removed after migration
+      v.object({
+        targetGroup: v.string(),
+        newLimit: v.optional(limitV),
+        notifyCardholders: v.boolean(),
+        reason: v.optional(v.string()),
       })
     ),
     // Counts (updated as items complete)
