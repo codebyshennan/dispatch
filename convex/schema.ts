@@ -24,9 +24,6 @@ const itemStatusV = v.union(
 );
 
 export default defineSchema({
-  // NOTE: schemaValidation temporarily disabled while backfilling
-  // normalizedPlan.intent on legacy job rows. Re-enable (delete this option)
-  // after running `npx convex run migrations:backfillJobIntent`.
   /**
    * Parent job record — one per bulk operation request.
    */
