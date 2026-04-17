@@ -702,9 +702,19 @@ function PipelineDiagram({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
       notes: ["full conversation history passed for context", "optional recent job ID for follow-up Q&A"],
     },
     {
+      icon: "layers",
+      label: "Pre-classifier router",
+      detail: "claude-haiku-4-5 → { lane: read | write | clarify, confidence }",
+      notes: [
+        "best-effort: router failure falls through to unified pipeline",
+        "trust threshold: confidence ≥ 0.80 — below that, retrieval still runs",
+        "on confident write: skip embed + vector search (saves ~150–200ms)",
+      ],
+    },
+    {
       icon: "type",
       label: "Embed query",
-      detail: "text-embedding-3-small → 1,536-dim float64[] vector",
+      detail: "text-embedding-3-small → 1,536-dim float64[] vector · skipped on confident write lane",
     },
     {
       icon: "search",
