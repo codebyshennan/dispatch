@@ -987,7 +987,7 @@ export default function HowItWorksPage() {
       <section>
         <SectionHeading
           id="data-capture"
-          num={1} title="Data capture"
+          num={1} icon="database" title="Data capture"
           sub="How ops requests are captured and how the KB is ingested."
           T={T}
         />
