@@ -151,4 +151,4 @@ export default defineSchema({
       vectorField: "embedding",
       dimensions: 1536,
     }),
-}, { schemaValidation: false });
+});
