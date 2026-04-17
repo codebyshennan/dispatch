@@ -367,11 +367,19 @@ function BulkOpCard({
               <span style={{ color: T.text, fontWeight: 500 }}>{entry.targetGroup}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-              <span style={{ color: T.muted }}>New limit</span>
+              <span style={{ color: T.muted }}>Operation</span>
               <span style={{ color: T.text, fontWeight: 500 }}>
-                {entry.newLimit.currency} {entry.newLimit.amount.toLocaleString()}
+                {entry.intent === "bulk_update_card_limit" && entry.newLimit
+                  ? `Set limit → ${entry.newLimit.currency} ${entry.newLimit.amount.toLocaleString()}`
+                  : "Freeze cards"}
               </span>
             </div>
+            {entry.intent === "bulk_freeze_cards" && entry.reason && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                <span style={{ color: T.muted }}>Reason</span>
+                <span style={{ color: T.text, fontWeight: 500 }}>{entry.reason}</span>
+              </div>
+            )}
             {entry.notifyCardholders && (
               <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
                 Cardholders will be notified
