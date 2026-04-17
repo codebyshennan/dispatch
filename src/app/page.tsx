@@ -620,8 +620,8 @@ function JobProgressCard({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 12, color: T.muted }}>
           {job.normalizedPlan.targetGroup} —{" "}
-          {job.normalizedPlan.intent === "bulk_update_card_limit"
-            ? `${job.normalizedPlan.newLimit.currency} ${job.normalizedPlan.newLimit.amount.toLocaleString()}`
+          {job.operationType === "bulk_update_card_limit"
+            ? `${(job.normalizedPlan as { newLimit?: { currency: string; amount: number } }).newLimit?.currency} ${(job.normalizedPlan as { newLimit?: { currency: string; amount: number } }).newLimit?.amount.toLocaleString()}`
             : "freeze cards"}
         </span>
         <span style={{
