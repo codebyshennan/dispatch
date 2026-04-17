@@ -1107,7 +1107,7 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
           T={T}
         />
 
-        <SubHeading id="router" T={T}>Pre-classifier router</SubHeading>
+        <SubHeading id="router" icon="funnel" T={T}>Pre-classifier router</SubHeading>
         <p style={body}>
           A cheap haiku-4-5 router runs <em>before</em> retrieval and classifies the request into one of three lanes: {mono('"read"')} (a question), {mono('"write"')} (a bulk operation), or {mono('"clarify"')} (ambiguous, missing info). When the router returns ≥0.80 confidence on {mono('"write"')}, the embed + vector-search round-trip is skipped — bulk-op intent extraction does not benefit from KB context. Below the threshold (or on router failure) the unified pipeline runs unchanged, so accuracy never regresses.
         </p>
