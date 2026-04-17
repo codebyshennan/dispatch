@@ -164,14 +164,15 @@ export default function JobPage() {
   // Fire toasts on status transitions (skip initial load)
   useEffect(() => {
     if (!data?.job) return;
-    const { status, succeededCount, failedCount } = data.job;
+    const { status, succeededCount, failedCount, normalizedPlan } = data.job;
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
 
     if (prev === undefined || prev === status) return;
 
+    const verb = normalizedPlan.intent === "bulk_freeze_cards" ? "frozen" : "updated";
     if (status === "completed") {
-      toast.success(`All ${succeededCount} cards updated successfully.`);
+      toast.success(`All ${succeededCount} cards ${verb} successfully.`);
     } else if (status === "completed_with_failures") {
       toast.warning(`Completed with failures — ${failedCount} card${failedCount === 1 ? "" : "s"} failed.`);
     } else if (status === "cancelled") {
