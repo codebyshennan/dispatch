@@ -944,10 +944,11 @@ export default function HowItWorksPage() {
           sub="Operator asks about policy limits — answered inline from the KB"
           inputPrompt={`What is the maximum spending limit I can set per card?`}
           steps={[
+            { icon: "layers",   label: "Pre-classifier router", sub: "claude-haiku-4-5 → lane: read (confidence 0.91) · proceed with KB retrieval" },
             { icon: "type",     label: "Embed query",    sub: "\"What is the maximum spending limit...\" → 1,536-dim vector via text-embedding-3-small" },
             { icon: "search",   label: "Vector search",  sub: "ANN (Approximate Nearest Neighbor) search over kb_articles · top-4 candidates by cosine similarity" },
             { icon: "funnel",   label: "Trim & inject",  sub: "Snippets formatted as KB context block · injected at the top of the system prompt" },
-            { icon: "cpu",      label: "Answer + rerank",sub: "gpt-5.4-mini reads all 4 candidates · acts as a reranker (filters to only the articles it actually cites) · article 1 selected" },
+            { icon: "cpu",      label: "Answer + rerank",sub: "gpt-5.4-mini with READ_SYSTEM_PROMPT reads all 4 candidates · acts as a reranker (filters to only the articles it actually cites) · article 1 selected" },
             { icon: "link",     label: "Map citations",  sub: "Article ID in response mapped back to retrieved doc · rendered as inline source card" },
             { icon: "message",  label: "Render inline",  sub: "Answer + source card displayed in chat · no job created · feedback captured by response ID" },
           ]}
