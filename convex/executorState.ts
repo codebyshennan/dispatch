@@ -7,6 +7,26 @@ export const getItem = internalQuery({
   handler: async (ctx, args) => ctx.db.get(args.itemId),
 });
 
+export const getJobIntent = internalQuery({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.jobId);
+    return job?.normalizedPlan.intent ?? null;
+  },
+});
+
+export const freezeMockCard = internalMutation({
+  args: { cardId: v.string() },
+  handler: async (ctx, args) => {
+    const card = await ctx.db
+      .query("mock_cards")
+      .withIndex("by_card_id", (q) => q.eq("cardId", args.cardId))
+      .unique();
+    if (!card) return;
+    await ctx.db.patch(card._id, { status: "frozen" });
+  },
+});
+
 export const setItemInProgress = internalMutation({
   args: { itemId: v.id("job_items") },
   handler: async (ctx, args) => {
