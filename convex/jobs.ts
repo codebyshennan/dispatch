@@ -7,14 +7,27 @@ import { applyOutcomeToJobCounts } from "../src/lib/job-counter-logic";
 // ─── createDraft ──────────────────────────────────────────────────────────────
 // Resolves target cards, runs policy, returns a preview — does NOT execute yet.
 
+const limitArgV = v.object({ currency: v.string(), amount: v.number() });
+
+const intentArgV = v.union(
+  v.object({
+    intent: v.literal("bulk_update_card_limit"),
+    targetGroup: v.string(),
+    newLimit: limitArgV,
+    notifyCardholders: v.boolean(),
+  }),
+  v.object({
+    intent: v.literal("bulk_freeze_cards"),
+    targetGroup: v.string(),
+    reason: v.optional(v.string()),
+    notifyCardholders: v.boolean(),
+  })
+);
+
 export const createDraft = mutation({
   args: {
     rawRequest: v.string(),
-    intent: v.object({
-      targetGroup: v.string(),
-      newLimit: v.object({ currency: v.string(), amount: v.number() }),
-      notifyCardholders: v.boolean(),
-    }),
+    intent: intentArgV,
     idempotencyKey: v.string(),
   },
   handler: async (ctx, args) => {
@@ -37,8 +50,10 @@ export const createDraft = mutation({
       throw new Error(`No cards found for team: ${args.intent.targetGroup}`);
     }
 
-    // Policy check
-    const policy = checkPolicy(cards, args.intent.newLimit);
+    // Policy check — limit cap only applies to limit-update operations
+    const newLimit =
+      args.intent.intent === "bulk_update_card_limit" ? args.intent.newLimit : undefined;
+    const policy = checkPolicy(cards, newLimit);
 
     if (!policy.allowed) {
       throw new Error(`Policy blocked: ${policy.notes[0]}`);
@@ -47,15 +62,26 @@ export const createDraft = mutation({
     const excludedSet = new Set(policy.excludedCardIds);
     const eligible = cards.filter((c) => !excludedSet.has(c.cardId));
 
+    const normalizedPlan =
+      args.intent.intent === "bulk_update_card_limit"
+        ? {
+            intent: "bulk_update_card_limit" as const,
+            targetGroup: args.intent.targetGroup,
+            newLimit: args.intent.newLimit,
+            notifyCardholders: args.intent.notifyCardholders,
+          }
+        : {
+            intent: "bulk_freeze_cards" as const,
+            targetGroup: args.intent.targetGroup,
+            reason: args.intent.reason,
+            notifyCardholders: args.intent.notifyCardholders,
+          };
+
     const jobId = await ctx.db.insert("jobs", {
       status: "draft",
-      operationType: "bulk_update_card_limit",
+      operationType: args.intent.intent,
       rawRequest: args.rawRequest,
-      normalizedPlan: {
-        targetGroup: args.intent.targetGroup,
-        newLimit: args.intent.newLimit,
-        notifyCardholders: args.intent.notifyCardholders,
-      },
+      normalizedPlan,
       totalItems: cards.length,
       eligibleItems: eligible.length,
       succeededCount: 0,
