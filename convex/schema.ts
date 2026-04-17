@@ -29,13 +29,25 @@ export default defineSchema({
    */
   jobs: defineTable({
     status: jobStatusV,
-    operationType: v.literal("bulk_update_card_limit"),
+    operationType: v.union(
+      v.literal("bulk_update_card_limit"),
+      v.literal("bulk_freeze_cards")
+    ),
     rawRequest: v.string(),
-    normalizedPlan: v.object({
-      targetGroup: v.string(),
-      newLimit: limitV,
-      notifyCardholders: v.boolean(),
-    }),
+    normalizedPlan: v.union(
+      v.object({
+        intent: v.literal("bulk_update_card_limit"),
+        targetGroup: v.string(),
+        newLimit: limitV,
+        notifyCardholders: v.boolean(),
+      }),
+      v.object({
+        intent: v.literal("bulk_freeze_cards"),
+        targetGroup: v.string(),
+        reason: v.optional(v.string()),
+        notifyCardholders: v.boolean(),
+      })
+    ),
     // Counts (updated as items complete)
     totalItems: v.number(),
     eligibleItems: v.number(),
