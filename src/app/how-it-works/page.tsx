@@ -917,21 +917,12 @@ export default function HowItWorksPage() {
           sub="Operator raises card limits for an entire team"
           inputPrompt={`Set Marketing team card limits to SGD 2,000`}
           steps={[
-            { icon: "type",     label: "Embed query",    sub: "\"Set Marketing team card limits to SGD 2,000\" → 1,536-dim vector via text-embedding-3-small" },
-            { icon: "search",   label: "Vector search",  sub: "ANN (Approximate Nearest Neighbor) search over kb_articles · top-4 candidates by cosine similarity" },
-            { icon: "funnel",   label: "Trim & inject",  sub: "Each article truncated to 200-char snippet · formatted as KB context block in system prompt" },
-            { icon: "cpu",      label: "Classify intent",sub: "gpt-5.4-mini reads KB context · identifies bulk_op · extracts target group + limit" },
-            { icon: "shield",   label: "Policy check",   sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled cards marked skipped" },
-            { icon: "file",     label: "Create draft",   sub: "Job record written with status: draft · idempotency key checked before insert" },
-            { icon: "check",    label: "Confirm & fan-out", sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
+            { icon: "layers",   label: "Pre-classifier router", sub: "claude-haiku-4-5 → lane: write (confidence 0.93) · embed + vector search + inject skipped (bulk-op does not benefit from KB context)" },
+            { icon: "cpu",      label: "Extract intent",   sub: "gpt-5.4-mini with WRITE_SYSTEM_PROMPT · identifies bulk_update_card_limit · extracts target group + limit" },
+            { icon: "shield",   label: "Policy check",     sub: "SGD 2,000 < 5,000 cap · ~12 cards < 25 threshold · no approval required · frozen/cancelled cards marked skipped" },
+            { icon: "file",     label: "Create draft",     sub: "Job record written with status: draft · idempotency key checked before insert" },
+            { icon: "check",    label: "Confirm & fan-out",sub: "Job transitions to in-progress · one item per eligible card · 500–3,500 ms stagger" },
           ]}
-          retrieved={[
-            { title: "Reap Card Pricing and Fees", score: 0.88, snippet: "Reap Card is a secured corporate credit card with no annual or hidden fees. This article outlines what fees to expect, how repayments work, and important terms related to card usage." },
-            { title: "Differences Between USD and HKD Reap Cards", score: 0.79, snippet: "When you apply for a Reap Card, you can choose to settle your account in either HKD or USD. This settlement currency determines how your card repayments are made." },
-            { title: "Restricted MCC Codes for Reap Cards", score: 0.71, snippet: "Certain merchant categories are blocked from Reap Card usage due to security and compliance requirements. MCCs are four-digit codes assigned by credit card networks to classify merchants." },
-            { title: "Team Permissions User Level Comparisons - Reap Card", score: 0.60, snippet: "Admins can view all transactions, manage cards and spend limits across all groups. Group Owners manage within their group. Team Members view their own transactions only." },
-          ]}
-          retrievedAfterStep={1}
           outputJson={`{
   "type": "bulk_op",
   "intent": {
