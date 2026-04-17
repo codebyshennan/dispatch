@@ -733,7 +733,11 @@ function PipelineDiagram({ T }: { T: ReturnType<typeof useTheme>["T"] }) {
       icon: "cpu",
       label: "LLM — gpt-5.4-mini",
       detail: "temperature 0 · JSON only · via OpenRouter",
-      notes: ["reads all 4 KB candidates", "acts as reranker — cites only articles actually used", "must return discriminated union JSON"],
+      notes: [
+        "lane-specific system prompt: READ (question-only), WRITE (bulk_op-only), or UNIFIED (fallback)",
+        "read lane reads all 4 KB candidates and acts as reranker — cites only articles actually used",
+        "single-shape lanes can only emit one valid JSON shape; unified emits the discriminated union",
+      ],
       accent: true,
     },
     {
