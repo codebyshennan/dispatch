@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "deploy": "npx convex deploy && npx convex run seed:seedMockCards && next build",
+    "deploy": "npx convex deploy && npx convex run migrations:backfillJobIntent && npx convex run seed:seedMockCards && next build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
