@@ -98,10 +98,11 @@ export const processRequest = action({
         const jobData = await ctx.runQuery(api.queries.getJobWithItems, { jobId: args.recentJobId });
         if (jobData) {
           const { job } = jobData;
+          const plan = job.normalizedPlan as Record<string, unknown>;
           const opSummary =
-            job.normalizedPlan.intent === "bulk_update_card_limit"
-              ? `Update card limits to ${job.normalizedPlan.newLimit.currency} ${job.normalizedPlan.newLimit.amount.toLocaleString()}`
-              : `Freeze cards${job.normalizedPlan.reason ? ` (reason: ${job.normalizedPlan.reason})` : ""}`;
+            job.operationType === "bulk_update_card_limit"
+              ? `Update card limits to ${(plan.newLimit as { currency: string; amount: number }).currency} ${(plan.newLimit as { currency: string; amount: number }).amount.toLocaleString()}`
+              : `Freeze cards${plan.reason ? ` (reason: ${plan.reason})` : ""}`;
           jobContext = `\n\nMOST RECENT JOB RESULT (reference this when the user asks how a job went):
 Team: ${job.normalizedPlan.targetGroup}
 Operation: ${opSummary}
