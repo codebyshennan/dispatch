@@ -1,4 +1,4 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npx convex deploy && npx convex run seed:seedMockCards && next build"
+  "buildCommand": "npx convex deploy && npx convex run migrations:backfillJobIntent && npx convex run seed:seedMockCards && next build"
 }
