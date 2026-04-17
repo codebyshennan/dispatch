@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+  <rect width="960" height="480" fill="#ffffff"/>
+  <text x="480" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">Fan-out Timing — Staggered Card Execution</text>
+  <text x="480" y="47" text-anchor="middle" font-size="11" fill="#64748b">Each card item scheduled with 500–3,500ms random delay to prevent thundering herd</text>
+  <line x1="140" y1="115" x2="140" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="140" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">0ms</text>
+  <line x1="228" y1="115" x2="228" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="228" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">500ms</text>
+  <line x1="316" y1="115" x2="316" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="316" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">1000ms</text>
+  <line x1="404" y1="115" x2="404" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="404" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">1500ms</text>
+  <line x1="492" y1="115" x2="492" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="492" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">2000ms</text>
+  <line x1="580" y1="115" x2="580" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="580" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">2500ms</text>
+  <line x1="668" y1="115" x2="668" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="668" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">3000ms</text>
+  <line x1="756" y1="115" x2="756" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="756" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">3500ms</text>
+  <line x1="844" y1="115" x2="844" y2="502" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="844" y="110" text-anchor="middle" font-size="9" fill="#94a3b8">4000ms</text>
+  <line x1="140" y1="115" x2="880" y2="115" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="132" y="139" text-anchor="end" font-size="10" fill="#475569">Card 1</text>
+  <line x1="140" y1="135" x2="231" y2="135" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="231" y="120" width="32" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="247" cy="135" r="4" fill="#10b981"/>
+  <text x="132" y="177" text-anchor="end" font-size="10" fill="#475569">Card 2</text>
+  <line x1="140" y1="173" x2="296" y2="173" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="296" y="158" width="36" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="314" cy="173" r="4" fill="#10b981"/>
+  <text x="132" y="215" text-anchor="end" font-size="10" fill="#475569">Card 3</text>
+  <line x1="140" y1="211" x2="358" y2="211" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="358" y="196" width="28" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="372" cy="211" r="4" fill="#10b981"/>
+  <text x="132" y="253" text-anchor="end" font-size="10" fill="#475569">Card 4</text>
+  <line x1="140" y1="249" x2="418" y2="249" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="418" y="234" width="53" height="30" rx="4" fill="#f59e0b20" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="444" cy="249" r="4" fill="#f59e0b"/>
+  <line x1="471" y1="249" x2="823" y2="249" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="823" y="234" width="35" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="840" cy="249" r="4" fill="#10b981"/>
+  <text x="862" y="253" font-size="9" fill="#10b981">retry +2s</text>
+  <text x="475" y="253" font-size="9" fill="#f59e0b">fail</text>
+  <text x="132" y="291" text-anchor="end" font-size="10" fill="#475569">Card 5</text>
+  <line x1="140" y1="287" x2="478" y2="287" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="478" y="272" width="30" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="493" cy="287" r="4" fill="#10b981"/>
+  <text x="132" y="329" text-anchor="end" font-size="10" fill="#475569">Card 6</text>
+  <line x1="140" y1="325" x2="552" y2="325" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="552" y="310" width="33" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="568" cy="325" r="4" fill="#10b981"/>
+  <text x="132" y="367" text-anchor="end" font-size="10" fill="#475569">Card 7</text>
+  <line x1="140" y1="363" x2="629" y2="363" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="629" y="348" width="39" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="648" cy="363" r="4" fill="#10b981"/>
+  <text x="132" y="405" text-anchor="end" font-size="10" fill="#475569">Card 8</text>
+  <line x1="140" y1="401" x2="689" y2="401" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="689" y="386" width="28" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="703" cy="401" r="4" fill="#10b981"/>
+  <text x="132" y="443" text-anchor="end" font-size="10" fill="#475569">Card 9</text>
+  <line x1="140" y1="439" x2="747" y2="439" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="747" y="424" width="32" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="763" cy="439" r="4" fill="#10b981"/>
+  <text x="132" y="481" text-anchor="end" font-size="10" fill="#475569">Card 10</text>
+  <line x1="140" y1="477" x2="723" y2="477" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <rect x="723" y="462" width="35" height="30" rx="4" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <circle cx="740" cy="477" r="4" fill="#10b981"/>
+  <line x1="228" y1="516" x2="756" y2="516" stroke="#6366f1" stroke-width="1.5"/>
+  <line x1="228" y1="511" x2="228" y2="521" stroke="#6366f1" stroke-width="1.5"/>
+  <line x1="756" y1="511" x2="756" y2="521" stroke="#6366f1" stroke-width="1.5"/>
+  <rect x="412" y="522" width="160" height="14" rx="3" fill="#eef2ff"/>
+  <text x="492" y="534" text-anchor="middle" font-size="9" fill="#4338ca">500 – 3,500ms stagger window</text>
+  <rect x="280" y="552" width="400" height="30" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="296" y="561" width="14" height="12" rx="2" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+  <text x="316" y="572" font-size="9" fill="#64748b">succeeded</text>
+  <rect x="390" y="561" width="14" height="12" rx="2" fill="#f59e0b20" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="410" y="572" font-size="9" fill="#64748b">first attempt failed</text>
+  <line x1="520" y1="567" x2="534" y2="567" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="540" y="572" font-size="9" fill="#64748b">waiting (stagger delay)</text>
+  <line x1="655" y1="567" x2="669" y2="567" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="675" y="572" font-size="9" fill="#4338ca">stagger window</text>
+</svg>

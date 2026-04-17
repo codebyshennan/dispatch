@@ -1,0 +1,10 @@
+{ "id": "read-001", "query": "What is the maximum spending limit I can set per card?", "mustContain": ["limit"], "minSources": 1 }
+{ "id": "read-002", "query": "Do I need approval to update card limits for my team?", "mustContain": ["approval"], "minSources": 0 }
+{ "id": "read-003", "query": "Which bulk operations does Dispatch support?", "mustContain": ["bulk_update_card_limit"], "minSources": 0 }
+{ "id": "read-004", "query": "Why was my card declined at a merchant?", "mustContain": ["decline"], "minSources": 1 }
+{ "id": "read-005", "query": "How do I freeze a Reap card?", "mustContain": ["freeze"], "minSources": 0 }
+{ "id": "read-006", "query": "What currencies does the Reap card support?", "mustContain": ["USD"], "minSources": 1 }
+{ "id": "read-007", "query": "What are the fees for using a Reap card?", "mustContain": ["fee"], "minSources": 1 }
+{ "id": "read-008", "query": "How are MCC restrictions applied?", "mustContain": ["MCC"], "minSources": 1 }
+{ "id": "read-009", "query": "Can a team member view other people's transactions?", "mustContain": ["transactions"], "minSources": 1 }
+{ "id": "read-010", "query": "How many cards can a single bulk operation affect?", "mustContain": ["200"], "minSources": 0 }
