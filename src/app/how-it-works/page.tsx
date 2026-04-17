@@ -1125,7 +1125,7 @@ const lane =
 // → write   lane: WRITE_SYSTEM_PROMPT + no KB     + bulk_op-only schema
 // → unified lane: UNIFIED_SYSTEM_PROMPT + KB context + full union schema (legacy)`}</CodeBlock>
 
-        <SubHeading id="router-tradeoffs" T={T}>Why split routing from retrieval?</SubHeading>
+        <SubHeading id="router-tradeoffs" icon="layers" T={T}>Why split routing from retrieval?</SubHeading>
         <p style={body}>
           The original design fused intent classification, KB reranking, and answer/extraction into a single LLM call. That kept the system simple at low volume but made every request pay for embedding and vector search even when the answer was a pure write. As the operation catalog grows (today: limit updates; tomorrow: freezes, refunds, group changes, transaction lookups), separating the routing decision from execution lets each lane evolve independently.
         </p>
