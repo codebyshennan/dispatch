@@ -126,6 +126,10 @@ export const confirmJob = mutation({
       .collect();
 
     const excludedIds = new Set(job.excludedCards.map((e) => e.cardId));
+    const requestedLimit =
+      job.normalizedPlan.intent === "bulk_update_card_limit"
+        ? job.normalizedPlan.newLimit
+        : undefined;
 
     for (const card of cards) {
       if (excludedIds.has(card.cardId)) {
@@ -135,7 +139,7 @@ export const confirmJob = mutation({
           cardId: card.cardId,
           cardholderName: card.cardholderName,
           currentLimit: card.currentLimit,
-          requestedLimit: job.normalizedPlan.newLimit,
+          requestedLimit,
           status: "skipped",
           retryCount: 0,
           idempotencyKey: `${args.jobId}:${card.cardId}`,
@@ -148,7 +152,7 @@ export const confirmJob = mutation({
         cardId: card.cardId,
         cardholderName: card.cardholderName,
         currentLimit: card.currentLimit,
-        requestedLimit: job.normalizedPlan.newLimit,
+        requestedLimit,
         status: "queued",
         retryCount: 0,
         idempotencyKey: `${args.jobId}:${card.cardId}`,
