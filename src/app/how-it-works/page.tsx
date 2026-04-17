@@ -1134,7 +1134,7 @@ const lane =
           <strong>What we trade:</strong> on the read lane, we pay one extra LLM call (the router) per request. At low volume this is invisible; at high volume it&apos;s amortized by router prompt caching. We also commit to a lane earlier — if the router mis-classifies, the downstream call may produce the wrong shape. The 0.80 confidence threshold and unified-pipeline fallback exist to bound this risk.
         </Note>
         <Note T={T} variant="ok">
-          <strong>Migration path:</strong> (1) router in front, current pipeline as fallback ✓ done. (2) split the unified system prompt into two — answer-only vs intent-extraction — each with its own eval set. (3) introduce a tool registry so adding a new bulk operation is a registration, not a prompt edit. (4) optimize per-lane: caching, model tiering, hybrid retrieval. Steps 2–4 are justified when the second operation type ships, not before.
+          <strong>Migration path:</strong> (1) router in front, unified pipeline as fallback ✓ done. (2) split the unified system prompt into READ + WRITE, each with its own eval set ({mono("datasets/eval/read.jsonl")}, {mono("datasets/eval/write.jsonl")}, suite at {mono("src/lib/__tests__/prompts-eval.test.ts")}) ✓ done. (3) introduce a tool registry so adding a new bulk operation is a registration, not a prompt edit. (4) optimize per-lane: caching, model tiering, hybrid retrieval. Steps 3–4 are justified when the second operation type ships, not before.
         </Note>
 
         <SubHeading id="intent-classification" T={T}>Intent classification</SubHeading>
