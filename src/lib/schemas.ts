@@ -19,4 +19,7 @@ export const BulkJobIntentSchema = z.object({
 
 export type BulkJobIntent = z.infer<typeof BulkJobIntentSchema>;
 
-export const SUPPORTED_INTENTS = ["bulk_update_card_limit"] as const;
+export const SUPPORTED_INTENTS = [
+  "bulk_update_card_limit",
+  "bulk_freeze_cards",
+] as const;
