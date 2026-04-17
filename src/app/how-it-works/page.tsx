@@ -1100,11 +1100,16 @@ const systemPrompt = BASE_SYSTEM_PROMPT + kbContext + jobContext;`}</CodeBlock>
         <CodeBlock lang="typescript" T={T}>{`// convex/router.ts
 { "lane": "read" | "write" | "clarify", "confidence": <0.0-1.0> }
 
-// convex/interpreter.ts — fallback semantics
+// convex/interpreter.ts — lane resolution
 const trustRouter = routerResult && routerResult.confidence >= 0.80;
-const skipKB     = trustRouter && routerResult.lane === "write";
-// → write lane: skip embed + ANN search
-// → read / clarify / low-confidence: full RAG pipeline as before`}</CodeBlock>
+const lane =
+  trustRouter && routerResult.lane === "read"  ? "read"  :
+  trustRouter && routerResult.lane === "write" ? "write" :
+  "unified";  // clarify, low-confidence, and router-failure all fall here
+
+// → read    lane: READ_SYSTEM_PROMPT  + KB context + question-only schema
+// → write   lane: WRITE_SYSTEM_PROMPT + no KB     + bulk_op-only schema
+// → unified lane: UNIFIED_SYSTEM_PROMPT + KB context + full union schema (legacy)`}</CodeBlock>
 
         <SubHeading id="router-tradeoffs" T={T}>Why split routing from retrieval?</SubHeading>
         <p style={body}>
