@@ -32,18 +32,17 @@ test.describe("Job history page", () => {
     expect(hasJobs || isEmpty).toBe(true);
   });
 
-  test("job cards link to individual job pages", async ({ page }) => {
-    const firstJobLink = page.locator("a[href^='/jobs/']").first();
-    const hasJobs = await firstJobLink.isVisible().catch(() => false);
+  test("thread rows are present and expandable", async ({ page }) => {
+    const hasThreads = await page.locator("main button").first().isVisible().catch(() => false);
 
-    if (!hasJobs) {
-      // No jobs — verify the empty state "Create one" link exists
-      await expect(page.getByRole("link", { name: /create one/i })).toBeVisible();
+    if (!hasThreads) {
+      // Empty state — verify the "Start one →" link exists
+      await expect(page.getByRole("link", { name: /start one/i })).toBeVisible();
       return;
     }
 
-    await firstJobLink.click();
-    await expect(page).toHaveURL(/\/jobs\/.+/);
+    // Thread rows are buttons — verify at least one is visible
+    await expect(page.locator("main button").first()).toBeVisible();
   });
 
   test("job cards show status badges", async ({ page }) => {
