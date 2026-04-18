@@ -64,7 +64,7 @@ test.describe("Job history page", () => {
   });
 
   test("New job link at bottom navigates to home", async ({ page }) => {
-    await page.getByRole("link", { name: /\+ New job/i }).click();
+    await page.getByRole("link", { name: /\+ New thread/i }).click();
     await expect(page).toHaveURL("/");
   });
 });
