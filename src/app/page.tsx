@@ -579,6 +579,75 @@ function JobPreviewCard({
         </div>
       )}
 
+      {/* Inline edit form */}
+      {editing && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 0 0" }}>
+          {summary.operationType === "bulk_update_card_limit" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={{ fontSize: 11, color: T.muted }}>New limit (SGD)</label>
+              <input
+                type="number"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
+                min={0}
+                style={{
+                  borderRadius: 6, border: `1px solid ${T.border}`,
+                  background: T.bg, color: T.text,
+                  padding: "6px 10px", fontSize: 13, fontFamily: T.fontBody,
+                  outline: "none", width: "100%", boxSizing: "border-box",
+                }}
+              />
+            </div>
+          )}
+          {summary.operationType === "bulk_freeze_cards" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={{ fontSize: 11, color: T.muted }}>Reason</label>
+              <input
+                type="text"
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                placeholder="e.g. security hold"
+                style={{
+                  borderRadius: 6, border: `1px solid ${T.border}`,
+                  background: T.bg, color: T.text,
+                  padding: "6px 10px", fontSize: 13, fontFamily: T.fontBody,
+                  outline: "none", width: "100%", boxSizing: "border-box",
+                }}
+              />
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={handleRerun}
+              disabled={rerunning}
+              style={{
+                flex: 1, borderRadius: 6, border: "none",
+                background: rerunning ? T.elevated : T.accent,
+                color: rerunning ? T.muted : T.onAccent,
+                padding: "7px 12px", fontSize: 12, fontWeight: 600,
+                fontFamily: T.fontBody,
+                cursor: rerunning ? "not-allowed" : "pointer",
+                opacity: rerunning ? 0.5 : 1,
+              }}
+            >
+              {rerunning ? "Re-running…" : "Re-run plan"}
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              disabled={rerunning}
+              style={{
+                borderRadius: 6, border: `1px solid ${T.border}`,
+                background: "transparent", color: T.textSub,
+                padding: "7px 12px", fontSize: 12, fontFamily: T.fontBody, cursor: "pointer",
+              }}
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!editing && (
       <div style={{ display: "flex", gap: 8 }}>
         <button
           onClick={handleConfirm}
@@ -597,6 +666,18 @@ function JobPreviewCard({
           {confirming ? "Confirming…" : `Confirm — run for ${summary.eligibleItems} cards`}
         </button>
         <button
+          onClick={handleStartEdit}
+          disabled={confirming}
+          style={{
+            borderRadius: 8, border: `1px solid ${T.border}`,
+            background: "transparent", color: T.textSub,
+            padding: "8px 12px", fontSize: 13,
+            fontFamily: T.fontBody, cursor: "pointer",
+          }}
+        >
+          Modify
+        </button>
+        <button
           onClick={onDismiss}
           disabled={confirming}
           style={{
@@ -609,6 +690,7 @@ function JobPreviewCard({
           Cancel
         </button>
       </div>
+      )}
     </div>
   );
 }
