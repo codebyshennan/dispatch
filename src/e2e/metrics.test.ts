@@ -45,7 +45,7 @@ test.describe("Metrics page", () => {
     );
 
     // Value is either "—" (no data) or a percentage like "67%"
-    const rateSection = page.getByText(/ai acceptance rate/i).locator("..");
+    const rateSection = page.getByText(/acceptance rate/i).locator("..");
     const value = await rateSection.getByText(/^(—|\d+%)$/).first().textContent();
     expect(value).toMatch(/^(—|\d+%)$/);
   });
