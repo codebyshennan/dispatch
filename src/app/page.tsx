@@ -1109,6 +1109,14 @@ export default function OpsPage() {
     scrollToBottom();
   }
 
+  function handleModified(previewEntryId: string, newJobId: Id<"jobs">, pairId: string) {
+    setThread((prev) => prev.map((e) =>
+      e.id === previewEntryId
+        ? { id: previewEntryId, pairId, kind: "job_preview" as const, jobId: newJobId }
+        : e
+    ));
+  }
+
   const isEmpty = thread.length === 0;
 
   return (
