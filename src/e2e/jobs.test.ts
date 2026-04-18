@@ -19,8 +19,8 @@ test.describe("Job history page", () => {
   });
 
   test("shows job count or empty state after loading", async ({ page }) => {
-    const hasJobs = await page.getByText(/\d+ recent job/).isVisible().catch(() => false);
-    const isEmpty = await page.getByText("No jobs yet.").isVisible().catch(() => false);
+    const hasJobs = await page.getByText(/\d+ recent thread/).isVisible().catch(() => false);
+    const isEmpty = await page.getByText(/no threads yet|no jobs yet/i).isVisible().catch(() => false);
     expect(hasJobs || isEmpty).toBe(true);
   });
 
