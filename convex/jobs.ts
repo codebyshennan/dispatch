@@ -204,6 +204,19 @@ export const retryFailed = mutation({
   },
 });
 
+// ─── discardDraft ─────────────────────────────────────────────────────────────
+// Deletes a draft job that was superseded by a modification before confirmation.
+
+export const discardDraft = mutation({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.jobId);
+    if (!job) return; // already gone, idempotent
+    if (job.status !== "draft") throw new Error("Can only discard draft jobs");
+    await ctx.db.delete(args.jobId);
+  },
+});
+
 // ─── cancelJob ────────────────────────────────────────────────────────────────
 // Cancels all queued items (in-flight items finish naturally).
 
