@@ -19,8 +19,16 @@ test.describe("Job history page", () => {
   });
 
   test("shows job count or empty state after loading", async ({ page }) => {
+    // Convex may still be loading — wait until count text or empty state appears
+    await page.waitForFunction(() => {
+      const main = document.querySelector("main");
+      if (!main) return false;
+      const text = main.textContent ?? "";
+      return /\d+ recent thread|no threads yet/i.test(text);
+    }, { timeout: 10000 });
+
     const hasJobs = await page.getByText(/\d+ recent thread/).isVisible().catch(() => false);
-    const isEmpty = await page.getByText(/no threads yet|no jobs yet/i).isVisible().catch(() => false);
+    const isEmpty = await page.getByText("No threads yet.").isVisible().catch(() => false);
     expect(hasJobs || isEmpty).toBe(true);
   });
 
