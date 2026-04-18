@@ -15,12 +15,18 @@ export default function PreviewPage() {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [editReason, setEditReason] = useState<string>("");
+  const [rerunning, setRerunning] = useState(false);
 
   const summary = useQuery(api.queries.getJobStatusSummary, {
     jobId: id as Id<"jobs">,
   });
 
   const confirmJob = useMutation(api.jobs.confirmJob);
+  const createDraft = useMutation(api.jobs.createDraft);
+  const discardDraft = useMutation(api.jobs.discardDraft);
 
   if (summary === undefined) return <LoadingShell />;
   if (summary === null) return <ErrorShell message="Job not found" />;
