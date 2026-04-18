@@ -21,9 +21,9 @@ test.describe("Navigation", () => {
 
   test("clicking Job history navigates to /jobs", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Job history" }).click();
+    await page.getByRole("link", { name: "Thread history" }).click();
     await expect(page).toHaveURL(/\/jobs/);
-    await expect(page.getByRole("heading", { name: "Job history" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Thread history" })).toBeVisible();
   });
 
   test("clicking Metrics navigates to /metrics", async ({ page }) => {
