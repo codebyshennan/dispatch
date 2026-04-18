@@ -21,7 +21,7 @@ test.describe("Metrics page", () => {
     }, { timeout: 10000 });
 
     await expect(page.getByText(/jobs created/i)).toBeVisible();
-    await expect(page.getByText(/ai acceptance rate/i)).toBeVisible();
+    await expect(page.getByText(/acceptance rate/i)).toBeVisible();
     await expect(page.getByText(/thumbs up/i)).toBeVisible();
     await expect(page.getByText(/thumbs down/i)).toBeVisible();
   });
