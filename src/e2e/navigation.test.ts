@@ -5,8 +5,8 @@ test.describe("Navigation", () => {
     for (const path of ["/", "/jobs", "/metrics"]) {
       await page.goto(path);
       await expect(page.getByRole("link", { name: /Dispatch \/ ops/i })).toBeVisible();
-      await expect(page.getByRole("link", { name: "New job" })).toBeVisible();
-      await expect(page.getByRole("link", { name: "Job history" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "New thread" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Thread history" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Metrics" })).toBeVisible();
     }
   });
