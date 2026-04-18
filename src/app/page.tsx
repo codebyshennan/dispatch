@@ -1199,6 +1199,7 @@ export default function OpsPage() {
                   entry={entry}
                   onConfirmed={() => handleConfirmed(entry.id, entry.jobId, entry.pairId)}
                   onDismiss={() => setThread((prev) => prev.filter((e) => e.id !== entry.id))}
+                  onModified={(newJobId) => handleModified(entry.id, newJobId, entry.pairId)}
                   T={T}
                 />
               );
