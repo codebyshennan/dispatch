@@ -13,7 +13,7 @@ test.describe("Navigation", () => {
 
   test("active nav link is highlighted on home page", async ({ page }) => {
     await page.goto("/");
-    const newJobLink = page.getByRole("link", { name: "New job" });
+    const newJobLink = page.getByRole("link", { name: "New thread" });
     // Active link has non-transparent background (elevated style)
     const bg = await newJobLink.evaluate((el) => getComputedStyle(el).background);
     expect(bg).not.toBe("rgba(0, 0, 0, 0)");
