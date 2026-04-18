@@ -33,6 +33,14 @@ test.describe("Job history page", () => {
   });
 
   test("thread rows are present and expandable", async ({ page }) => {
+    // Wait for actual content (not just skeleton gone) before checking buttons
+    await page.waitForFunction(() => {
+      const main = document.querySelector("main");
+      if (!main) return false;
+      const text = main.textContent ?? "";
+      return /\d+ recent thread|no threads yet/i.test(text);
+    }, { timeout: 10000 });
+
     const hasThreads = await page.locator("main button").first().isVisible().catch(() => false);
 
     if (!hasThreads) {
