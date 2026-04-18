@@ -15,7 +15,7 @@ test.describe("Job history page", () => {
   });
 
   test("renders the page heading", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Job history" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Thread history" })).toBeVisible();
   });
 
   test("shows job count or empty state after loading", async ({ page }) => {
