@@ -48,6 +48,53 @@ export default function PreviewPage() {
     router.push("/");
   }
 
+  function handleStartEdit() {
+    if (!summary) return;
+    if (summary.operationType === "bulk_update_card_limit" && summary.newLimit) {
+      setEditAmount(String(summary.newLimit.amount));
+    }
+    if (summary.operationType === "bulk_freeze_cards") {
+      setEditReason(summary.reason ?? "");
+    }
+    setEditing(true);
+  }
+
+  async function handleRerun() {
+    if (!summary) return;
+    setRerunning(true);
+    try {
+      const newIdempotencyKey = `${summary.targetGroup}:${summary.operationType}:modified:${Date.now()}`;
+      const intent =
+        summary.operationType === "bulk_update_card_limit" && summary.newLimit
+          ? {
+              intent: "bulk_update_card_limit" as const,
+              targetGroup: summary.targetGroup,
+              newLimit: { currency: summary.newLimit.currency, amount: parseFloat(editAmount) || summary.newLimit.amount },
+              notifyCardholders: true,
+            }
+          : {
+              intent: "bulk_freeze_cards" as const,
+              targetGroup: summary.targetGroup,
+              reason: editReason || undefined,
+              notifyCardholders: true,
+            };
+
+      const newJobId = await createDraft({
+        rawRequest: `[Modified] ${summary.targetGroup}`,
+        intent,
+        idempotencyKey: newIdempotencyKey,
+      });
+
+      await discardDraft({ jobId: id as Id<"jobs"> });
+      router.push(`/preview/${newJobId}`);
+    } catch (err) {
+      toast.error("Failed to re-run plan", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+      setRerunning(false);
+    }
+  }
+
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 24px" }}>
       {/* Breadcrumb */}
