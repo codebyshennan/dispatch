@@ -410,18 +410,25 @@ function BulkOpCard({
 
 // ── JobPreviewCard ────────────────────────────────────────────────────────────
 function JobPreviewCard({
-  entry, onConfirmed, onDismiss, T,
+  entry, onConfirmed, onDismiss, onModified, T,
 }: {
   entry: Extract<Entry, { kind: "job_preview" }>;
   onConfirmed: () => void;
   onDismiss: () => void;
+  onModified: (newJobId: Id<"jobs">) => void;
   T: ReturnType<typeof useTheme>["T"];
 }) {
   const [confirming, setConfirming] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [showAllExclusions, setShowAllExclusions] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editReason, setEditReason] = useState("");
+  const [rerunning, setRerunning] = useState(false);
   const summary = useQuery(api.queries.getJobStatusSummary, { jobId: entry.jobId });
   const confirmJob = useMutation(api.jobs.confirmJob);
+  const createDraft = useMutation(api.jobs.createDraft);
+  const discardDraft = useMutation(api.jobs.discardDraft);
 
   async function handleConfirm() {
     setConfirming(true);
@@ -433,6 +440,53 @@ function JobPreviewCard({
         description: err instanceof Error ? err.message : "Please try again.",
       });
       setConfirming(false);
+    }
+  }
+
+  function handleStartEdit() {
+    if (!summary) return;
+    if (summary.operationType === "bulk_update_card_limit" && summary.newLimit) {
+      setEditAmount(String(summary.newLimit.amount));
+    }
+    if (summary.operationType === "bulk_freeze_cards") {
+      setEditReason(summary.reason ?? "");
+    }
+    setEditing(true);
+  }
+
+  async function handleRerun() {
+    if (!summary) return;
+    setRerunning(true);
+    try {
+      const newKey = `${summary.targetGroup}:${summary.operationType}:modified:${Date.now()}`;
+      const intent =
+        summary.operationType === "bulk_update_card_limit" && summary.newLimit
+          ? {
+              intent: "bulk_update_card_limit" as const,
+              targetGroup: summary.targetGroup,
+              newLimit: { currency: summary.newLimit.currency, amount: parseFloat(editAmount) || summary.newLimit.amount },
+              notifyCardholders: true,
+            }
+          : {
+              intent: "bulk_freeze_cards" as const,
+              targetGroup: summary.targetGroup,
+              reason: editReason || undefined,
+              notifyCardholders: true,
+            };
+      const newJobId = await createDraft({
+        rawRequest: `[Modified] ${summary.targetGroup}`,
+        intent,
+        idempotencyKey: newKey,
+      });
+      await discardDraft({ jobId: entry.jobId });
+      setEditing(false);
+      setRerunning(false);
+      onModified(newJobId);
+    } catch (err) {
+      toast.error("Failed to re-run plan", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+      setRerunning(false);
     }
   }
 
