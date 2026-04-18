@@ -280,7 +280,109 @@ export default function PreviewPage() {
         </div>
       )}
 
+      {/* Inline edit form */}
+      {editing && (
+        <div
+          style={{
+            borderRadius: 12,
+            border: `1px solid ${T.border}`,
+            background: T.elevated,
+            padding: "16px 20px",
+            marginBottom: 16,
+          }}
+        >
+          <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 500, color: T.textSub }}>
+            Modify parameters
+          </p>
+          {summary.operationType === "bulk_update_card_limit" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 12, color: T.muted }}>New limit (SGD)</label>
+              <input
+                type="number"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
+                min={0}
+                style={{
+                  borderRadius: 8,
+                  border: `1px solid ${T.border}`,
+                  background: T.surface,
+                  color: T.text,
+                  padding: "8px 12px",
+                  fontSize: 14,
+                  fontFamily: T.fontBody,
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          )}
+          {summary.operationType === "bulk_freeze_cards" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 12, color: T.muted }}>Reason</label>
+              <input
+                type="text"
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                placeholder="e.g. security hold"
+                style={{
+                  borderRadius: 8,
+                  border: `1px solid ${T.border}`,
+                  background: T.surface,
+                  color: T.text,
+                  padding: "8px 12px",
+                  fontSize: 14,
+                  fontFamily: T.fontBody,
+                  outline: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+            <button
+              onClick={handleRerun}
+              disabled={rerunning}
+              style={{
+                flex: 1,
+                borderRadius: 8,
+                border: "none",
+                background: rerunning ? T.elevated : T.accent,
+                color: rerunning ? T.muted : T.onAccent,
+                padding: "9px 14px",
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: T.fontBody,
+                cursor: rerunning ? "not-allowed" : "pointer",
+                opacity: rerunning ? 0.5 : 1,
+                transition: "all 0.15s ease",
+              }}
+            >
+              {rerunning ? "Re-running…" : "Re-run plan"}
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              disabled={rerunning}
+              style={{
+                borderRadius: 8,
+                border: `1px solid ${T.border}`,
+                background: "transparent",
+                color: T.textSub,
+                padding: "9px 14px",
+                fontSize: 13,
+                fontFamily: T.fontBody,
+                cursor: "pointer",
+              }}
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
+      {!editing && (
       <div style={{ display: "flex", gap: 10 }}>
         <button
           onClick={handleConfirm}
@@ -301,6 +403,31 @@ export default function PreviewPage() {
           }}
         >
           {confirming ? "Confirming…" : `Confirm — run for ${summary.eligibleItems} cards`}
+        </button>
+        <button
+          onClick={handleStartEdit}
+          disabled={confirming}
+          style={{
+            borderRadius: 10,
+            border: `1px solid ${T.border}`,
+            background: "transparent",
+            color: T.textSub,
+            padding: "11px 16px",
+            fontSize: 14,
+            fontWeight: 500,
+            fontFamily: T.fontBody,
+            cursor: confirming ? "not-allowed" : "pointer",
+            opacity: confirming ? 0.5 : 1,
+            transition: "border-color 0.15s ease",
+          }}
+          onMouseEnter={(e) => {
+            if (!confirming) (e.currentTarget as HTMLButtonElement).style.borderColor = T.muted;
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = T.border;
+          }}
+        >
+          Modify
         </button>
         <button
           onClick={handleCancel}
@@ -328,6 +455,7 @@ export default function PreviewPage() {
           Cancel
         </button>
       </div>
+      )}
 
       <p style={{ marginTop: 12, fontSize: 11, color: T.muted, textAlign: "center" }}>
         This action will be logged to the audit trail and cannot be rolled back automatically.
