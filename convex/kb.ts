@@ -80,6 +80,29 @@ export const seed = internalAction({
   },
 });
 
+// ── seedBatch ─────────────────────────────────────────────────────────────────
+// Called by scripts/seed-kb-local.ts with pre-embedded article data.
+export const seedBatch = action({
+  args: {
+    articles: v.array(
+      v.object({
+        articleId: v.string(),
+        title: v.string(),
+        url: v.string(),
+        body: v.string(),
+        updatedAt: v.string(),
+        embedding: v.array(v.float64()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    await ctx.runMutation(internal.kb_queries.insertArticles, {
+      articles: args.articles,
+    });
+    return { inserted: args.articles.length };
+  },
+});
+
 // ── searchKB ──────────────────────────────────────────────────────────────────
 export const searchKB = action({
   args: { query: v.string(), limit: v.optional(v.number()) },
