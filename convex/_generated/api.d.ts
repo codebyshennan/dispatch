@@ -16,6 +16,7 @@ import type * as jobs from "../jobs.js";
 import type * as kb from "../kb.js";
 import type * as kb_queries from "../kb_queries.js";
 import type * as metrics from "../metrics.js";
+import type * as migrations from "../migrations.js";
 import type * as prompts from "../prompts.js";
 import type * as queries from "../queries.js";
 import type * as router from "../router.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   kb: typeof kb;
   kb_queries: typeof kb_queries;
   metrics: typeof metrics;
+  migrations: typeof migrations;
   prompts: typeof prompts;
   queries: typeof queries;
   router: typeof router;
